@@ -1,0 +1,20 @@
+# log_file
+# date of creation: 16-Aug-2018 19:12:25
+# Type: Matlab Enviroment Application
+
+
+
+16-Aug-2018 19:12:53
+Error in: load_button_Callback Line: 220
+MATLAB:UndefinedFunction
+Undefined function 'map_line_plot' for input arguments of type 'matlab.ui.container.Menu'.
+
+
+
+18-Aug-2018 17:35:22
+Error in: load_button_Callback Line: 171
+MATLAB:badsubscript
+Index exceeds array bounds.
+
+
+
