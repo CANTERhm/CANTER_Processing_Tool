@@ -31,15 +31,24 @@ else
         [E_h,d_h,gof] = initial_guess_hard(x_corrected,y,(perc_steps*i),17.5,0.5,'plot','off');
         error(i) = gof.rsquare;
         Distanz(i) = d_h/1e-6;
+        x_corrected = x_corrected+d_h;
+
+        d_ind = str2double(handles.hertz_fit_depth.String)*(-1)*1e-6;
+        angle = handles.tip_angle;
+        poisson = handles.poisson;
+        % Hertz fit
+        [EModul,gof_hertz,~,~] = HertzFit(x_corrected,y,d_ind,angle,poisson,handles);
+        error_hertz(i) = gof_hertz.rsquare;
     end
     best_perc = perc_steps*find(max(error) == error);
+    best_perc_hertz = perc_steps*find(max(error_hertz) == error_hertz);
     %%% Attention 
     test_figure_2 = figure;   %%%% this creates a new figure window for testing
     figure(test_figure_2);    %%%% and will be removed when everything is working properly!!!!!!!
     %%%% Attention
     [E_h,d_h,gof] = initial_guess_hard(x_corrected,y, best_perc,17.5,0.5,'plot','on');
     title('TEST-PLOT WILL BE REMOVED');
-    msgbox(sprintf('Fitlength: %d%%', best_perc));
+    msgbox(sprintf('Fitlength initial guess hard: %d%% Fitlength Hertz Fit: %d', best_perc, best_perc_hertz));
     % Set the new contactpoint as 0/0
     x_corrected = x_corrected+d_h;
 end

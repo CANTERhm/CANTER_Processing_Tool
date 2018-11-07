@@ -336,11 +336,49 @@ elseif strcmp(answer,'Yes')  || answer == 0
                 folderpath = get(handles.edit_filepath,'String');       % get folder location
                 listing = dir(folderpath);                              % information of files in folder
                 filetype = strsplit(listing(3).name, '.');
+                
                 % Check if the folder contains .ibw files from the MFP-3D
-                if strcmp(filetype(1,2), 'ibw') == 1                   
-                    [x_data,y_data,~,~, Forcecurve_count] = ReadMFPMaps(folderpath);
-                    
-                    
+                if strcmp(filetype(1,2), 'ibw') == 1
+                    handles.ibw = true;
+                    [x_data,y_data,~,~, Forcecurve_label, name_of_file] = ReadMFPMaps(folderpath);
+                    Forcecurve_label = Forcecurve_label';
+                    curves_in_map = strcat(name_of_file,'.',Forcecurve_label);
+                    handles.file_names = curves_in_map;
+                    num_files = length(Forcecurve_label);
+                    % preinitialise curve struct
+                    for i=1:num_files
+                        c_string = sprintf('curve%u',i);
+                        curves.(c_string) = struct('x_values',[],'y_values',[]);                    
+                    end
+
+                    % create waitbar for load process with cancel button
+                    wb_num = 0;
+                    wb = waitbar(0,sprintf('Loading progress: %.g%%',wb_num*100),'Name',...
+                        'Loading ...','CreateCancelBtn','setappdata(gcbf,''canceling'',1)');
+                    setappdata(wb,'canceling',0);
+                    % prelocate listbox cell
+                    it(1:num_files,1) = {''};
+                    handles.listbox1.String = it;
+                    guidata(hObject,handles);
+
+                    % load x and y values from file in struct elements
+                    for i=1:num_files
+                        % Check for clicked cancel button
+                        if getappdata(wb,'canceling')
+                            break
+                        end
+                        % load x and y values of each force curve
+                        c_string = sprintf('curve%u',i);
+                        curves.(c_string).x_values = x_data.(Forcecurve_label{i});
+                        curves.(c_string).y_values = y_data.(Forcecurve_label{i}).*1e-9;
+                        % add listbox element                  
+                        it = handles.listbox1.String;
+                        it{i,1} = sprintf('curve %3u  ->  unprocessed',i);
+                        handles.listbox1.String = it;
+                        % update waitbar
+                        wb_num = i/num_files;
+                        waitbar(wb_num,wb,sprintf('Loading progress: %.f%%',wb_num*100))
+                    end
                 else
                     T_files_in_folder = struct2table(listing);
                     files_in_folder = table2array(T_files_in_folder(:,1));
@@ -690,9 +728,11 @@ handles.current_curve = curve_index +1;
 new_curve_index = curve_index + 1;
 guidata(hObject,handles);
 
-% update current curve marker on map axes
-handles = update_curve_marker(handles);
-
+if handles.ibw == true
+else
+    % update current curve marker on map axes
+    handles = update_curve_marker(handles);
+end
 %Check if the last force curve is reached
 if new_curve_index == handles.num_files+1
 
@@ -816,8 +856,11 @@ handles.current_curve = curve_index +1;
 new_curve_index = curve_index + 1;
 guidata(hObject,handles);
 
-% update current curve marker on map axes
-handles = update_curve_marker(handles);
+if handles.ibw == true
+else
+    % update current curve marker on map axes
+    handles = update_curve_marker(handles);
+end
 
 if new_curve_index == handles.num_files+1
     
@@ -974,9 +1017,11 @@ handles.current_curve = curve_index;
 new_curve_index = curve_index;
 guidata(hObject,handles);
 
-% update current curve marker on map axes
-handles = update_curve_marker(handles);
-
+if handles.ibw == true
+else
+    % update current curve marker on map axes
+    handles = update_curve_marker(handles);
+end
 
 % highlight next list item
 handles.listbox1.Value = new_curve_index;
@@ -1102,9 +1147,11 @@ for a = 1:loop_it
     new_curve_index = curve_index + 1;
     guidata(hObject,handles);
     
-    % update current curve marker on map axes
-    handles = update_curve_marker(handles);
-
+    if handles.ibw == true
+    else
+        % update current curve marker on map axes
+        handles = update_curve_marker(handles);
+    end
 
     % highlight next list item
     handles.listbox1.Value = new_curve_index;

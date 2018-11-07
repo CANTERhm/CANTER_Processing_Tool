@@ -181,15 +181,15 @@ end
 
 %% Update final Interval_max
     
-y_fit = smoothdata(y_fit, 'gaussian', 100);
+% y_fit = smoothdata(y_fit, 'gaussian', 100);
 % std_tolerance = std(y_fit); 
 % edgecounter = 0;
-coefficients = polyfit([x(interval_min), x(interval_max)], [y(interval_min), y(interval_max)], 1);
-y_baseline = coefficients(1)*x_fit+coefficients(2);
-baseline_diff = abs(y_fit-y_baseline);
-
-maximal = max(baseline_diff);
-interval_max = interval_min + find(maximal == baseline_diff);
+% coefficients = polyfit([x(interval_min), x(interval_max)], [y(interval_min), y(interval_max)], 1);
+% y_baseline = coefficients(1)*x_fit+coefficients(2);
+% baseline_diff = abs(y_fit-y_baseline);
+% 
+% maximal = max(baseline_diff);
+% interval_max = interval_min + find(maximal == baseline_diff);
 
 
 %% Save the edges in an array
