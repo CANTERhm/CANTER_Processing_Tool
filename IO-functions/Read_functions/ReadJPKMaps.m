@@ -59,7 +59,7 @@ for i=1:length(files)
 end
 filenumber = filenumber';
 filenumber = sort(filenumber,1);
-Forcecurve_count = ['curve' num2str(filenumber)];
+Forcecurve_count = strcat('curve',num2str(filenumber));
 Forcecurve_count = cellstr(Forcecurve_count);
 Forcecurve_count = Forcecurve_count';
 Forcecurve_count = regexprep(Forcecurve_count, '\s+', ''); % Get rid of the empty space

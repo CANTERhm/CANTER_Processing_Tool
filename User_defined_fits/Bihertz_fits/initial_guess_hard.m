@@ -71,12 +71,10 @@ opts.Exclude = excludedPoints;
 
 varargout{1} = gof;
 
-nullpunkt = -fitresult.p2/fitresult.p1;
 %Save fit results to variable
 t0 = x_min_val-x_min_val*perc/200;
 d_h = -2*fitresult.p2/fitresult.p1-t0;
 E_h = fitresult.p1*(1-poisson^2)/((t0-d_h)*tan(angle*pi/180));
-
 
 
 

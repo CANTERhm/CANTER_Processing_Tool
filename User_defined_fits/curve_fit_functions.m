@@ -86,9 +86,7 @@ switch item
     % Hertz_Fit
     case 'hertz'
         % variables and structs
-        options = handles.options;
         curve_ind = handles.current_curve;
-        curves = handles.curves;
 
         c_string = sprintf('curve%u',curve_ind);
         x_fit = handles.proc_curves.(c_string).x_values;

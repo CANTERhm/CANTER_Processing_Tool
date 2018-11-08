@@ -70,6 +70,7 @@ handles.figures = struct('main_fig',[]);
 handles.load_status = 0;
 handles.save_status = 1;
 handles.interpolation_type = 'bicubic';
+handles.ibw = false;
 
 guidata(hObject, handles);
 
@@ -729,6 +730,7 @@ new_curve_index = curve_index + 1;
 guidata(hObject,handles);
 
 if handles.ibw == true
+    
 else
     % update current curve marker on map axes
     handles = update_curve_marker(handles);

@@ -92,7 +92,6 @@ handles.figures.baseline = line([xlim(1), xlim(2)], [0, 0], 'Color','black','Lin
 handles.figures.contactpoint_line = line([0, 0], [ylim(1), ylim(2)],'Color','black','LineStyle','--');
 handles.figures.baselineedges = scatter([A(1), B(1), C(1)], [A(2), B(2), C(2)]);
 handles.figures.baselineedges_2 = scatter(C(1), C(2), 'filled');
-handles.figures.fittedcurve = plot(x,y);
 drawnow;
 hold(handles.figures.main_ax,'off');
 
