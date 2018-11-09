@@ -22,38 +22,14 @@ else
     % Get first the intersection point of the baseline and the graph
     contactpoint = find(y-y_linfit <= 0, 1, 'last');
     
-    % Set the contactpoint as 0/0
+    % Set the preliminar contactpoint as 0/0
     x_corrected = x-(x(contactpoint));
     
-    %Fit a Hertz_fit to find the CP via Hertz Fit
-    perc_steps = 20;
-%     for i=1:19
-%         [E_h,d_h,gof] = initial_guess_hard(x_corrected,y,(perc_steps*i),17.5,0.5,'plot','off');
-%         error(i) = gof.rsquare;
-%         Distanz(i) = d_h/1e-6;
-%         x_corrected = x_corrected+d_h;
-% 
-%         d_ind = str2double(handles.hertz_fit_depth.String)*(-1)*1e-6;
-%         angle = handles.tip_angle;
-%         poisson = handles.poisson;
-%         % Hertz fit
-%         [EModul,gof_hertz,~,~] = HertzFit(x_corrected,y,d_ind,angle,poisson,handles);
-%         error_hertz(i) = gof_hertz.rsquare;
-%     end
-    
+    %Fit a Hertz_fit to find the CP via linear approximation
+    perc_steps = 20;   
     [~,d_h,gof] = initial_guess_hard(x_corrected,y,(perc_steps),17.5,0.5,'plot','off');
     
     
-    
-%     best_perc = perc_steps*find(max(error) == error);
-%     best_perc_hertz = perc_steps*find(max(error_hertz) == error_hertz);
-    %%% Attention 
-%     test_figure_2 = figure;   %%%% this creates a new figure window for testing
-%     figure(test_figure_2);    %%%% and will be removed when everything is working properly!!!!!!!
-%     %%%% Attention
-%     [~,~,~] = initial_guess_hard(x_corrected,y, 20,17.5,0.5,'plot','on');
-%     title('TEST-PLOT WILL BE REMOVED');
-%     msgbox(sprintf('Fitlength initial guess hard: %d%% Fitlength Hertz Fit: %d', 20, 20));
     % Set the new contactpoint as 0/0
     x_corrected = x_corrected-d_h;
 end
