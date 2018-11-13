@@ -164,7 +164,7 @@ function listbox1_ButtonDownFcn(hObject, ~, handles)
 old_value = handles.listbox1.Value;
 
 % do a left mouse click to change the active value
-hObject.notify(action);
+hObject.notify('action');
 
 % get new listbox value
 new_value = handles.listbox1.Value;
@@ -1848,7 +1848,7 @@ guidata(hObject,handles);
 
 
 % --- Executes when selected object is changed in btngroup_contact.
-function btngroup_contact_SelectionChangedFcn(hObject, eventdata, handles)
+function btngroup_contact_SelectionChangedFcn(hObject, ~, handles)
 % hObject    handle to the selected object in btngroup_contact 
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
