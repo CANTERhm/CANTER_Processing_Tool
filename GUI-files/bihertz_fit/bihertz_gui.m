@@ -121,11 +121,20 @@ function listbox1_Callback(hObject, ~, handles)
 selection_num = hObject.Value;
 
 if selection_num == handles.current_curve
-    % do nothing
+    % deaktivate all list buttons
+    handles.button_keep_highlighted.Enable = 'off';
+    handles.button_undo_highlighted.Enable = 'off';
+    handles.button_discard_highlighted.Enable = 'off';
 elseif selection_num < handles.current_curve
-    
-    
-    
+    % aktivate undo list button and deaktivate the other list buttons
+    handles.button_keep_highlighted.Enable = 'off';
+    handles.button_undo_highlighted.Enable = 'on';
+    handles.button_discard_highlighted.Enable = 'off';
+elseif selection_num > handles.current_curve
+    % deaktivate undo list button and aktivate the other list buttons
+    handles.button_keep_highlighted.Enable = 'on';
+    handles.button_undo_highlighted.Enable = 'off';
+    handles.button_discard_highlighted.Enable = 'on';
 end
 
 
@@ -446,7 +455,10 @@ elseif strcmp(answer,'Yes')  || answer == 0
                         waitbar(wb_num,wb,sprintf('Loading progress: %.f%%',wb_num*100))
                     end
                 end
-
+                % plot an channel image dummy
+                handles.map_axes.Visible = 'on';
+                axes(handles.map_axes);
+                imshow('no_image_dummy.jpg');
         end
         
         handles.listbox1.Value = 1;         % highlight listbox item number one
@@ -739,7 +751,7 @@ guidata(hObject,handles);
 
 if handles.ibw == true
     
-else
+elseif strcmp(handles.loadtype,'file') && handles.ibw == false
     % update current curve marker on map axes
     handles = update_curve_marker(handles);
 end
@@ -867,7 +879,7 @@ new_curve_index = curve_index + 1;
 guidata(hObject,handles);
 
 if handles.ibw == true
-else
+elseif strcmp(handles.loadtype,'file') && handles.ibw == false
     % update current curve marker on map axes
     handles = update_curve_marker(handles);
 end
@@ -1028,7 +1040,7 @@ new_curve_index = curve_index;
 guidata(hObject,handles);
 
 if handles.ibw == true
-else
+elseif strcmp(handles.loadtype,'file') && handles.ibw == false
     % update current curve marker on map axes
     handles = update_curve_marker(handles);
 end
@@ -1158,7 +1170,7 @@ for a = 1:loop_it
     guidata(hObject,handles);
     
     if handles.ibw == true
-    else
+    elseif strcmp(handles.loadtype,'file') && handles.ibw == false
         % update current curve marker on map axes
         handles = update_curve_marker(handles);
     end
