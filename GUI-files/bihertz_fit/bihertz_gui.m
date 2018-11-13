@@ -686,24 +686,55 @@ end
 
 
 % --- Executes on button press in button_keep_highlighted.
-function button_keep_highlighted_Callback(~, ~, handles)
+function button_keep_highlighted_Callback(hObject, ~, handles)
 % hObject    handle to button_keep_highlighted (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+selection_num = handles.listbox1.Value;
+selection_diff = selection_num - handles.current_curve;
+for i=1:selection_diff
+    button_keep_Callback(handles.button_keep,[],handles)
+    handles = guidata(handles.button_keep);
+end
+% switch all buttons to off after processing
+handles.button_keep_highlighted.Enable = 'off';
+handles.button_undo_highlighted.Enable = 'off';
+handles.button_discard_highlighted.Enable = 'off';
+guidata(hObject,handles)
 
 % --- Executes on button press in button_undo_highlighted.
-function button_undo_highlighted_Callback(hObject, eventdata, handles)
+function button_undo_highlighted_Callback(hObject, ~, handles)
 % hObject    handle to button_undo_highlighted (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+selection_num = handles.listbox1.Value;
+selection_diff = handles.current_curve - selection_num;
+for i=1:selection_diff
+    button_undo_Callback(handles.button_undo,[],handles)
+    handles = guidata(handles.button_undo);
+end
+% switch all buttons to off after processing
+handles.button_keep_highlighted.Enable = 'off';
+handles.button_undo_highlighted.Enable = 'off';
+handles.button_discard_highlighted.Enable = 'off';
+guidata(hObject,handles)
 
 % --- Executes on button press in button_discard_highlighted.
-function button_discard_highlighted_Callback(hObject, eventdata, handles)
+function button_discard_highlighted_Callback(hObject, ~, handles)
 % hObject    handle to button_discard_highlighted (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+selection_num = handles.listbox1.Value;
+selection_diff = selection_num - handles.current_curve;
+for i=1:selection_diff
+    button_discard_Callback(handles.button_discard,[],handles)
+    handles = guidata(handles.button_discard);
+end
+% switch all buttons to off after processing
+handles.button_keep_highlighted.Enable = 'off';
+handles.button_undo_highlighted.Enable = 'off';
+handles.button_discard_highlighted.Enable = 'off';
+guidata(hObject,handles)
 
 
 % --- Executes on button press in button_keep.
