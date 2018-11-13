@@ -111,15 +111,23 @@ handles.figure1.WindowState = 'maximized';
 
 
 % --- Executes on selection change in listbox1.
-function listbox1_Callback(hObject, ~, ~)
+function listbox1_Callback(hObject, ~, handles)
 % hObject    handle to listbox1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns listbox1 contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from listbox1
-text = get(hObject,'Value');
-fprintf('Left click on list-value %g\n',text);
+selection_num = hObject.Value;
+
+if selection_num == handles.current_curve
+    % do nothing
+elseif selection_num < handles.current_curve
+    
+    
+    
+end
+
 
 
 
