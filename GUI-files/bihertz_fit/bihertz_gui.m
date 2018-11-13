@@ -155,12 +155,22 @@ end
 
 % --- If Enable == 'on', executes on mouse press in 5 pixel border.
 % --- Otherwise, executes on mouse press in 5 pixel border or over listbox1.
-function listbox1_ButtonDownFcn(hObject, ~, ~)
+function listbox1_ButtonDownFcn(hObject, ~, handles)
 % hObject    handle to listbox1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-test = get(hObject,'Value');
-fprintf('Right click on list-value %g\n',test)
+
+% save old listbox value
+old_value = handles.listbox1.Value;
+
+% do a left mouse click to change the active value
+hObject.notify(action);
+
+% get new listbox value
+new_value = handles.listbox1.Value;
+
+% set listbox value back to old value
+handles.listbox1.Value = old_value;
 
 
 
