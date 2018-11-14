@@ -118,23 +118,100 @@ function listbox1_Callback(hObject, ~, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns listbox1 contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from listbox1
-selection_num = hObject.Value;
 
-if selection_num == handles.current_curve
-    % deaktivate all list buttons
-    handles.button_keep_highlighted.Enable = 'off';
-    handles.button_undo_highlighted.Enable = 'off';
-    handles.button_discard_highlighted.Enable = 'off';
-elseif selection_num < handles.current_curve
-    % aktivate undo list button and deaktivate the other list buttons
-    handles.button_keep_highlighted.Enable = 'off';
-    handles.button_undo_highlighted.Enable = 'on';
-    handles.button_discard_highlighted.Enable = 'off';
-elseif selection_num > handles.current_curve
-    % deaktivate undo list button and aktivate the other list buttons
-    handles.button_keep_highlighted.Enable = 'on';
-    handles.button_undo_highlighted.Enable = 'off';
-    handles.button_discard_highlighted.Enable = 'on';
+% differ between single and double click on listbox item
+figure_hand = gcf;
+if strcmp(figure_hand.SelectionType,'open')
+    try
+        delete(handles.figures.single_curve_fig);
+    catch
+        % ME if you can
+    end
+    handles.figures.single_curve_fig = figure;
+    handles.figures.single_curve_ax = axes;
+    
+    % get number of double clicked_curve
+    curve_index = hObject.Value;
+    
+    % make a copy of handles
+    handles_copy = handles;
+    % set the curve index as current curve in handles copy
+    handles_copy.current_curve = curve_index;
+    % process the choosen curve with the handles copy
+    [hObject,handles_copy] = process_options(hObject,handles_copy);
+    guidata(hObject,handles);
+
+    % make the single_curve_fig the main_fig in handles copy aswell as the
+    % axes and overwrite fit_handle
+    handles_copy.figures.main_fig = handles.figures.single_curve_fig;
+    handles_copy.figures.main_ax = handles.figures.single_curve_ax;
+    handles_copy.figures.fit_plot = [];
+    
+    % plot unprocessed curve as dummy in main_plot
+    figure(handles_copy.figures.main_fig);
+    c_string = sprintf('curve%u',curve_index);
+    handles_copy.figures.main_plot = ...
+        plot(handles_copy.proc_curves.(c_string).x_values,handles_copy.proc_curves.(c_string).y_values);
+    
+    % draw choosen curve
+    switch handles.options.model
+        case 'bihertz'
+            [handles_copy] = plot_bihertz(handles_copy);
+            guidata(hObject,handles);
+        case 'hertz'
+            [hObject,handles_copy] = plot_hertz(hObject,handles_copy);
+            guidata(hObject,handles);
+    end
+    
+    % fit model to choosen curve and display fitresult in single_curve_fig
+    [hObject,handles_copy] = curve_fit_functions(hObject,handles_copy);
+    guidata(hObject,handles);
+    
+    % add annotation to single_curve_fig
+    figure(handles.figures.single_curve_fig);
+    switch handles.options.model
+        case 'bihertz'
+            plot_str = {c_string,...
+                sprintf('Young''s Modulus soft: %.2f kPa',handles_copy.fit_results.fit_E_s/1e3),...
+                sprintf('Young''s Modulus hard: %.2f kPa',handles_copy.fit_results.fit_E_h/1e3),...
+                sprintf('Soft layer thickness: %.2f µm',handles_copy.fit_results.fit_d_h*1e6),...
+                sprintf('R^2: %1.5f',handles_copy.fit_results.rsquare_fit)};
+            hold(handles.figures.single_curve_ax,'on')
+            h1 = line(nan,nan,'Color','none','Linestyle','none','Marker','none');
+            h2 = line(nan,nan,'Color','none','Linestyle','none','Marker','none');
+            h3 = line(nan,nan,'Color','none','Linestyle','none','Marker','none');
+            h4 = line(nan,nan,'Color','none','Linestyle','none','Marker','none');
+            h5 = line(nan,nan,'Color','none','Linestyle','none','Marker','none');
+            warning off
+            legend([h1 h2 h3 h4 h5],plot_str,'Location','northeast');
+            warning on
+    
+        case 'hertz'
+            
+    end
+    
+    
+    
+else
+    % the following code weill be executed after single-click
+    selection_num = hObject.Value;
+
+    if selection_num == handles.current_curve
+        % deaktivate all list buttons
+        handles.button_keep_highlighted.Enable = 'off';
+        handles.button_undo_highlighted.Enable = 'off';
+        handles.button_discard_highlighted.Enable = 'off';
+    elseif selection_num < handles.current_curve
+        % aktivate undo list button and deaktivate the other list buttons
+        handles.button_keep_highlighted.Enable = 'off';
+        handles.button_undo_highlighted.Enable = 'on';
+        handles.button_discard_highlighted.Enable = 'off';
+    elseif selection_num > handles.current_curve
+        % deaktivate undo list button and aktivate the other list buttons
+        handles.button_keep_highlighted.Enable = 'on';
+        handles.button_undo_highlighted.Enable = 'off';
+        handles.button_discard_highlighted.Enable = 'on';
+    end
 end
 
 
@@ -160,17 +237,6 @@ function listbox1_ButtonDownFcn(hObject, ~, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% save old listbox value
-old_value = handles.listbox1.Value;
-
-% do a left mouse click to change the active value
-hObject.notify('action');
-
-% get new listbox value
-new_value = handles.listbox1.Value;
-
-% set listbox value back to old value
-handles.listbox1.Value = old_value;
 
 
 

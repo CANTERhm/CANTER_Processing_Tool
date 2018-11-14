@@ -29,8 +29,6 @@ catch
     %nix%
 end
 
-%% contact point correction
-% function for the detection and correction of the contact point
 
 %% drawing of corrected curve
 handles.figures.main_plot.XData = x;
