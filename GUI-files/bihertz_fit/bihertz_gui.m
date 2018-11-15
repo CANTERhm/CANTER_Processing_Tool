@@ -164,7 +164,9 @@ if strcmp(figure_hand.SelectionType,'open')
     end
     
     % fit model to choosen curve and display fitresult in single_curve_fig
+    warning off
     [hObject,handles_copy] = curve_fit_functions(hObject,handles_copy);
+    warning on
     guidata(hObject,handles);
     
     % add annotation to single_curve_fig
@@ -177,17 +179,34 @@ if strcmp(figure_hand.SelectionType,'open')
                 sprintf('Soft layer thickness: %.2f µm',handles_copy.fit_results.fit_d_h*1e6),...
                 sprintf('R^2: %1.5f',handles_copy.fit_results.rsquare_fit)};
             hold(handles.figures.single_curve_ax,'on')
-            h1 = line(nan,nan,'Color','none','Linestyle','none','Marker','none');
-            h2 = line(nan,nan,'Color','none','Linestyle','none','Marker','none');
-            h3 = line(nan,nan,'Color','none','Linestyle','none','Marker','none');
-            h4 = line(nan,nan,'Color','none','Linestyle','none','Marker','none');
-            h5 = line(nan,nan,'Color','none','Linestyle','none','Marker','none');
+            h1 = line(nan,nan,'Color','none');
+            h2 = line(nan,nan,'Color','none');
+            h3 = line(nan,nan,'Color','none');
+            h4 = line(nan,nan,'Color','none');
+            h5 = line(nan,nan,'Color','none');
             warning off
-            legend([h1 h2 h3 h4 h5],plot_str,'Location','northeast');
+            [~,leg_icons] = legend([h1 h2 h3 h4 h5],plot_str,'Location','northeast');
             warning on
-    
+            icon_hnd = findobj(leg_icons,'type','text');
+            icon_hnd(1).Position(1) = .08;
+            icon_hnd(2).Position(1) = .08;
+            icon_hnd(3).Position(1) = .08;
+            icon_hnd(4).Position(1) = .08;
+            icon_hnd(5).Position(1) = .08;
         case 'hertz'
-            
+            plot_str = {c_string,...
+                sprintf('Young''s Modulus: %.2f kPa',handles_copy.fit_results.EModul/1e3),...
+                sprintf('R^2: %1.5f',handles_copy.fit_results.gof_rsquare)};
+            h1 = line(nan,nan,'Color','none');
+            h2 = line(nan,nan,'Color','none');
+            h3 = line(nan,nan,'Color','none');
+            warning off
+            [~,leg_icons] = legend([h1 h2 h3],plot_str,'Location','northeast');
+            warning on
+            icon_hnd = findobj(leg_icons,'type','text');
+            icon_hnd(1).Position(1) = .08;
+            icon_hnd(2).Position(1) = .08;
+            icon_hnd(3).Position(1) = .08;
     end
     
     
