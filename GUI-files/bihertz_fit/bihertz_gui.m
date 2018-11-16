@@ -251,7 +251,7 @@ end
 
 % --- If Enable == 'on', executes on mouse press in 5 pixel border.
 % --- Otherwise, executes on mouse press in 5 pixel border or over listbox1.
-function listbox1_ButtonDownFcn(hObject, ~, handles)
+function listbox1_ButtonDownFcn(~, ~, ~)
 % hObject    handle to listbox1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
