@@ -547,7 +547,7 @@ elseif strcmp(answer,'Yes')  || answer == 0
                         handles.listbox1.String = it;
                         % update waitbar
                         wb_num = i/num_files;
-                        waitbar(wb_num,wb,sprintf('Loading progress: %.f%%',wb_num*100))
+                        waitbar(wb_num,wb,sprintf('Loading progress: %.f%%',wb_num*100));
                     end
                 end
                 % plot an channel image dummy
