@@ -54,7 +54,7 @@ for i = 1:length(files)
     waitbar(i/(length(files)));
     
     clearvars x_data_raw y_data_raw root fileroot data I
-    fclose('all')
+    fclose('all');
 
 end
 
