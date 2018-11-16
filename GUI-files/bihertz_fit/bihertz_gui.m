@@ -1114,7 +1114,7 @@ function button_undo_Callback(hObject, ~, handles)
 
 % set save status to 0
 handles.save_status = 0;
-handles.save_status_led.BackgroundColor = [0 1 0];
+handles.save_status_led.BackgroundColor = [1 0 0];
 
 
 % Subtract 1 from the current curve value
