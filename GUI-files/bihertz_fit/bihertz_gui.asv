@@ -1973,6 +1973,7 @@ function btn_histogram_Callback(hObject, ~, handles)
 try
     histogram_fig = findobj('Name', 'Resulting Histogram');
     delete(histogram_fig)
+    clear EModul
 catch
 end
 handles.fig3 = figure('Name','Resulting Histogram','NumberTitle','off', 'Color', 'white');
