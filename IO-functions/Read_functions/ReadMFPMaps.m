@@ -1,4 +1,4 @@
-function [x_data, y_data, x_data_retract, y_data_retract, Forcecurve_count, file_name]=ReadMFPMaps(pathname)
+function [x_data, y_data, x_data_retract, y_data_retract, Forcecurve_count, file_name, mfpmapdata]=ReadMFPMaps(pathname)
 % ************************************************************************%
 %                                                                         %
 %   * Read the forcemap of the MFP-3D                                     %
@@ -42,13 +42,14 @@ for i = 1:length(files)
     y_data_retract.(Forcecurve_count{i}) = y_data_raw(I+1:end,1); % keep the retract part
     
     
-    %Test to read additional map data
-%     if i == 1
+%Test to read additional map data
+    if i == 1
+        mfpmapdata = data.WaveNotes;
 %         scanpt_loc = strfind(data.WaveNotes, 'FMapScanPoints');
 %         scanpt = str2num(data.WaveNotes((scanpt_loc)+16:(scanpt_loc)+17));
 %         scanl_loc = strfind(data.WaveNotes, 'FMapScanLines');
 %         scanl = str2num(data.WaveNotes((scanl_loc)+15:(scanl_loc)+17));
-%     end
+    end
     
     %% updating the wait bar
     waitbar(i/(length(files)));

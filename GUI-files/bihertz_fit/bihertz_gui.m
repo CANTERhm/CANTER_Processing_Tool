@@ -453,7 +453,7 @@ elseif strcmp(answer,'Yes')  || answer == 0
                 % Check if the folder contains .ibw files from the MFP-3D
                 if strcmp(filetype(1,2), 'ibw') == 1
                     handles.ibw = true;
-                    [x_data,y_data,~,~, Forcecurve_label, name_of_file] = ReadMFPMaps(folderpath);
+                    [x_data,y_data,~,~, Forcecurve_label, name_of_file, mfpmapdata] = ReadMFPMaps(folderpath);
                     Forcecurve_label = Forcecurve_label';
                     curves_in_map = strcat(name_of_file,'.',Forcecurve_label);
                     handles.file_names = curves_in_map;
@@ -473,6 +473,16 @@ elseif strcmp(answer,'Yes')  || answer == 0
                     it(1:num_files,1) = {''};
                     handles.listbox1.String = it;
                     guidata(hObject,handles);
+                    
+                    % Get the size of the forcemap
+                    scanpt_loc = strfind(mfpmapdata, 'FMapScanPoints');
+                    scanpt = str2double(mfpmapdata((scanpt_loc)+16:(scanpt_loc)+17));
+                    scanl_loc = strfind(mfpmapdata, 'FMapScanLines');
+                    scanl = str2double(mfpmapdata((scanl_loc)+15:(scanl_loc)+17));
+                    handles.MFP_height_matrix = zeros(scanl,scanpt);
+                    handles.MFP_mslope_matrix = zeros(scanl,scanpt);
+                    handles.MFP_fmap_num_line = scanl;    %Number of lines in the forcemap
+                    handles.MFP_fmap_num_points = scanpt; %Number of points in the forcemap
 
                     % load x and y values from file in struct elements
                     for i=1:num_files
@@ -484,6 +494,26 @@ elseif strcmp(answer,'Yes')  || answer == 0
                         c_string = sprintf('curve%u',i);
                         curves.(c_string).x_values = x_data.(Forcecurve_label{i});
                         curves.(c_string).y_values = y_data.(Forcecurve_label{i}).*1e-9;
+                        if i == 1
+                            pt_count = 1;
+                            line_count = scanl;
+                        end
+                        %Get the height value of each curve
+                        handles.MFP_height_matrix(line_count,pt_count) = max(y_data.(Forcecurve_label{i})*-1); %The MFP-3D Software uses the negative max value
+                        
+                        %Get the measured slope value of each curve
+                        y_data_singlecurve = y_data.(Forcecurve_label{i});
+                        x_data_singlecurve = x_data.(Forcecurve_label{i});
+                        y_data_fit = y_data_singlecurve((length(y_data_singlecurve)-0.02*length(y_data_singlecurve)):end);
+                        x_data_fit = x_data_singlecurve((length(x_data_singlecurve)-0.02*length(x_data_singlecurve)):end);
+                        [p] = polyfit(x_data_fit, y_data_fit, 1);
+                        handles.MFP_mslope_matrix(line_count,pt_count) = p(1);
+                        
+                        if pt_count == scanpt
+                            pt_count = 0;
+                            line_count = line_count - 1;
+                        end
+                        pt_count = pt_count +1;
                         % add listbox element                  
                         it = handles.listbox1.String;
                         it{i,1} = sprintf('curve %3u  ->  unprocessed',i);
@@ -492,6 +522,26 @@ elseif strcmp(answer,'Yes')  || answer == 0
                         wb_num = i/num_files;
                         waitbar(wb_num,wb,sprintf('Loading progress: %.f%%',wb_num*100))
                     end
+                    %Replace all the left zeros by the minimal value to get
+                    %still a good image
+                    mslope_matrix = handles.MFP_mslope_matrix;
+                    mslope_matrix(mslope_matrix==0) = [];
+                    handles.MFP_mslope_matrix(handles.MFP_mslope_matrix ==0) = (min(min(mslope_matrix))); %Calling min twice is a trick to get the minimum value of an array
+                 
+                    height_matrix = handles.MFP_height_matrix;
+                    height_matrix(height_matrix==0) = [];
+                    handles.MFP_height_matrix(handles.MFP_height_matrix ==0) = (max(max(height_matrix))); %Calling max twice is a trick to get the maximum value of an array
+                    
+                    %Enable the Image Channel popup menu
+                    handles.channel_names = {'height', 'slope'}';
+                    handles.image_channels_popup.String = handles.channel_names;
+                    handles.image_channels_popup.Enable = 'on';
+                    % plot an channel image dummy
+                    handles.map_axes.Visible = 'on';
+                    handles.image_channels_popup.Value = 1;
+                    axes(handles.map_axes);
+                    imshow(handles.MFP_height_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
+
                 else
                     T_files_in_folder = struct2table(listing);
                     files_in_folder = table2array(T_files_in_folder(:,1));
@@ -549,11 +599,11 @@ elseif strcmp(answer,'Yes')  || answer == 0
                         wb_num = i/num_files;
                         waitbar(wb_num,wb,sprintf('Loading progress: %.f%%',wb_num*100));
                     end
-                end
-                % plot an channel image dummy
-                handles.map_axes.Visible = 'on';
-                axes(handles.map_axes);
-                imshow('no_image_dummy.jpg');
+                    
+                    % plot an channel image dummy
+                    axes(handles.map_axes);
+                    imshow('no_image_dummy.jpg');
+                end    
         end
         
         handles.listbox1.Value = 1;         % highlight listbox item number one
@@ -1755,28 +1805,37 @@ function image_channels_popup_Callback(hObject, ~, handles)
 % Hints: contents = cellstr(get(hObject,'String')) returns image_channels_popup contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from image_channels_popup
 [hObject,handles] = checker_helpf(hObject,handles);
-channel_num = hObject.Value;
-channel_string = handles.channel_names{channel_num};
-channel_interpolation = handles.interpolation_type;
-if ~strcmp(channel_interpolation,'none')
-    interpolation_string = sprintf('_%s_interpolation',channel_interpolation);
+if (handles.ibw == true)
+    channel_string = hObject.String(hObject.Value);
+    if strcmp(channel_string,'height')
+        imshow(handles.MFP_height_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
+    else
+        imshow(handles.MFP_mslope_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
+    end
 else
-    interpolation_string = '';
-end
-if strcmp(channel_string,'height')
-    channel_image = handles.map_images.height.(sprintf('absolute_%s_data%s',...
-    channel_string,interpolation_string));
-else
-    channel_image = handles.map_images.(channel_string).(sprintf('%s_data%s',...
+    channel_num = hObject.Value;
+    channel_string = handles.channel_names{channel_num};
+    channel_interpolation = handles.interpolation_type;
+    if ~strcmp(channel_interpolation,'none')
+        interpolation_string = sprintf('_%s_interpolation',channel_interpolation);
+    else
+        interpolation_string = '';
+    end
+    if strcmp(channel_string,'height')
+        channel_image = handles.map_images.height.(sprintf('absolute_%s_data%s',...
         channel_string,interpolation_string));
+    else
+        channel_image = handles.map_images.(channel_string).(sprintf('%s_data%s',...
+            channel_string,interpolation_string));
+    end
+    axes(handles.map_axes);
+    imshow(flip(channel_image,1),[],'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel]);
+    handles.map_axes.YDir = 'normal';
+    handles = update_curve_marker(handles);
+    hline = findall(gca,'Type','image');
+    set(hline(1),'uicontextmenu',handles.map_axes_context);
+    set_afm_gold;
 end
-axes(handles.map_axes);
-imshow(flip(channel_image,1),[],'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel]);
-handles.map_axes.YDir = 'normal';
-handles = update_curve_marker(handles);
-hline = findall(gca,'Type','image');
-set(hline(1),'uicontextmenu',handles.map_axes_context);
-set_afm_gold;
 guidata(hObject,handles);
 
 % --- Executes during object creation, after setting all properties.
