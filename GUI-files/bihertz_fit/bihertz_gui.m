@@ -507,7 +507,7 @@ elseif strcmp(answer,'Yes')  || answer == 0
                         y_data_fit = y_data_singlecurve((length(y_data_singlecurve)-0.02*length(y_data_singlecurve)):end);
                         x_data_fit = x_data_singlecurve((length(x_data_singlecurve)-0.02*length(x_data_singlecurve)):end);
                         [p] = polyfit(x_data_fit, y_data_fit, 1);
-                        handles.MFP_mslope_matrix(line_count,pt_count) = p(1);
+                        handles.MFP_mslope_matrix(line_count,pt_count) = p(1)*-1e-6;
                         
                         if pt_count == scanpt
                             pt_count = 0;
@@ -522,25 +522,37 @@ elseif strcmp(answer,'Yes')  || answer == 0
                         wb_num = i/num_files;
                         waitbar(wb_num,wb,sprintf('Loading progress: %.f%%',wb_num*100))
                     end
-                    %Replace all the left zeros by the minimal value to get
+                    %Replace all the left zeros by the minimal/maximal value to get
                     %still a good image
                     mslope_matrix = handles.MFP_mslope_matrix;
                     mslope_matrix(mslope_matrix==0) = [];
-                    handles.MFP_mslope_matrix(handles.MFP_mslope_matrix ==0) = (min(min(mslope_matrix))); %Calling min twice is a trick to get the minimum value of an array
+                    handles.MFP_mslope_matrix(handles.MFP_mslope_matrix==0) = (min(min(mslope_matrix))); %Calling min twice is a trick to get the minimum value of an array
                  
                     height_matrix = handles.MFP_height_matrix;
                     height_matrix(height_matrix==0) = [];
                     handles.MFP_height_matrix(handles.MFP_height_matrix ==0) = (max(max(height_matrix))); %Calling max twice is a trick to get the maximum value of an array
                     
+                    % Get the color gradient for each matrix
+                    handles.colorgrad_height = flipud(linspace(min(min(handles.MFP_height_matrix)), max(max(handles.MFP_height_matrix)), 100))';
+                    handles.colorgrad_slope = flipud(linspace(min(min(handles.MFP_mslope_matrix)), max(max(handles.MFP_mslope_matrix)), 100))';
+                    
                     %Enable the Image Channel popup menu
                     handles.channel_names = {'height', 'slope'}';
                     handles.image_channels_popup.String = handles.channel_names;
                     handles.image_channels_popup.Enable = 'on';
-                    % plot an channel image dummy
+                    
+                    % plot an channel image and the given color gradient
                     handles.map_axes.Visible = 'on';
                     handles.image_channels_popup.Value = 1;
                     axes(handles.map_axes);
                     imshow(handles.MFP_height_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
+                    axes(handles.colorgradient);
+                    imshow(handles.colorgrad_height, 'InitialMagnification', 'fit', 'XData', [1 3], 'YData', [1 100], 'DisplayRange', []);
+                    set(handles.colorgradient_max, 'String', sprintf('%.2f',max(max(handles.MFP_height_matrix))));
+                    set(handles.colorgradient_min, 'String', sprintf('%.2f',min(min(handles.MFP_height_matrix))));
+                    set(handles.colorgradient,'Ydir','normal'); %Set the maximum value as top
+                    set(handles.colorgradient_unit, 'String', '[µm]');
+                    set_afm_gold();
 
                 else
                     T_files_in_folder = struct2table(listing);
@@ -1808,9 +1820,28 @@ function image_channels_popup_Callback(hObject, ~, handles)
 if (handles.ibw == true)
     channel_string = hObject.String(hObject.Value);
     if strcmp(channel_string,'height')
+        axes(handles.map_axes);
         imshow(handles.MFP_height_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
+        set_afm_gold();
+        axes(handles.colorgradient);
+        imshow(handles.colorgrad_height, 'InitialMagnification', 'fit', 'XData', [1 3], 'YData', [1 100], 'DisplayRange', []);
+        set(handles.colorgradient_max, 'String', sprintf('%.2f',max(max(handles.MFP_height_matrix))));
+        set(handles.colorgradient_min, 'String', sprintf('%.2f',min(min(handles.MFP_height_matrix))));
+        set(handles.colorgradient_unit, 'String', '[µm]');
+        set(handles.colorgradient,'Ydir','normal'); %Set the maximum value as top
+        set_afm_gold();
+        
     else
+        axes(handles.map_axes);
         imshow(handles.MFP_mslope_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
+        set_afm_gold();
+        axes(handles.colorgradient);
+        imshow(handles.colorgrad_slope, 'InitialMagnification', 'fit', 'XData', [1 3], 'YData', [1 100], 'DisplayRange', []);
+        set(handles.colorgradient_max, 'String', sprintf('%.2f',max(max(handles.MFP_mslope_matrix))));
+        set(handles.colorgradient_min, 'String', sprintf('%.2f',min(min(handles.MFP_mslope_matrix))));
+        set(handles.colorgradient_unit, 'String', '[V/µm]');
+        set(handles.colorgradient,'Ydir','normal'); %Set the maximum value as top
+        set_afm_gold();
     end
 else
     channel_num = hObject.Value;
