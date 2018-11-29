@@ -1028,10 +1028,12 @@ else
     [hObject,handles] = update_progress_info(hObject,handles);
     guidata(hObject,handles);
     
-    % activate undo & histogram button when first time pushed
+    % activate undo & histogram button & youngs modulus image when first time pushed
     if curve_index == 1
         handles.button_undo.Enable = 'on';
         handles.btn_histogram.Enable = 'on';
+        handles.channel_names = {'height', 'slope', 'Youngs Modulus'}';
+        handles.image_channels_popup.String = handles.channel_names;
     end
     
 
@@ -1275,10 +1277,12 @@ guidata(hObject,handles);
 [hObject,handles] = update_progress_info(hObject,handles);
 guidata(hObject,handles);
 
-% when first curve reached disable undo button
+% when first curve reached disable undo button and Youngs Modulus image
 if new_curve_index == 1
     handles.button_undo.Enable = 'off';
     handles.fit_model_popup.Enable = 'on';
+    handles.channel_names = {'height', 'slope'}';
+    handles.image_channels_popup.String = handles.channel_names;
 end
 
 % if pushed after reaching the last curve keep and discard buttons are
@@ -1306,6 +1310,10 @@ function button_keep_all_Callback(hObject, ~, handles)
     handles.button_discard.Enable = 'off';
     handles.button_keep_all.Enable = 'off';
     handles.button_undo.Enable = 'off';
+    
+    % Enable Youngs Modulus image
+    handles.channel_names = {'height', 'slope', 'Youngs Modulus'}';
+    handles.image_channels_popup.String = handles.channel_names;
 
 curve_index = handles.current_curve;
 
@@ -1831,7 +1839,7 @@ if (handles.ibw == true)
         set(handles.colorgradient,'Ydir','normal'); %Set the maximum value as top
         set_afm_gold();
         
-    else
+    elseif strcmp(channel_string, 'slope')
         axes(handles.map_axes);
         imshow(handles.MFP_mslope_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
         set_afm_gold();
@@ -1840,6 +1848,43 @@ if (handles.ibw == true)
         set(handles.colorgradient_max, 'String', sprintf('%.2f',max(max(handles.MFP_mslope_matrix))));
         set(handles.colorgradient_min, 'String', sprintf('%.2f',min(min(handles.MFP_mslope_matrix))));
         set(handles.colorgradient_unit, 'String', '[V/µm]');
+        set(handles.colorgradient,'Ydir','normal'); %Set the maximum value as top
+        set_afm_gold();
+    else strcmp(channel_string, 'Youngs Modulus')
+        table = handles.T_result;
+        current_curve = handles.current_curve;
+        curve_index = 1;    %only processed curves are saved in the handles.T_result table
+        handles.MFP_Ymodulus_matrix = zeros(handles.MFP_fmap_num_line,handles.MFP_fmap_num_points);
+        for i=1:current_curve; 
+            if i == 1
+                pt_count = 1;
+                line_count = handles.MFP_fmap_num_line;
+            end
+            if handles.T_result{curve_index,2} == i 
+                handles.MFP_Ymodulus_matrix(line_count,pt_count)= handles.T_result{curve_index,3};
+                curve_index = curve_index+1;
+            else
+                handles.MFP_Ymodulus_matrix(line_count,pt_count) = pi; % A way to fill in empty spaces
+            end
+            if pt_count == handles.MFP_fmap_num_points
+                pt_count = 0;
+                line_count = line_count - 1;
+            end
+            pt_count = pt_count +1;
+        end
+        Ymodulus_matrix = handles.MFP_Ymodulus_matrix;
+        Ymodulus_matrix(Ymodulus_matrix == 0 | Ymodulus_matrix == pi) = [];
+        handles.MFP_Ymodulus_matrix(handles.MFP_Ymodulus_matrix == 0 | handles.MFP_Ymodulus_matrix == pi) = min(min(Ymodulus_matrix));
+        handles.colorgrad_Ymodulus = flipud(linspace(min(min(handles.MFP_Ymodulus_matrix)), max(max(handles.MFP_Ymodulus_matrix)), 100))';
+        %Display the Youngs Modulus matrix
+        axes(handles.map_axes);
+        imshow(handles.MFP_Ymodulus_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
+        set_afm_gold();
+        axes(handles.colorgradient);
+        imshow(handles.colorgrad_Ymodulus, 'InitialMagnification', 'fit', 'XData', [1 3], 'YData', [1 100], 'DisplayRange', []);
+        set(handles.colorgradient_max, 'String', sprintf('%.2f',(max(max(handles.MFP_Ymodulus_matrix)))/1000));
+        set(handles.colorgradient_min, 'String', sprintf('%.2f',(min(min(handles.MFP_Ymodulus_matrix)))/1000));
+        set(handles.colorgradient_unit, 'String', '[kPa]');
         set(handles.colorgradient,'Ydir','normal'); %Set the maximum value as top
         set_afm_gold();
     end
