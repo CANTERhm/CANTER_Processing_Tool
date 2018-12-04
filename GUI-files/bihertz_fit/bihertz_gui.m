@@ -1337,6 +1337,10 @@ wb = waitbar(0,sprintf('curve %3u of %3u',curve_index,handles.num_files),...
     'CreateCancelBtn','setappdata(gcbf,''canceling'',1)');
 setappdata(wb,'canceling',0);
 
+% Do the keep and apply function with or without graphical presentation
+answer_display = questdlg('Do you want every graph/fit to be displayed?',...
+    'Graphical Presentation','Yes','No','Yes');
+
 for a = 1:loop_it
     
     % check for clicked cancel button
@@ -1394,18 +1398,22 @@ for a = 1:loop_it
     %Process new curve
     [hObject,handles] = process_options(hObject,handles);
     
-    % draw new curve
-    switch handles.options.model
-        case 'bihertz'
-            [handles] = plot_bihertz(handles);
-            guidata(hObject,handles);
-        case 'hertz'
-            [hObject,handles] = plot_hertz(hObject,handles);
-            guidata(hObject,handles);
+    %Only show the curve when the user want to see it
+    if strcmp(answer_display, 'Yes')
+        % draw new curve
+        switch handles.options.model
+            case 'bihertz'
+                [handles] = plot_bihertz(handles);
+                guidata(hObject,handles);
+            case 'hertz'
+                [hObject,handles] = plot_hertz(hObject,handles);
+                guidata(hObject,handles);
+        end
+    else
     end
 
     % fit data to processed curve and display fitresult
-    [hObject,handles] = curve_fit_functions(hObject,handles);
+    [hObject,handles] = curve_fit_functions(hObject,handles, answer_display);
     guidata(hObject,handles);
 
     % update gui fit results

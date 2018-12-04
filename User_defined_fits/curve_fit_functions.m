@@ -1,4 +1,4 @@
-function [hObject,handles] = curve_fit_functions(hObject,handles)
+function [hObject,handles] = curve_fit_functions(hObject,handles, varargin)
 %%  CURVE_FIT_FUNCTIONS: Function to process the fit choosen by the user
 % 
 %   Example:
@@ -102,17 +102,28 @@ switch item
         handles.fit_results.EModul = EModul;
         handles.fit_results.gof_rsquare = gof.rsquare;
         
-        % add fit to main plot window
-        figure(handles.figures.main_fig)
-        hold(handles.figures.main_ax,'on');
-        try
-            delete(handles.figures.fit_plot)
-        catch 
-            %nix%
+        %Fit is always shown only when in "keep and apply to all" it is
+        %denied
+        answer_display = 'Yes';
+        if nargin == 3
+            answer_display = varargin{1};
         end
-        handles.figures.fit_plot = plot(x_fit,y_plot,'r-');
-        drawnow;
-        hold(handles.figures.main_ax,'off');
+        
+        if strcmp(answer_display, 'Yes')
+            % add fit to main plot window
+            figure(handles.figures.main_fig)
+            hold(handles.figures.main_ax,'on');
+            try
+                delete(handles.figures.fit_plot)
+            catch 
+                %nix%
+            end
+            handles.figures.fit_plot = plot(x_fit,y_plot,'r-');
+            drawnow;
+            hold(handles.figures.main_ax,'off');
+        else
+        end
+       
 end
 
 
