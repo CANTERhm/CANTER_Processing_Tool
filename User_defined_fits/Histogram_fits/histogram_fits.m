@@ -1,6 +1,6 @@
 function [varargout] = histogram_fits(x,varargin)
 %% HISTOGRAM_FITS: generates a histogram of the vector given to this
-%                  function and fits a specified ditribution to it. 
+%                  function and fits a specified distribution to it. 
 %
 % [op1] = histogram_fits(x)
 % [op1,op2] = histogram_fits(x,FitType)
@@ -9,7 +9,7 @@ function [varargout] = histogram_fits(x,varargin)
 % -------------------------------------------------------------------------
 % 
 % [op1] = histogram_fits(x)
-% • This function creats a histogram from the
+% • This function creates a histogram from the
 % • data given in X as a numeric array.
 % • In the optional output variable OP1 can be optained the histogram 
 %   informations stored in a struct.
@@ -26,7 +26,7 @@ function [varargout] = histogram_fits(x,varargin)
 % [op1,op2] = histogram_fits(x,FitType)
 % • Tis function creats a histogram from the data given in x as a numeric
 %   array.
-% • In FITTYPE a function can be choosen who is fittet on the histogram as
+% • In FITTYPE a function can be choosen which is fitted on the histogram as
 %   a string.
 % 
 %   -> Allowed strings are:
@@ -88,12 +88,12 @@ validTypes = {'none','gauss','bimodal'};
 checkType = @(x) any(validatestring(x,validTypes));
 addOptional(p,'FunType',defaultType,checkType);
 
-% optional paramter for number of bins
+% optional parameter for number of bins
 dafaultNum = -1;
 checkNum = @(x) isscalar(x) && x > 0;
 addOptional(p,'BinNum',dafaultNum,checkNum);
 
-% parse all opional inputs to inputParser
+% parse all optional inputs to inputParser
 parse(p,x,varargin{:});
 
 %% generate histogram from dataset
@@ -121,7 +121,7 @@ axis([min(h.BinEdges)-x_offset max(h.BinEdges)+x_offset 0 max(h.BinCounts)+y_off
 
 % five histogram parameters as output
 varargout{1} = struct('BinCenters',x_fit,'BinCounts',y_fit,'BinWidth',...
-                      width,'BinNum',num,'BinEdges', h.BinEdges);
+                      width,'BinNum',num,'BinEdges', h.BinEdges,'Histogram_handle', h);
 
 %% fitting the chosen distribution on histogram data and give back fit results
 if ~strcmp(p.Results.FunType ,'none')
@@ -131,7 +131,7 @@ if ~strcmp(p.Results.FunType ,'none')
             varargout{2} = gauss_fit;
             hold on
             plot(gauss_fit);
-            ylabel('Frequenzy');
+            ylabel('Frequency');
             xlabel(inputname(1));
             his_leg = sprintf('histogram of %s',inputname(1));
             legend(his_leg,'gauss fit');

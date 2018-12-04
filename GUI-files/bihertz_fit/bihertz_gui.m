@@ -22,7 +22,7 @@ function varargout = bihertz_gui(varargin)
 
 % Edit the above text to modify the response to help bihertz_gui
 
-% Last Modified by GUIDE v2.5 20-Nov-2018 17:17:54
+% Last Modified by GUIDE v2.5 04-Dec-2018 11:25:31
     warning off
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -68,7 +68,7 @@ handles.options = varargin{1};
 handles.curves = struct([]);
 handles.figures = struct('main_fig',[]);
 handles.load_status = 0;
-handles.save_status = 1;
+handles.save_status = 0;
 handles.interpolation_type = 'bicubic';
 handles.ibw = false;
 
@@ -87,6 +87,8 @@ switch handles.options.model
         handles.hertz_fit_panel.Visible = 'on';
         axes(handles.map_axes);
         axis off
+
+guidata(hObject,handles);
 end
 
 
@@ -301,8 +303,8 @@ function button_load_data_Callback(hObject, ~, handles)
 % hObject    handle to button_load_data (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-answer = 0;
-if handles.load_status == 1
+answer = 'NaN';
+if handles.save_status == 1
     answer = questdlg({'There is loaded data!',...
         'If you load new data all unsaved results will be lost!',...
         'Do you really want to load new data?'},...
@@ -311,7 +313,7 @@ end
 
 if strcmp(answer,'No')
     return;
-elseif strcmp(answer,'Yes')  || answer == 0
+elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
     path = get(handles.edit_filepath,'String');
     if strcmp(path,'    filepath')
         errordlg('No file or folder selected','No selection found');
@@ -504,8 +506,8 @@ elseif strcmp(answer,'Yes')  || answer == 0
                         %Get the measured slope value of each curve
                         y_data_singlecurve = y_data.(Forcecurve_label{i});
                         x_data_singlecurve = x_data.(Forcecurve_label{i});
-                        y_data_fit = y_data_singlecurve((length(y_data_singlecurve)-0.02*length(y_data_singlecurve)):end);
-                        x_data_fit = x_data_singlecurve((length(x_data_singlecurve)-0.02*length(x_data_singlecurve)):end);
+                        y_data_fit = y_data_singlecurve((length(y_data_singlecurve)-round(0.02*length(y_data_singlecurve))):end);
+                        x_data_fit = x_data_singlecurve((length(x_data_singlecurve)-round(0.02*length(x_data_singlecurve))):end);
                         [p] = polyfit(x_data_fit, y_data_fit, 1);
                         handles.MFP_mslope_matrix(line_count,pt_count) = p(1)*-1e-6;
                         
@@ -901,6 +903,7 @@ function button_keep_Callback(hObject, ~, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 handles.fit_model_popup.Enable = 'off';
+handles.save_status = 1;    %always keep it on 1 if there is still unsaved data
 
 % save fit results
 curve_index = handles.current_curve;
@@ -979,7 +982,7 @@ if new_curve_index == handles.num_files+1
                     delete(savepath)
                 end
                 save_table(handles.T_result,'fileFormat','excel','savepath',savepath);
-                handles.save_status = 1;
+                handles.save_status = 0;
                 handles.save_status_led.BackgroundColor = [0 1 0];
             end
         else 
@@ -988,7 +991,7 @@ if new_curve_index == handles.num_files+1
             save_diffract = split(savepath,'.tsv');
             savepath = strcat(save_diffract,'.xlsx');
             save_table(handles.T_result,'fileFormat','excel','savepath',savepath);
-            handles.save_status = 1;
+            handles.save_status = 0;
             handles.save_status_led.BackgroundColor = [0 1 0];
         end
     end
@@ -1032,6 +1035,7 @@ else
     if curve_index == 1
         handles.button_undo.Enable = 'on';
         handles.btn_histogram.Enable = 'on';
+        handles.btn_gof.Enable = 'on';
         handles.channel_names = {'height', 'slope', 'Youngs Modulus'}';
         handles.image_channels_popup.String = handles.channel_names;
     end
@@ -1056,8 +1060,8 @@ handles.fit_model_popup.Enable = 'off';
 curve_index = handles.current_curve;
 discarded = handles.progress.num_discarded;
 handles.T_result(curve_index-discarded,:) = [];
-
-                
+handles.save_status = 1;
+      
 % change listbox element                  
 it = handles.listbox1.String;
 it{curve_index,1} = sprintf('curve %3u  ->  discarded',curve_index);
@@ -1109,7 +1113,7 @@ if new_curve_index == handles.num_files+1
                     delete(savepath)
                 end
                 save_table(handles.T_result,'fileFormat','excel','savepath',savepath);
-                handles.save_status = 1;
+                handles.save_status = 0;
                 handles.save_status_led.BackgroundColor = [0 1 0];
             end
         else 
@@ -1121,7 +1125,7 @@ if new_curve_index == handles.num_files+1
                     delete(savepath)
             end
             save_table(handles.T_result,'fileFormat','excel','savepath',savepath);
-            handles.save_status = 1;
+            handles.save_status = 0;
             handles.save_status_led.BackgroundColor = [0 1 0];
         end
     end
@@ -1165,6 +1169,8 @@ else
     % activate undo button when first time pushed
     if curve_index == 1
         handles.button_undo.Enable = 'on';
+        handles.btn_histogram.Enable = 'on';
+        handles.btn_gof.Enable = 'on';
     end
     
 end
@@ -1177,8 +1183,8 @@ function button_undo_Callback(hObject, ~, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% set save status to 0
-handles.save_status = 0;
+% set save status to 1
+handles.save_status = 1;
 handles.save_status_led.BackgroundColor = [1 0 0];
 
 
@@ -1305,17 +1311,23 @@ function button_keep_all_Callback(hObject, ~, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-    % disable buttons during processing
-    handles.button_keep.Enable = 'off';
-    handles.button_discard.Enable = 'off';
-    handles.button_keep_all.Enable = 'off';
-    handles.button_undo.Enable = 'off';
-    
-    % Enable Youngs Modulus image
-    handles.channel_names = {'height', 'slope', 'Youngs Modulus'}';
-    handles.image_channels_popup.String = handles.channel_names;
+% disable buttons during processing
+handles.button_keep.Enable = 'off';
+handles.button_discard.Enable = 'off';
+handles.button_keep_all.Enable = 'off';
+handles.button_undo.Enable = 'off';
+
+%Enable histogram buttons
+handles.btn_histogram.Enable = 'on';
+handles.btn_gof.Enable = 'on';
+
+% Enable Youngs Modulus image
+handles.channel_names = {'height', 'slope', 'Youngs Modulus'}';
+handles.image_channels_popup.String = handles.channel_names;
 
 curve_index = handles.current_curve;
+
+handles.save_status = 1; %Always keep it on 1 if there is still unsaved data
 
 % loop iterations
 loop_it = (handles.num_files - curve_index);
@@ -1484,7 +1496,7 @@ if ~getappdata(wb,'canceling')
                     delete(savepath)
                 end
                 save_table(handles.T_result,'fileFormat','excel','savepath',savepath);
-                handles.save_status = 1;
+                handles.save_status = 0;
                 handles.save_status_led.BackgroundColor = [0 1 0];
             end
         else 
@@ -1493,7 +1505,7 @@ if ~getappdata(wb,'canceling')
             save_diffract = split(savepath,'.tsv');
             savepath = strcat(save_diffract,'.xlsx');
             save_table(handles.T_result,'fileFormat','excel','savepath',savepath);
-            handles.save_status = 1;
+            handles.save_status = 0;
             handles.save_status_led.BackgroundColor = [0 1 0];
         end
     end
@@ -1850,12 +1862,14 @@ if (handles.ibw == true)
         set(handles.colorgradient_unit, 'String', '[V/µm]');
         set(handles.colorgradient,'Ydir','normal'); %Set the maximum value as top
         set_afm_gold();
-    else strcmp(channel_string, 'Youngs Modulus')
-        table = handles.T_result;
+        
+    elseif strcmp(channel_string, 'Youngs Modulus')
+        
         current_curve = handles.current_curve;
         curve_index = 1;    %only processed curves are saved in the handles.T_result table
         handles.MFP_Ymodulus_matrix = zeros(handles.MFP_fmap_num_line,handles.MFP_fmap_num_points);
-        for i=1:current_curve; 
+        
+        for i=1:current_curve
             if i == 1
                 pt_count = 1;
                 line_count = handles.MFP_fmap_num_line;
@@ -1878,7 +1892,7 @@ if (handles.ibw == true)
         handles.colorgrad_Ymodulus = flipud(linspace(min(min(handles.MFP_Ymodulus_matrix)), max(max(handles.MFP_Ymodulus_matrix)), 100))';
         %Display the Youngs Modulus matrix
         axes(handles.map_axes);
-        imshow(handles.MFP_Ymodulus_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
+        imshow(handles.MFP_Ymodulus_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', [min(min(Ymodulus_matrix)) max(max(Ymodulus_matrix))]);
         set_afm_gold();
         axes(handles.colorgradient);
         imshow(handles.colorgrad_Ymodulus, 'InitialMagnification', 'fit', 'XData', [1 3], 'YData', [1 100], 'DisplayRange', []);
@@ -2106,19 +2120,78 @@ function btn_histogram_Callback(hObject, ~, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 try
-    histogram_fig = findobj('Name', 'Resulting Histogram');
-    delete(histogram_fig)
+    close(handles.fig3)
+    handles = rmfield(handles, 'fig3');
 catch
 end
-handles.fig3 = figure('Name','Resulting Histogram','NumberTitle','off', 'Color', 'white');
+if isempty(findobj('Name', 'Histogram: Goodness of Fit'))
+    try
+        handles = rmfield(handles, 'fig4');
+    catch
+    end
+end
+handles.fig3 = figure('Name','Histogram: Youngs Modulus','Units', 'normalized', 'NumberTitle','off', 'Color', 'white');
 EModul = handles.T_result.EModul;
 EModul(EModul == 0)=[];
 EModul = EModul/1000;
-h = histogram(EModul);
-h.FaceColor = [1 0.72 0.73];
-h.EdgeColor = [0.77 0.32 0.34];
-h.NumBins = int8(max(EModul)/25);
+[h,~] = histogram_fits(EModul, 'gauss', floor(max(EModul)/25));
+h.Histogram_handle.FaceColor = [1 0.72 0.73];
+h.Histogram_handle.EdgeColor = [0.77 0.32 0.34];
+title('Youngs Modulus');
 xlabel('Youngs Modulus [kPa]');
-ylabel('frequency');
+ylabel('Frequency');
+
+%Present both histograms in a good way if both are opened
+if isfield(handles, 'fig4') == 1
+    handles.fig3.Position = [0.1 0.3 0.4 0.5];
+    handles.fig4.Position = [0.5 0.3 0.4 0.5];
+    figure(handles.fig3);
+    figure(handles.fig4);
+else
+    handles.fig3.Position = [0.1 0.3 0.4 0.5];
+    figure(handles.fig3);
+end
+
+guidata(hObject,handles);
+
+
+% --- Executes on button press in btn_gof.
+function btn_gof_Callback(hObject, ~, handles)
+% hObject    handle to btn_gof (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+try
+    close(handles.fig4)
+    handles = rmfield(handles, 'fig4');
+catch
+end
+if isempty(findobj('Name', 'Histogram: Youngs Modulus'))
+    try
+        handles = rmfield(handles, 'fig3');
+    catch
+    end
+end
+handles.fig4 = figure('Name','Histogram: Goodness of Fit','Units', 'normalized', 'NumberTitle','off', 'Color', 'white');
+rsquare = handles.T_result.rsquare_fit;
+rsquare(rsquare == 0)=[];
+[h] = histogram_fits(rsquare, 'none', 25);
+h.Histogram_handle.FaceColor = [1 0.72 0.73];
+h.Histogram_handle.EdgeColor = [0.77 0.32 0.34];
+xlim([0 1])
+xticks([0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1])
+title('Goodness of Fit')
+xlabel('Goodness of Fit[rsquare]')
+ylabel('Frequency')
+
+%Present both histograms in a good way if both are opened
+if isfield(handles, 'fig3') == 1
+    handles.fig3.Position = [0.1 0.3 0.4 0.5];
+    handles.fig4.Position = [0.5 0.3 0.4 0.5];
+    figure(handles.fig3);
+    figure(handles.fig4);
+else
+    handles.fig4.Position = [0.1 0.3 0.4 0.5];
+    figure(handles.fig4);
+end
 
 guidata(hObject,handles);
