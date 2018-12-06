@@ -2181,12 +2181,13 @@ if isempty(findobj('Name', 'Histogram: Youngs Modulus'))
 end
 handles.fig4 = figure('Name','Histogram: Goodness of Fit','Units', 'normalized', 'NumberTitle','off', 'Color', 'white');
 rsquare = handles.T_result.rsquare_fit;
-rsquare(rsquare == 0)=[];
-[h] = histogram_fits(rsquare, 'none', 25);
+rsquare(rsquare <= 0)=[];
+[h] = histogram_fits(rsquare, 'none', 100);
 h.Histogram_handle.FaceColor = [1 0.72 0.73];
 h.Histogram_handle.EdgeColor = [0.77 0.32 0.34];
 xlim([0 1])
-xticks([0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1])
+xticks([0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1])
+xticklabels({0, [], 0.1, [], 0.2, [], 0.3, [], 0.4, [], 0.5, [], 0.6, [], 0.7, [], 0.8, [], 0.9, [], 1})
 title('Goodness of Fit')
 xlabel('Goodness of Fit[rsquare]')
 ylabel('Frequency')
