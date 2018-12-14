@@ -8,7 +8,7 @@ function [hObject,handles] = process_options(hObject,handles)
 
 % Calculate the force from the given Calibration values
 c_string = sprintf('curve%u',handles.current_curve);
-handles.proc_curves.(c_string).y_values = handles.curves.(c_string).y_values*handles.options.sensitivity*handles.options.spring_const;
+handles.proc_curves.(c_string).y_values = handles.curves.(c_string).y_values*handles.options.spring_const*handles.options.sensitivity*1e-9; %Save it as Newton
 
 % Correct the baseline by means of the elected option
 switch handles.options.bihertz_baseline
