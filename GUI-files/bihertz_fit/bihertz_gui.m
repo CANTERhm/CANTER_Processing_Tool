@@ -68,7 +68,7 @@ handles.options = varargin{1};
 handles.curves = struct([]);
 handles.figures = struct('main_fig',[]);
 handles.load_status = 0;
-handles.save_status = 0;
+handles.save_status = [];
 handles.interpolation_type = 'bicubic';
 handles.ibw = false;
 
