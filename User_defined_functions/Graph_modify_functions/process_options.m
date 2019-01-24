@@ -53,7 +53,7 @@ switch handles.options.bihertz_baseline
         [handles.proc_curves.(c_string).y_values] = OffsetCorrection(handles.proc_curves.(c_string).y_values, handles.baselineedges);
         
         % Adjust the Contact Point
-        [handles.proc_curves.(c_string).x_values] = ContactPoint(handles.proc_curves.(c_string).x_values, handles.proc_curves.(c_string).y_values, handles.baselineedges, handles);
+        [handles.proc_curves.(c_string).x_values, handles.proc_curves.(c_string).cpoint] = ContactPoint(handles.proc_curves.(c_string).x_values, handles.proc_curves.(c_string).y_values, handles.baselineedges, handles);
         
         % Tip Sample Separation
         if strcmp(handles.options.tip_sample_correction,'yes')

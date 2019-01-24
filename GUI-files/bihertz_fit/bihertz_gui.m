@@ -1322,7 +1322,7 @@ handles.btn_histogram.Enable = 'on';
 handles.btn_gof.Enable = 'on';
 
 % Enable Youngs Modulus image
-handles.channel_names = {'height', 'slope', 'Youngs Modulus'}';
+handles.channel_names = {'height', 'slope', 'Youngs Modulus', 'Contactpoint'}';
 handles.image_channels_popup.String = handles.channel_names;
 
 curve_index = handles.current_curve;
@@ -1909,6 +1909,41 @@ if (handles.ibw == true)
         set(handles.colorgradient_unit, 'String', '[kPa]');
         set(handles.colorgradient,'Ydir','normal'); %Set the maximum value as top
         set_afm_gold();
+        
+    elseif strcmp(channel_string, 'Contactpoint')
+        
+        for i=1:handles.current_curve
+            string = strcat('curve', num2str(i));
+            cpoint(i) = handles.proc_curves.(string).cpoint;
+        end
+        
+        line = floor(size(cpoint, 2)/handles.MFP_fmap_num_points);
+        points = size(cpoint, 2)-line*handles.MFP_fmap_num_points;
+        cpoint_matrix = zeros(handles.MFP_fmap_num_line, handles.MFP_fmap_num_points);
+        for i=1:line+1
+            for j=1:handles.MFP_fmap_num_points
+                if (i-1)*handles.MFP_fmap_num_points+j >= size(cpoint, 2)
+                    cpoint_matrix(i,j) = 0;
+                else
+                    cpoint_matrix(i,j) = cpoint((i-1)*handles.MFP_fmap_num_points+j);
+                end
+            end
+        end
+        
+        cpoint_matrix = cpoint_matrix/1e-6;
+        cpoint_matrix(cpoint_matrix == 0) = min(cpoint)/1e-6;
+        cpoint_matrix = flip(cpoint_matrix);
+        axes(handles.map_axes);
+        imshow(cpoint_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
+        colorgrad = flipud(linspace(min(min(cpoint_matrix)), max(max(cpoint_matrix)), 100))';
+        axes(handles.colorgradient);
+        imshow(colorgrad, 'InitialMagnification', 'fit', 'XData', [1 3], 'YData', [1 100], 'DisplayRange', []);
+        set(handles.colorgradient_max, 'String', sprintf('%.2f',max(max(cpoint_matrix))));
+        set(handles.colorgradient_min, 'String', sprintf('%.2f',min(min(cpoint_matrix))));
+        set(handles.colorgradient,'Ydir','normal'); %Set the maximum value as top
+        set(handles.colorgradient_unit, 'String', '[µm]');
+        set_afm_gold();
+
     end
 else
     channel_num = hObject.Value;
