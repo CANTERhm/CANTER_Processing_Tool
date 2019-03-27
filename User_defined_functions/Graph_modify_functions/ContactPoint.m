@@ -11,12 +11,13 @@ y_fit = y(baseline_edges(1,1):baseline_edges(1,2));
 y_linfit = polyval(p, x);
 
 % Check how the contact point shell be found
+real_contactpoint = []; % prelocate real_contactpoint to surpress error
 SelectedMode = handles.btngroup_contact.SelectedObject.String;
 switch SelectedMode
     case 'via intersection'
         % Get the intersection point of the baseline and the graph
         contactpoint = find(y-y_linfit <= 0, 1, 'last');
-    real_contactpoint = x(contactpoint);
+        real_contactpoint = x(contactpoint);
         % Set the contactpoint as 0/0
         x_corrected = x-(x(contactpoint));
     case 'via Hertz fit'
