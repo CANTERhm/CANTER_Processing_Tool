@@ -22,7 +22,7 @@ function varargout = bihertz_gui(varargin)
 
 % Edit the above text to modify the response to help bihertz_gui
 
-% Last Modified by GUIDE v2.5 04-Dec-2018 11:25:31
+% Last Modified by GUIDE v2.5 27-Mar-2019 15:00:54
     warning off
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -2134,26 +2134,40 @@ function btngroup_contact_SelectionChangedFcn(hObject, ~, handles)
 %Curve is redrawn with a different Contactpoint finding model. This is
 %checked in the contact point function during the process_options
 
-%Process curve
-[hObject,handles] = process_options(hObject,handles);
+sel_obj = handles.btngroup_contact.SelectedObject;
 
-% draw new curve
-switch handles.options.model
-    case 'bihertz'
-        [handles] = plot_bihertz(handles);
-        guidata(hObject,handles);
-    case 'hertz'
-        [hObject,handles] = plot_hertz(hObject,handles);
-        guidata(hObject,handles);
+
+if strcmp(sel_obj.String,'via Hertz fit')
+    set(handles.contact_percentage_hertz,'Enable','on');
+else
+    set(handles.contact_percentage_hertz,'Enable','off');
 end
 
-% fit data to processed curve and display fitresult
-[hObject,handles] = curve_fit_functions(hObject,handles);
-guidata(hObject,handles);
+if handles.load_status ~=0
+    %Process curve
+    [hObject,handles] = process_options(hObject,handles);
 
-% update gui fit results
-[hObject,handles] = update_fit_results(hObject,handles);
+    % draw new curve
+    switch handles.options.model
+        case 'bihertz'
+            [handles] = plot_bihertz(handles);
+            guidata(hObject,handles);
+        case 'hertz'
+            [hObject,handles] = plot_hertz(hObject,handles);
+            guidata(hObject,handles);
+    end
+
+    % fit data to processed curve and display fitresult
+    [hObject,handles] = curve_fit_functions(hObject,handles);
+    guidata(hObject,handles);
+
+    % update gui fit results
+    [hObject,handles] = update_fit_results(hObject,handles);
+end
+
 guidata(hObject,handles);
+    
+    
 
 
 
@@ -2239,3 +2253,42 @@ else
 end
 
 guidata(hObject,handles);
+
+
+
+function contact_percentage_hertz_Callback(hObject, eventdata, handles)
+% hObject    handle to contact_percentage_hertz (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of contact_percentage_hertz as text
+%        str2double(get(hObject,'String')) returns contents of contact_percentage_hertz as a double
+
+perc_str = get(hObject,'String');
+perc_str = strrep(perc_str,',','.');
+perc = str2double(perc_str);
+
+if isnan(perc)
+   set(hObject,'String','20');
+else
+    set(hObject,'String',sprintf('%g',perc));
+end
+
+btngroup_contact_SelectionChangedFcn(handles.btngroup_contact,[], handles);
+
+
+
+
+
+
+% --- Executes during object creation, after setting all properties.
+function contact_percentage_hertz_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to contact_percentage_hertz (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
