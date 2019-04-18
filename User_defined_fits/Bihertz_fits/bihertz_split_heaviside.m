@@ -1,6 +1,6 @@
-function [fit,varargout] = bihertz_sum_heaviside(x,y,par0,angle,poisson,varargin)
+function [fit,varargout] = bihertz_split_heaviside(x,y,par0,angle,poisson,varargin)
 %%  BIHERTZ_SUM_HEAVISIDE: Fit the 'bihertz split heaviside' model using the function:
-%   @(par,d) tan(17.5.*pi/180)/(2*(1-0.5.^2))*par(1).*d.^2+...
+%   @(par,d) tan(17.5.*pi/180)/(2*(1-0.5.^2)).*heaviside(d-par(3)).*par(1).*d.^2+...
 %            tan(angle.*pi/180)/(2.*(1-poisson^2)).*((heaviside(d-par(3)*1e-6)-1)*(-1)).*par(2).*(d-par(3)*1e-6).^2;
 % 
 %   IMPORTANT: For the fit, the indentation part of the curve has to be on
@@ -61,7 +61,7 @@ parse(p,varargin{:});
 %   par(1) = E_s
 %   par(2) = E_h
 %   par(3) = d_h
-func = @(par,d)tan(angle.*pi/180)/(2*(1-poisson.^2))*par(1).*d.^2+tan(angle.*pi/180)/(2.*(1-poisson^2)).*((heaviside(d-par(3)*1e-6)-1)*(-1)).*par(2).*(d-par(3)*1e-6).^2;
+func = @(par,d)tan(angle.*pi/180)/(2.*(1-poisson^2)).*heaviside(d-par(3)).*par(1).*d.^2+tan(angle.*pi/180)/(2.*(1-poisson^2)).*((heaviside(d-par(3)*1e-6)-1)*(-1)).*par(2).*(d-par(3)*1e-6).^2;
 par0(3) = par0(3)*1e6;
 
 % data masking
@@ -102,5 +102,3 @@ if strcmp(p.Results.plot,'on')
     legend('raw data','fittet curve','location','northwest');
     hold off
 end
-
-    

@@ -55,8 +55,12 @@ switch item
         par0(1) = E_s;
         par0(2) = E_h;
         par0(3) = d_h;
-        [fit,~,~,~,~,Rs] = bihertz_sum_heaviside(x_fit,y_fit,par0,angle,poisson,'plot','off');
-       
+        switch handles.options.bihertz_variant
+            case 1
+                [fit,~,~,~,~,Rs] = bihertz_sum_heaviside(x_fit,y_fit,par0,angle,poisson,'plot','off');
+            case 2
+                [fit,~,~,~,~,Rs] = bihertz_split_heaviside(x_fit,y_fit,par0,angle,poisson,'plot','off');
+        end
         % saving fit results in handles
         handles.fit_results = struct('initial_E_s',E_s,'gof_soft',gof_soft,...
             'initial_E_h',E_h,'initial_d_h',d_h,'gof_hard',gof_hard,...

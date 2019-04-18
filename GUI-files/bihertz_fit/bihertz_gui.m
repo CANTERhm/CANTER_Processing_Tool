@@ -71,6 +71,7 @@ handles.load_status = 0;
 handles.save_status = [];
 handles.interpolation_type = 'bicubic';
 handles.ibw = false;
+handles.options.bihertz_variant = 1;
 
 guidata(hObject, handles);
 
@@ -672,7 +673,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
         xlabel('Vertical tip position [µm]');
         ylabel({'Force [nN]';''});
         guidata(hObject,handles);
-        %Plot the data as Bihertz or as Hertz
+        %Plot the data with chosen model
         switch handles.options.model
             case 'bihertz'
                 [handles] = plot_bihertz(handles);
@@ -1541,20 +1542,6 @@ function fit_model_popup_Callback(hObject, ~, handles)
 % switch panels
 switch hObject.Value
     case 1
-        handles.uipanel5.Visible = 'on';
-        handles.uipanel10.Visible = 'on';
-        handles.hertz_fit_panel.Visible = 'off';
-        handles.map_axes.Visible = 'off';
-        handles.options.model = 'bihertz';
-        % recreate T_results if exists
-        if isfield(handles,'T_result')
-        varTypes =  {'string','uint64','double','double','double',...
-                             'double','double','double','double'};
-        varNames = {'File_name','Index','initial_E_s_Pa','initial_E_h_Pa',...
-                    'initial_d_h_m','fit_E_s_Pa','fit_E_h_Pa','fit_d_h_m','rsquare_fit'};
-        handles.T_result = table('size',[handles.num_files 9],'VariableTypes',varTypes,'VariableNames',varNames);
-        end
-    case 2
         handles.uipanel5.Visible = 'off';
         handles.uipanel10.Visible = 'off';
         handles.hertz_fit_panel.Visible = 'on';
@@ -1566,6 +1553,39 @@ switch hObject.Value
             varNames = {'File_name','Index','EModul','rsquare_fit'};
             handles.T_result = table('size',[handles.num_files 4],'VariableTypes',varTypes,'VariableNames',varNames);
         end
+                
+    case 2
+        handles.uipanel5.Visible = 'on';
+        handles.uipanel10.Visible = 'on';
+        handles.hertz_fit_panel.Visible = 'off';
+        handles.map_axes.Visible = 'off';
+        handles.options.model = 'bihertz';
+        handles.options.bihertz_variant = 1;
+        % recreate T_results if exists
+        if isfield(handles,'T_result')
+            varTypes =  {'string','uint64','double','double','double',...
+                                 'double','double','double','double'};
+            varNames = {'File_name','Index','initial_E_s_Pa','initial_E_h_Pa',...
+                        'initial_d_h_m','fit_E_s_Pa','fit_E_h_Pa','fit_d_h_m','rsquare_fit'};
+            handles.T_result = table('size',[handles.num_files 9],'VariableTypes',varTypes,'VariableNames',varNames);
+        end
+        
+    case 3
+        handles.uipanel5.Visible = 'on';
+        handles.uipanel10.Visible = 'on';
+        handles.hertz_fit_panel.Visible = 'off';
+        handles.map_axes.Visible = 'off';
+        handles.options.model = 'bihertz';
+        handles.options.bihertz_variant = 2;
+        % recreate T_results if exists
+        if isfield(handles,'T_result')
+            varTypes =  {'string','uint64','double','double','double',...
+                                 'double','double','double','double'};
+            varNames = {'File_name','Index','initial_E_s_Pa','initial_E_h_Pa',...
+                        'initial_d_h_m','fit_E_s_Pa','fit_E_h_Pa','fit_d_h_m','rsquare_fit'};
+            handles.T_result = table('size',[handles.num_files 9],'VariableTypes',varTypes,'VariableNames',varNames);
+        end
+        
 end
 
 try     % if curves are loaded
