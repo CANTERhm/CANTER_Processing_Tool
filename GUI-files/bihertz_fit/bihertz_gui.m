@@ -80,9 +80,9 @@ guidata(hObject, handles);
 handles.fit_model_popup.Enable = 'on';
 switch handles.options.model
     case 'bihertz'
-        % in this case it is good as it is ;)
-    case 'hertz'
         handles.fit_model_popup.Value = 2;
+    case 'hertz'
+        handles.fit_model_popup.Value = 1;
         handles.uipanel5.Visible = 'off';
         handles.uipanel10.Visible = 'off';
         handles.hertz_fit_panel.Visible = 'on';
@@ -315,19 +315,24 @@ end
 if strcmp(answer,'No')
     return;
 elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
+    
+    % initialise fit results struct or reset previous fit results
+    handles.fit_results = struct();
+    
     path = get(handles.edit_filepath,'String');
     if strcmp(path,'    filepath')
         errordlg('No file or folder selected','No selection found');
     else
         handles.options = Calibration(handles.options);
         guidata(hObject,handles);
+        
         handles.options = canti_sample_gui(handles.options);
         guidata(hObject,handles);
-        
+
         handles.tip_angle = handles.options.tip_angle;
         handles.poisson = handles.options.poisson;
         handles.tip_shape = handles.options.tip_shape;
-
+        
 
 
         % provide processing infos
@@ -634,7 +639,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
             num_files = i-1;                % number of fully loaded curves
             handles.num_files = i-1;        % provide max curve number in handles                    
         end
-
+                
         % write progress values
         % needed variables
         handles.progress = struct('num_unprocessed',num_files,...
@@ -804,7 +809,18 @@ function fit_depth_Callback(hObject, ~, handles)
 
 % Hints: get(hObject,'String') returns contents of fit_depth as text
 %        str2double(get(hObject,'String')) returns contents of fit_depth as a double
+
+
 [hObject,handles] = update_patches(hObject,handles);
+
+% fit data to processed curve and display fitresult
+[hObject,handles] = curve_fit_functions(hObject,handles);
+guidata(hObject,handles);
+
+% update gui fit results
+[hObject,handles] = update_fit_results(hObject,handles);
+
+
 guidata(hObject,handles)
 
 
@@ -829,7 +845,18 @@ function fit_perc_Callback(hObject, ~, handles)
 
 % Hints: get(hObject,'String') returns contents of fit_perc as text
 %        str2double(get(hObject,'String')) returns contents of fit_perc as a double
+
+
 [hObject,handles] = update_patches(hObject,handles);
+
+% fit data to processed curve and display fitresult
+[hObject,handles] = curve_fit_functions(hObject,handles);
+guidata(hObject,handles);
+
+% update gui fit results
+[hObject,handles] = update_fit_results(hObject,handles);
+
+
 guidata(hObject,handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -1400,7 +1427,7 @@ for a = 1:loop_it
     [hObject,handles] = process_options(hObject,handles);
     
     %Only show the curve when the user want to see it
-    if strcmp(answer_display, 'Yes')
+    if strcmp(answer_display, 'Yes') || isempty(answer_display)
         % draw new curve
         switch handles.options.model
             case 'bihertz'
@@ -1430,6 +1457,8 @@ for a = 1:loop_it
     guidata(hObject,handles);
 
 end
+% reset user aswer for displaying curves
+handles.answer_display = [];
 
 % reable buttons after processing
 handles.button_keep.Enable = 'on';
@@ -1588,23 +1617,23 @@ switch hObject.Value
         
 end
 
-try     % if curves are loaded
-% draw new curve
-switch handles.options.model
-    case 'bihertz'
-        [handles] = plot_bihertz(handles);
-        guidata(hObject,handles);
-    case 'hertz'
-        [hObject,handles] = plot_hertz(hObject,handles);
-        guidata(hObject,handles);
-end
+try % if curves are loaded
+    % draw new curve
+    switch handles.options.model
+        case 'bihertz'
+            [handles] = plot_bihertz(handles);
+            guidata(hObject,handles);
+        case 'hertz'
+            [hObject,handles] = plot_hertz(hObject,handles);
+            guidata(hObject,handles);
+    end
 
-% fit data to processed curve and display fitresult
-[hObject,handles] = curve_fit_functions(hObject,handles);
-guidata(hObject,handles);
+    % fit data to processed curve and display fitresult
+    [hObject,handles] = curve_fit_functions(hObject,handles);
+    guidata(hObject,handles);
 
-% update gui fit results
-[hObject,handles] = update_fit_results(hObject,handles);
+    % update gui fit results
+    [hObject,handles] = update_fit_results(hObject,handles);
 catch
    % if no curve is loaded don't do anything 
 end
@@ -1798,9 +1827,6 @@ else
     %Nothing
 end
 guidata(hObject,handles)
-    
-
-
     
 
 

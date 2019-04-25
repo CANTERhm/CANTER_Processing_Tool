@@ -4,7 +4,7 @@ function [fit,varargout] = bihertz_sum_heaviside(x,y,par0,angle,poisson,varargin
 %            tan(angle.*pi/180)/(2.*(1-poisson^2)).*((heaviside(d-par(3)*1e-6)-1)*(-1)).*par(2).*(d-par(3)*1e-6).^2;
 % 
 %   IMPORTANT: For the fit, the indentation part of the curve has to be on
-%   the negative x-axes part!!! (also d_int has to be a negarive value!)
+%   the negative x-axes part!!! (also d_int has to be a negative value!)
 % 
 %   [fit] = bihertz_sum_heaviside(x,y,par0,angle,poisson)
 %   - Fits the single 'bihertz sum heaviside' model

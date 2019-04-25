@@ -55,6 +55,7 @@ function Calibration_OpeningFcn(hObject, eventdata, handles, varargin)
 % Choose default command line output for Calibration
 handles.output = hObject;
 handles.options = varargin{1};
+handles.options.correction = [];
 
 % Update handles structure
 guidata(hObject, handles);
@@ -149,7 +150,10 @@ sens = strrep(sens,',','.');
 cons = get(handles.spring_const_value,'String');
 cons = strrep(cons,',','.');
 
-comp = strcmp(sens,'28.00') | strcmp(cons,'0.1400');
+comp = (strcmp(sens,'28.00') || strcmp(cons,'0.1400')) && (strcmp(handles.correction_group.SelectedObject.Tag,'yes')) ;
+
+% write selection to handles
+handles.options.correction = handles.correction_group.SelectedObject.Tag;
 
 sens = str2double(sens);
 
@@ -193,10 +197,14 @@ if comp
     end
 else
     handles.options(:).sensitivity = 0;
-    handles.options.sensitivity = sens;
+    if strcmp(handles.options.tip_sample_correction,'yes')
+        handles.options.sensitivity = sens;
+    end
 
     handles.options(:).spring_const = 0;
-    handles.options.spring_const = cons;
+    if strcmp(handles.options.tip_sample_correction,'yes')
+        handles.options.spring_const = cons;
+    end
     
     switch get(handles.correction_group.SelectedObject,'Tag')
         case 'yes'           
