@@ -340,11 +340,14 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
         set(handles.text_sensitivity,'String',str);
         str = sprintf('Spring constant: %.4f N/m',handles.options.spring_const);
         set(handles.text_spring_const,'String',str);
+        
+        % set the prefered load path also as prefered save path
+        handles.last_save_path = handles.last_load_path;
 
         switch handles.loadtype
             case 'file'
                 if handles.filefilter == 1
-                   [x_data,y_data, ~, ~, Forcecurve_label,~,~,name_of_file,~,map_images] = ReadJPKMaps(handles.edit_filepath.String);
+                   [x_data,y_data, ~, ~, Forcecurve_label,~,~,name_of_file,map_images] = ReadJPKMaps(handles.edit_filepath.String);
                    % create filename array
                    Forcecurve_label = Forcecurve_label';
                    curves_in_map = strcat(name_of_file,'.',Forcecurve_label);
@@ -1699,10 +1702,6 @@ function button_folder_Callback(hObject, ~, handles)
 
 [path] = uigetdir(handles.last_load_path,'Select folder with curve-files');
 
-% remember last path for the next invoke of uigetdir or uigetfile
-parts = strsplit(path,filesep);
-path_short = fullfile(parts{1:end-1});
-handles.last_load_path = path_short;
 
 if ~isequal(path,0)
     % remember last path for the next invoke of uigetdir or uigetfile

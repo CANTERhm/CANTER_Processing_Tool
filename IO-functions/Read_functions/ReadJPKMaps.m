@@ -18,8 +18,7 @@ function [x_data,y_data, x_data_retract, y_data_retract, Forcecurve_count, varar
 % varargout{1} = encoder;
 % varargout{2} = pathname;
 % varargout{3} = filename;
-% varargout{4} = unzipfolder;
-% varargout{5} = map_images;
+% varargout{4} = map_images;
 % 
 % encoder:
 % (1)= offset_scaling_height;
@@ -67,7 +66,7 @@ Forcecurve_count = regexprep(Forcecurve_count, '\s+', ''); % Get rid of the empt
 % provide images of map channels
 force_path = fullfile(unzipfolder,'data-image.force');
 map_images = ForceMapImageData(force_path);
-varargout{5} = map_images;
+varargout{4} = map_images;
 
 x_data_raw = struct; %Height Extend 
 y_data_raw = struct; %vDeflection Extend
@@ -250,7 +249,9 @@ waitbar(1,wbar);
 varargout{1} = encoder;
 varargout{2} = pathname;
 varargout{3} = zipname;
-varargout{4} = unzipfolder;
+
+[status,msg,msgID] = rmdir(unzipfolder,'s');
+delete(zippath);
 
 close(wbar);
 end
