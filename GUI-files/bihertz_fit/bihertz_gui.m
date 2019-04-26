@@ -71,6 +71,8 @@ handles.load_status = 0;
 handles.save_status = [];
 handles.interpolation_type = 'bicubic';
 handles.ibw = false;
+handles.last_load_path = [];
+handles.last_save_path = [];
 
 guidata(hObject, handles);
 
@@ -288,10 +290,14 @@ function button_file_Callback(hObject, ~, handles)
 % hObject    handle to button_file (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
 [file,path,indx] = uigetfile({'*.jpk-force-map','JPK-Force-map (*.jpk-force-map)';...
-    '*.tsv','Single tsv-file (*.tsv)'},'Select a File');
+    '*.tsv','Single tsv-file (*.tsv)'},'Select a File',handles.last_load_path);
 
 if ~isequal(file,0)
+    % save last load path for next invoke of uigetfile
+    handles.last_load_path = path;
+    
     set(handles.edit_filepath,'String',fullfile(path,file))
     handles.filefilter = indx;
     handles.loadtype = 'file';
@@ -1655,9 +1661,20 @@ function button_folder_Callback(hObject, ~, handles)
 % hObject    handle to button_folder (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-[path] = uigetdir([],'Select folder with curve-files');
+
+[path] = uigetdir(handles.last_load_path,'Select folder with curve-files');
+
+% remember last path for the next invoke of uigetdir or uigetfile
+parts = strsplit(path,filesep);
+path_short = fullfile(parts{1:end-1});
+handles.last_load_path = path_short;
 
 if ~isequal(path,0)
+    % remember last path for the next invoke of uigetdir or uigetfile
+    parts = strsplit(path,filesep);
+    path_short = fullfile(parts{1:end-1});
+    handles.last_load_path = path_short;
+    
     set(handles.edit_filepath,'String',path);
     handles.loadtype = 'folder';
     guidata(hObject,handles)
