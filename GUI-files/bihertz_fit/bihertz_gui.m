@@ -344,7 +344,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
         switch handles.loadtype
             case 'file'
                 if handles.filefilter == 1
-                   [x_data,y_data, ~, ~, Forcecurve_label,~,~,name_of_file,~,map_images] = ReadJPKMaps(handles.edit_filepath.String);
+                   [x_data,y_data, ~, ~, Forcecurve_label,~,~,name_of_file,map_images] = ReadJPKMaps(handles.edit_filepath.String);
                    % create filename array
                    Forcecurve_label = Forcecurve_label';
                    curves_in_map = strcat(name_of_file,'.',Forcecurve_label);
