@@ -340,6 +340,9 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
         set(handles.text_sensitivity,'String',str);
         str = sprintf('Spring constant: %.4f N/m',handles.options.spring_const);
         set(handles.text_spring_const,'String',str);
+        
+        % set the prefered load path also as prefered save path
+        handles.last_save_path = handles.last_load_path;
 
         switch handles.loadtype
             case 'file'
@@ -1699,10 +1702,6 @@ function button_folder_Callback(hObject, ~, handles)
 
 [path] = uigetdir(handles.last_load_path,'Select folder with curve-files');
 
-% remember last path for the next invoke of uigetdir or uigetfile
-parts = strsplit(path,filesep);
-path_short = fullfile(parts{1:end-1});
-handles.last_load_path = path_short;
 
 if ~isequal(path,0)
     % remember last path for the next invoke of uigetdir or uigetfile
