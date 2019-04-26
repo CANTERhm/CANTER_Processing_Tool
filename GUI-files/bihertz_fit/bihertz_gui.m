@@ -747,15 +747,34 @@ end
 
 
 % --- Executes on button press in button_save_path.
-function button_save_path_Callback(hObject, ~, ~)
+function button_save_path_Callback(hObject, ~, handles)
 % hObject    handle to button_save_path (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-[file,path] = uiputfile({'*.tsv;*.xlsx','Save files (*.tsv,*.xlsx)';...
-                '*.*','All Files (*.*)'});
-savepath = fullfile(path,file);
-hObject.String = savepath;
+[file,path,~] = uiputfile({'*.tsv;*.xlsx','Save files (*.tsv,*.xlsx)';...
+        '*.*','All Files (*.*)'},'Save results',handles.last_save_path);
+
+if path ~= 0
+    % save path for later revokes of uiputfile
+    handles.last_save_path = path;
+    
+    if ~isempty(handles.T_result) && isfield(handles,'T_result')
+        savepath = fullfile(path,file);
+        save_table(handles.T_result,'fileFormat','tsv','savepath',savepath);
+        save_diffract = split(savepath,'.tsv');
+        savepath_cell = strcat(save_diffract(1),'.xlsx');
+        savepath = savepath_cell{1};
+        if exist(savepath,'file') == 2
+            delete(savepath)
+        end
+        save_table(handles.T_result,'fileFormat','excel','savepath',savepath);
+        handles.save_status = 1;
+        handles.save_status_led.BackgroundColor = [0 1 0];
+    end
+
+end
+guidata(hObject,handles);
 
 % --- Executes on button press in pushbutton7.
 function pushbutton7_Callback(~, ~, ~)
@@ -975,10 +994,16 @@ if new_curve_index == handles.num_files+1
         'Processing completed!','Yes','No','Yes');
 
     if strcmp(answer,'Yes')
+        
         if strcmp(handles.edit_savepath.String,'     savepath')
             [file,path] = uiputfile({'*.tsv;*.xlsx','Save files (*.tsv,*.xlsx)';...
-                '*.*','All Files (*.*)'});
+                '*.*','All Files (*.*)'},'Save results',handles.last_save_path);
+            
+                        
             if path ~= 0
+                % save path for later revokes of uiputfile
+                handles.last_save_path = path;
+                
                 savepath = fullfile(path,file);
                 save_table(handles.T_result,'fileFormat','tsv','savepath',savepath);
                 save_diffract = split(savepath,'.tsv');
@@ -988,7 +1013,7 @@ if new_curve_index == handles.num_files+1
                     delete(savepath)
                 end
                 save_table(handles.T_result,'fileFormat','excel','savepath',savepath);
-                handles.save_status = 0;
+                handles.save_status = 1;
                 handles.save_status_led.BackgroundColor = [0 1 0];
             end
         else 
@@ -997,7 +1022,7 @@ if new_curve_index == handles.num_files+1
             save_diffract = split(savepath,'.tsv');
             savepath = strcat(save_diffract,'.xlsx');
             save_table(handles.T_result,'fileFormat','excel','savepath',savepath);
-            handles.save_status = 0;
+            handles.save_status = 1;
             handles.save_status_led.BackgroundColor = [0 1 0];
         end
     end
@@ -1108,8 +1133,13 @@ if new_curve_index == handles.num_files+1
     if strcmp(answer,'Yes')
         if strcmp(handles.edit_savepath.String,'     savepath')
             [file,path] = uiputfile({'*.tsv;*.xlsx','Save files (*.tsv,*.xlsx)';...
-                '*.*','All Files (*.*)'});
+                '*.*','All Files (*.*)'},'Save results',handles.last_save_path);
+            
+                        
             if path ~= 0
+                % save path for later revokes of uiputfile
+                handles.last_save_path = path;
+                
                 savepath = fullfile(path,file);
                 save_table(handles.T_result,'fileFormat','tsv','savepath',savepath);
                 save_diffract = split(savepath,'.tsv');
@@ -1119,7 +1149,7 @@ if new_curve_index == handles.num_files+1
                     delete(savepath)
                 end
                 save_table(handles.T_result,'fileFormat','excel','savepath',savepath);
-                handles.save_status = 0;
+                handles.save_status = 1;
                 handles.save_status_led.BackgroundColor = [0 1 0];
             end
         else 
@@ -1499,8 +1529,13 @@ if ~getappdata(wb,'canceling')
     if strcmp(answer,'Yes')
         if strcmp(handles.edit_savepath.String,'     savepath')
             [file,path] = uiputfile({'*.tsv;*.xlsx','Save files (*.tsv,*.xlsx)';...
-                '*.*','All Files (*.*)'});
+                '*.*','All Files (*.*)'},'Save results',handles.last_save_path);
+           
+            
             if path ~= 0
+                % save path for later revokes of uiputfile
+                handles.last_save_path = path;
+               
                 savepath = fullfile(path,file);
                 save_table(handles.T_result,'fileFormat','tsv','savepath',savepath);
                 save_diffract = split(savepath,'.tsv');
@@ -1510,7 +1545,7 @@ if ~getappdata(wb,'canceling')
                     delete(savepath)
                 end
                 save_table(handles.T_result,'fileFormat','excel','savepath',savepath);
-                handles.save_status = 0;
+                handles.save_status = 1;
                 handles.save_status_led.BackgroundColor = [0 1 0];
             end
         else 
