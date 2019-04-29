@@ -6,7 +6,7 @@ function [fit,varargout] = bihertz_split_heaviside(x,y,par0,angle,poisson,vararg
 %   IMPORTANT: For the fit, the indentation part of the curve has to be on
 %   the negative x-axes part!!! (also d_int has to be a negative value!)
 % 
-%   [fit] = bihertz_sum_heaviside(x,y,par0,angle,poisson)
+%   [fit] = bihertz_split_heaviside(x,y,par0,angle,poisson)
 %   - Fits the single 'bihertz sum heaviside' model
 %     using the initial values in par0 over the the x-y-dataset.
 %   -> par0 has to be given as a vector containing the initial value for E_s on the first,
@@ -18,7 +18,7 @@ function [fit,varargout] = bihertz_split_heaviside(x,y,par0,angle,poisson,vararg
 %
 %   dataset is specified by x and y.
 %
-%   [fit,r,J,CovB,MSE,Rs] = bihertz_split_heaviside(x,y,par0,angle,poisson)
+%   [fit,r,J,CovB,MSE,Rs,par0(4)] = bihertz_split_heaviside(x,y,par0,angle,poisson)
 %   - Fits the 'bihertz split heaviside' model
 %     using the initial values in par0 over the the x-y-dataset. par0 has to
 %     be given as a vector containing the initial value for E_s on the first,
@@ -26,7 +26,8 @@ function [fit,varargout] = bihertz_split_heaviside(x,y,par0,angle,poisson,vararg
 %     It returns the fittet parameters in the vector fit (same order as in par0)
 %     and the residuals (r), the Jacobian-Matrix (J), the variance-covariance
 %     matrix (CovB), the mean squared error (MSE) and the Coefficiant of
-%     determination 'R square'(Rs).
+%     determination 'R square'(Rs). par0(4) gives the fourth initail guess
+%     for the switch point of the bihertz_split_heavyside model.
 % 
 %   [...] = bihertz_split_heaviside(...,Name,Value)
 %   optional Name-Value-Pair:
@@ -97,6 +98,7 @@ TSS = sum(TSS_diff_square);
 R_s = 1 - RSS/TSS;
 
 varargout{5} = R_s;
+varargout{6} = par0(4)*1e-6;
 
 % optional plot
 if strcmp(p.Results.plot,'on')

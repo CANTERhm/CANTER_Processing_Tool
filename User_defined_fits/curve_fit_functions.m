@@ -19,6 +19,9 @@ function [hObject,handles] = curve_fit_functions(hObject,handles, varargin)
 %   * fit_E_h -> fitresult for E_h
 %   * fit_d_h -> fitresult for d_h
 %   * rsqare_fit -> R^2 of bihertz fit
+%   And in case of the bihertz_split_heavyside fit model also:
+%   * initial_s_p
+%   * fit_s_p
 %
 %   *HERTZ_FIT* : Function for the bihertz gui to do the Hertz fit on
 %   the processed data, plot the fit-curve on the main plot window and
@@ -29,6 +32,9 @@ function [hObject,handles] = curve_fit_functions(hObject,handles, varargin)
 % 
 
 %%
+
+warning off;
+
 item = handles.options.model;
 switch item
     
@@ -83,9 +89,17 @@ switch item
                     handles.figures.fit_plot = plot(x_fit.*1e6,y_plot.*1e9','r-');
                     drawnow;
                     hold(handles.figures.main_ax,'off');
+                    
                 end
+                
+                % saving fit results in handles
+                handles.fit_results = struct('initial_E_s',E_s,'gof_soft',gof_soft,...
+                    'initial_E_h',E_h,'initial_d_h',d_h,'gof_hard',gof_hard,...
+                    'fit_E_s',fit(1),'fit_E_h',fit(2),'fit_d_h',fit(3),'rsquare_fit',Rs);
+                guidata(hObject,handles);
+                
             case 2
-                [fit,~,~,~,~,Rs] = bihertz_split_heaviside(x_fit,y_fit,par0,angle,poisson,'plot','off');
+                [fit,~,~,~,~,Rs,init_s_p] = bihertz_split_heaviside(x_fit,y_fit,par0,angle,poisson,'plot','off');
                 % add fit to main plot window
                 if strcmp(answer_display, 'Yes') || isempty(answer_display)
                     figure(handles.figures.main_fig)
@@ -105,12 +119,14 @@ switch item
                     drawnow;
                     hold(handles.figures.main_ax,'off');
                 end
+                
+                % saving fit results in handles
+                handles.fit_results = struct('initial_E_s',E_s,'gof_soft',gof_soft,...
+                    'initial_E_h',E_h,'initial_d_h',d_h,'initial_s_p',init_s_p,'gof_hard',gof_hard,...
+                    'fit_E_s',fit(1),'fit_E_h',fit(2),'fit_d_h',fit(3),'fit_s_p',fit(4),'rsquare_fit',Rs);
+                guidata(hObject,handles);
         end
-        % saving fit results in handles
-        handles.fit_results = struct('initial_E_s',E_s,'gof_soft',gof_soft,...
-            'initial_E_h',E_h,'initial_d_h',d_h,'gof_hard',gof_hard,...
-            'fit_E_s',fit(1),'fit_E_h',fit(2),'fit_d_h',fit(3),'rsquare_fit',Rs);
-        guidata(hObject,handles);
+        
         
                
         
@@ -157,5 +173,6 @@ switch item
        
 end
 
+warning on;
 
 guidata(hObject,handles);
