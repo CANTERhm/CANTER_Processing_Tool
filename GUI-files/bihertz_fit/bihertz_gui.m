@@ -22,7 +22,7 @@ function varargout = bihertz_gui(varargin)
 
 % Edit the above text to modify the response to help bihertz_gui
 
-% Last Modified by GUIDE v2.5 27-Mar-2019 15:00:54
+% Last Modified by GUIDE v2.5 29-Apr-2019 14:46:51
     warning off
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -65,7 +65,7 @@ handles.def_led_y = handles.save_status_led.Position(2);
 
 % Update handles structure
 handles.options = varargin{1};
-handles.curves = struct([]);
+handles.curves = struct();
 handles.figures = struct('main_fig',[]);
 handles.load_status = 0;
 handles.save_status = [];
@@ -91,6 +91,11 @@ switch handles.options.model
 
 guidata(hObject,handles);
 end
+
+handles = grid_creation_function(handles);
+
+guidata(hObject,handles);
+
 
 
 
@@ -1590,6 +1595,7 @@ switch hObject.Value
         handles.map_axes.Visible = 'off';
         handles.options.model = 'bihertz';
         handles.options.bihertz_variant = 1;
+        handles = grid_creation_function(handles);
         % recreate T_results if exists
         if isfield(handles,'T_result')
             varTypes =  {'string','uint64','double','double','double',...
@@ -1606,13 +1612,14 @@ switch hObject.Value
         handles.map_axes.Visible = 'off';
         handles.options.model = 'bihertz';
         handles.options.bihertz_variant = 2;
+        handles = grid_creation_function(handles);
         % recreate T_results if exists
         if isfield(handles,'T_result')
             varTypes =  {'string','uint64','double','double','double',...
                                  'double','double','double','double'};
             varNames = {'File_name','Index','initial_E_s_Pa','initial_E_h_Pa',...
-                        'initial_d_h_m','fit_E_s_Pa','fit_E_h_Pa','fit_d_h_m','rsquare_fit'};
-            handles.T_result = table('size',[handles.num_files 9],'VariableTypes',varTypes,'VariableNames',varNames);
+                        'initial_d_h_m','initial_s_p_m','fit_E_s_Pa','fit_E_h_Pa','fit_d_h_m','fit_s_p_m','rsquare_fit'};
+            handles.T_result = table('size',[handles.num_files 11],'VariableTypes',varTypes,'VariableNames',varNames);
         end
         
 end
@@ -1642,7 +1649,7 @@ guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function fit_model_popup_CreateFcn(hObject, ~, ~)
+function fit_model_popup_CreateFcn(hObject, ~, handles)
 % hObject    handle to fit_model_popup (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -1652,6 +1659,7 @@ function fit_model_popup_CreateFcn(hObject, ~, ~)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
 
 
 % --------------------------------------------------------------------
@@ -2330,6 +2338,36 @@ btngroup_contact_SelectionChangedFcn(handles.btngroup_contact,[], handles);
 % --- Executes during object creation, after setting all properties.
 function contact_percentage_hertz_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to contact_percentage_hertz (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes during object creation, after setting all properties.
+function uipanel10_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to uipanel10 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+
+
+function result_switch_point_Callback(hObject, eventdata, handles)
+% hObject    handle to result_switch_point (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of result_switch_point as text
+%        str2double(get(hObject,'String')) returns contents of result_switch_point as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function result_switch_point_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to result_switch_point (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
