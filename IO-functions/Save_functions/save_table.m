@@ -130,7 +130,7 @@ elseif isa(varargin{1},'table')
 end
 
 % parse the name-value-pairs to inputParser
-if isa(varargin{1},'vector') || isa(varargin{1},'string')
+if isvector(varargin{1}) || isa(varargin{1},'string')
 parse(p,varargin{len+1:end});
 else
 parse(p,varargin{2:end});
@@ -142,7 +142,11 @@ switch spec
     case 'tsv'
         if strcmp(p.Results.savepath,'none')
             [name,path] = uiputfile('*.tsv');
-            savepath = fullfile(path,name);
+            if name ~=0
+                savepath = fullfile(path,name);
+            else
+                return;
+            end
         else
             savepath = p.Results.savepath;
         end
@@ -150,7 +154,11 @@ switch spec
     case 'excel'
         if strcmp(p.Results.savepath,'none')
             [name,path] = uiputfile('*.xlsx');
-            savepath = fullfile(path,name);
+            if name ~= 0
+                savepath = fullfile(path,name);
+            else 
+                return;
+            end
         else
             savepath = p.Results.savepath;
         end
