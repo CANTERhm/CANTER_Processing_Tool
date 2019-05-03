@@ -22,7 +22,7 @@ function varargout = bihertz_gui(varargin)
 
 % Edit the above text to modify the response to help bihertz_gui
 
-% Last Modified by GUIDE v2.5 04-Dec-2018 11:25:31
+% Last Modified by GUIDE v2.5 27-Mar-2019 15:00:54
     warning off
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -71,6 +71,8 @@ handles.load_status = 0;
 handles.save_status = [];
 handles.interpolation_type = 'bicubic';
 handles.ibw = false;
+handles.last_load_path = [];
+handles.last_save_path = [];
 
 guidata(hObject, handles);
 
@@ -288,10 +290,14 @@ function button_file_Callback(hObject, ~, handles)
 % hObject    handle to button_file (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
 [file,path,indx] = uigetfile({'*.jpk-force-map','JPK-Force-map (*.jpk-force-map)';...
-    '*.tsv','Single tsv-file (*.tsv)'},'Select a File');
+    '*.tsv','Single tsv-file (*.tsv)'},'Select a File',handles.last_load_path);
 
 if ~isequal(file,0)
+    % save last load path for next invoke of uigetfile
+    handles.last_load_path = path;
+    
     set(handles.edit_filepath,'String',fullfile(path,file))
     handles.filefilter = indx;
     handles.loadtype = 'file';
@@ -334,11 +340,14 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
         set(handles.text_sensitivity,'String',str);
         str = sprintf('Spring constant: %.4f N/m',handles.options.spring_const);
         set(handles.text_spring_const,'String',str);
+        
+        % set the prefered load path also as prefered save path
+        handles.last_save_path = handles.last_load_path;
 
         switch handles.loadtype
             case 'file'
                 if handles.filefilter == 1
-                   [x_data,y_data, ~, ~, Forcecurve_label,~,~,name_of_file,~,map_images] = ReadJPKMaps(handles.edit_filepath.String);
+                   [x_data,y_data, ~, ~, Forcecurve_label,~,~,name_of_file,map_images] = ReadJPKMaps(handles.edit_filepath.String);
                    % create filename array
                    Forcecurve_label = Forcecurve_label';
                    curves_in_map = strcat(name_of_file,'.',Forcecurve_label);
@@ -741,15 +750,34 @@ end
 
 
 % --- Executes on button press in button_save_path.
-function button_save_path_Callback(hObject, ~, ~)
+function button_save_path_Callback(hObject, ~, handles)
 % hObject    handle to button_save_path (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-[file,path] = uiputfile({'*.tsv;*.xlsx','Save files (*.tsv,*.xlsx)';...
-                '*.*','All Files (*.*)'});
-savepath = fullfile(path,file);
-hObject.String = savepath;
+[file,path,~] = uiputfile({'*.tsv;*.xlsx','Save files (*.tsv,*.xlsx)';...
+        '*.*','All Files (*.*)'},'Save results',handles.last_save_path);
+
+if path ~= 0
+    % save path for later revokes of uiputfile
+    handles.last_save_path = path;
+    
+    if ~isempty(handles.T_result) && isfield(handles,'T_result')
+        savepath = fullfile(path,file);
+        save_table(handles.T_result,'fileFormat','tsv','savepath',savepath);
+        save_diffract = split(savepath,'.tsv');
+        savepath_cell = strcat(save_diffract(1),'.xlsx');
+        savepath = savepath_cell{1};
+        if exist(savepath,'file') == 2
+            delete(savepath)
+        end
+        save_table(handles.T_result,'fileFormat','excel','savepath',savepath);
+        handles.save_status = 1;
+        handles.save_status_led.BackgroundColor = [0 1 0];
+    end
+
+end
+guidata(hObject,handles);
 
 % --- Executes on button press in pushbutton7.
 function pushbutton7_Callback(~, ~, ~)
@@ -969,10 +997,16 @@ if new_curve_index == handles.num_files+1
         'Processing completed!','Yes','No','Yes');
 
     if strcmp(answer,'Yes')
+        
         if strcmp(handles.edit_savepath.String,'     savepath')
             [file,path] = uiputfile({'*.tsv;*.xlsx','Save files (*.tsv,*.xlsx)';...
-                '*.*','All Files (*.*)'});
+                '*.*','All Files (*.*)'},'Save results',handles.last_save_path);
+            
+                        
             if path ~= 0
+                % save path for later revokes of uiputfile
+                handles.last_save_path = path;
+                
                 savepath = fullfile(path,file);
                 save_table(handles.T_result,'fileFormat','tsv','savepath',savepath);
                 save_diffract = split(savepath,'.tsv');
@@ -982,7 +1016,7 @@ if new_curve_index == handles.num_files+1
                     delete(savepath)
                 end
                 save_table(handles.T_result,'fileFormat','excel','savepath',savepath);
-                handles.save_status = 0;
+                handles.save_status = 1;
                 handles.save_status_led.BackgroundColor = [0 1 0];
             end
         else 
@@ -991,7 +1025,7 @@ if new_curve_index == handles.num_files+1
             save_diffract = split(savepath,'.tsv');
             savepath = strcat(save_diffract,'.xlsx');
             save_table(handles.T_result,'fileFormat','excel','savepath',savepath);
-            handles.save_status = 0;
+            handles.save_status = 1;
             handles.save_status_led.BackgroundColor = [0 1 0];
         end
     end
@@ -1102,8 +1136,13 @@ if new_curve_index == handles.num_files+1
     if strcmp(answer,'Yes')
         if strcmp(handles.edit_savepath.String,'     savepath')
             [file,path] = uiputfile({'*.tsv;*.xlsx','Save files (*.tsv,*.xlsx)';...
-                '*.*','All Files (*.*)'});
+                '*.*','All Files (*.*)'},'Save results',handles.last_save_path);
+            
+                        
             if path ~= 0
+                % save path for later revokes of uiputfile
+                handles.last_save_path = path;
+                
                 savepath = fullfile(path,file);
                 save_table(handles.T_result,'fileFormat','tsv','savepath',savepath);
                 save_diffract = split(savepath,'.tsv');
@@ -1113,7 +1152,7 @@ if new_curve_index == handles.num_files+1
                     delete(savepath)
                 end
                 save_table(handles.T_result,'fileFormat','excel','savepath',savepath);
-                handles.save_status = 0;
+                handles.save_status = 1;
                 handles.save_status_led.BackgroundColor = [0 1 0];
             end
         else 
@@ -1493,8 +1532,13 @@ if ~getappdata(wb,'canceling')
     if strcmp(answer,'Yes')
         if strcmp(handles.edit_savepath.String,'     savepath')
             [file,path] = uiputfile({'*.tsv;*.xlsx','Save files (*.tsv,*.xlsx)';...
-                '*.*','All Files (*.*)'});
+                '*.*','All Files (*.*)'},'Save results',handles.last_save_path);
+           
+            
             if path ~= 0
+                % save path for later revokes of uiputfile
+                handles.last_save_path = path;
+               
                 savepath = fullfile(path,file);
                 save_table(handles.T_result,'fileFormat','tsv','savepath',savepath);
                 save_diffract = split(savepath,'.tsv');
@@ -1504,7 +1548,7 @@ if ~getappdata(wb,'canceling')
                     delete(savepath)
                 end
                 save_table(handles.T_result,'fileFormat','excel','savepath',savepath);
-                handles.save_status = 0;
+                handles.save_status = 1;
                 handles.save_status_led.BackgroundColor = [0 1 0];
             end
         else 
@@ -1655,9 +1699,16 @@ function button_folder_Callback(hObject, ~, handles)
 % hObject    handle to button_folder (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-[path] = uigetdir([],'Select folder with curve-files');
+
+[path] = uigetdir(handles.last_load_path,'Select folder with curve-files');
+
 
 if ~isequal(path,0)
+    % remember last path for the next invoke of uigetdir or uigetfile
+    parts = strsplit(path,filesep);
+    path_short = fullfile(parts{1:end-1});
+    handles.last_load_path = path_short;
+    
     set(handles.edit_filepath,'String',path);
     handles.loadtype = 'folder';
     guidata(hObject,handles)
@@ -2134,26 +2185,40 @@ function btngroup_contact_SelectionChangedFcn(hObject, ~, handles)
 %Curve is redrawn with a different Contactpoint finding model. This is
 %checked in the contact point function during the process_options
 
-%Process curve
-[hObject,handles] = process_options(hObject,handles);
+sel_obj = handles.btngroup_contact.SelectedObject;
 
-% draw new curve
-switch handles.options.model
-    case 'bihertz'
-        [handles] = plot_bihertz(handles);
-        guidata(hObject,handles);
-    case 'hertz'
-        [hObject,handles] = plot_hertz(hObject,handles);
-        guidata(hObject,handles);
+
+if strcmp(sel_obj.String,'via Hertz fit')
+    set(handles.contact_percentage_hertz,'Enable','on');
+else
+    set(handles.contact_percentage_hertz,'Enable','off');
 end
 
-% fit data to processed curve and display fitresult
-[hObject,handles] = curve_fit_functions(hObject,handles);
-guidata(hObject,handles);
+if handles.load_status ~=0
+    %Process curve
+    [hObject,handles] = process_options(hObject,handles);
 
-% update gui fit results
-[hObject,handles] = update_fit_results(hObject,handles);
+    % draw new curve
+    switch handles.options.model
+        case 'bihertz'
+            [handles] = plot_bihertz(handles);
+            guidata(hObject,handles);
+        case 'hertz'
+            [hObject,handles] = plot_hertz(hObject,handles);
+            guidata(hObject,handles);
+    end
+
+    % fit data to processed curve and display fitresult
+    [hObject,handles] = curve_fit_functions(hObject,handles);
+    guidata(hObject,handles);
+
+    % update gui fit results
+    [hObject,handles] = update_fit_results(hObject,handles);
+end
+
 guidata(hObject,handles);
+    
+    
 
 
 
@@ -2239,3 +2304,42 @@ else
 end
 
 guidata(hObject,handles);
+
+
+
+function contact_percentage_hertz_Callback(hObject, eventdata, handles)
+% hObject    handle to contact_percentage_hertz (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of contact_percentage_hertz as text
+%        str2double(get(hObject,'String')) returns contents of contact_percentage_hertz as a double
+
+perc_str = get(hObject,'String');
+perc_str = strrep(perc_str,',','.');
+perc = str2double(perc_str);
+
+if isnan(perc)
+   set(hObject,'String','20');
+else
+    set(hObject,'String',sprintf('%g',perc));
+end
+
+btngroup_contact_SelectionChangedFcn(handles.btngroup_contact,[], handles);
+
+
+
+
+
+
+% --- Executes during object creation, after setting all properties.
+function contact_percentage_hertz_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to contact_percentage_hertz (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
