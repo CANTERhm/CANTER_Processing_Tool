@@ -1656,7 +1656,7 @@ if ~getappdata(wb,'canceling')
                     delete(savepath)
                 end
                 save_table(handles.T_result,'fileFormat','excel','savepath',savepath);
-                handles.save_status = 1;
+                handles.save_status = 0;
                 handles.save_status_led.BackgroundColor = [0 1 0];
             end
     end
