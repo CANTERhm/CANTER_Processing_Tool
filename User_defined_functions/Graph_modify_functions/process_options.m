@@ -6,11 +6,13 @@ function [hObject,handles] = process_options(hObject,handles)
 %   * Processing type: automatic or curve-by-curve
 % 
 
-% Calculate the force from the given Calibration values and get original
-% x-values
 c_string = sprintf('curve%u',handles.current_curve);
-handles.proc_curves.(c_string).y_values = handles.curves.(c_string).y_values*handles.options.spring_const*handles.options.sensitivity*1e-9; %Save it as Newton
-handles.proc_curves.(c_string).x_values = handles.curves.(c_string).x_values;
+if strcmp(handles.options.tip_sample_correction,'yes')
+    % Calculate the force from the given Calibration values and get original
+    % x-values
+    handles.proc_curves.(c_string).y_values = handles.curves.(c_string).y_values*handles.options.spring_const*handles.options.sensitivity*1e-9; %Save it as Newton
+    handles.proc_curves.(c_string).x_values = handles.curves.(c_string).x_values;
+end
 
 % Correct the baseline by means of the elected option
 switch handles.options.bihertz_baseline

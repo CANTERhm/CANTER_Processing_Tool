@@ -22,7 +22,7 @@ function varargout = bihertz_gui(varargin)
 
 % Edit the above text to modify the response to help bihertz_gui
 
-% Last Modified by GUIDE v2.5 27-Mar-2019 15:00:54
+% Last Modified by GUIDE v2.5 29-Apr-2019 14:46:51
     warning off
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -65,12 +65,13 @@ handles.def_led_y = handles.save_status_led.Position(2);
 
 % Update handles structure
 handles.options = varargin{1};
-handles.curves = struct([]);
+handles.curves = struct();
 handles.figures = struct('main_fig',[]);
 handles.load_status = 0;
 handles.save_status = [];
 handles.interpolation_type = 'bicubic';
 handles.ibw = false;
+handles.options.bihertz_variant = 1;
 handles.last_load_path = [];
 handles.last_save_path = [];
 
@@ -81,9 +82,9 @@ guidata(hObject, handles);
 handles.fit_model_popup.Enable = 'on';
 switch handles.options.model
     case 'bihertz'
-        % in this case it is good as it is ;)
-    case 'hertz'
         handles.fit_model_popup.Value = 2;
+    case 'hertz'
+        handles.fit_model_popup.Value = 1;
         handles.uipanel5.Visible = 'off';
         handles.uipanel10.Visible = 'off';
         handles.hertz_fit_panel.Visible = 'on';
@@ -92,6 +93,11 @@ switch handles.options.model
 
 guidata(hObject,handles);
 end
+
+handles = grid_creation_function(handles);
+
+guidata(hObject,handles);
+
 
 
 
@@ -320,19 +326,24 @@ end
 if strcmp(answer,'No')
     return;
 elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
+    
+    % initialise fit results struct or reset previous fit results
+    handles.fit_results = struct();
+    
     path = get(handles.edit_filepath,'String');
     if strcmp(path,'    filepath')
         errordlg('No file or folder selected','No selection found');
     else
         handles.options = Calibration(handles.options);
         guidata(hObject,handles);
+        
         handles.options = canti_sample_gui(handles.options);
         guidata(hObject,handles);
-        
+
         handles.tip_angle = handles.options.tip_angle;
         handles.poisson = handles.options.poisson;
         handles.tip_shape = handles.options.tip_shape;
-
+        
 
 
         % provide processing infos
@@ -642,7 +653,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
             num_files = i-1;                % number of fully loaded curves
             handles.num_files = i-1;        % provide max curve number in handles                    
         end
-
+                
         % write progress values
         % needed variables
         handles.progress = struct('num_unprocessed',num_files,...
@@ -681,7 +692,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
         xlabel('Vertical tip position [µm]');
         ylabel({'Force [nN]';''});
         guidata(hObject,handles);
-        %Plot the data as Bihertz or as Hertz
+        %Plot the data with chosen model
         switch handles.options.model
             case 'bihertz'
                 [handles] = plot_bihertz(handles);
@@ -698,11 +709,20 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
         % prelocate result table
         switch handles.options.model
             case 'bihertz'
-                varTypes =  {'string','uint64','double','double','double',...
-                             'double','double','double','double'};
-                varNames = {'File_name','Index','initial_E_s_Pa','initial_E_h_Pa',...
-                            'initial_d_h_m','fit_E_s_Pa','fit_E_h_Pa','fit_d_h_m','rsquare_fit'};
-                handles.T_result = table('size',[handles.num_files 9],'VariableTypes',varTypes,'VariableNames',varNames);
+                if handles.options.bihertz_variant == 1
+                    varTypes =  {'string','uint64','double','double','double',...
+                                 'double','double','double','double'};
+                    varNames = {'File_name','Index','initial_E_s_Pa','initial_E_h_Pa',...
+                                'initial_d_h_m','fit_E_s_Pa','fit_E_h_Pa','fit_d_h_m','rsquare_fit'};
+                    handles.T_result = table('size',[handles.num_files 9],'VariableTypes',varTypes,'VariableNames',varNames);
+                elseif handles.options.bihertz_variant == 2
+                    varTypes =  {'string','uint64','double','double','double','double',...
+                                 'double','double','double','double','double'};
+                    varNames = {'File_name','Index','initial_E_s_Pa','initial_E_h_Pa',...
+                                'initial_d_h_m','initial_s_p_m','fit_E_s_Pa','fit_E_h_Pa','fit_d_h_m','fit_s_p_m','rsquare_fit'};
+                    handles.T_result = table('size',[handles.num_files 11],'VariableTypes',varTypes,'VariableNames',varNames);
+                end
+                    
             case 'hertz'
                 varTypes =  {'string','uint64','double','double'};
                 varNames = {'File_name','Index','EModul','rsquare_fit'};
@@ -831,7 +851,18 @@ function fit_depth_Callback(hObject, ~, handles)
 
 % Hints: get(hObject,'String') returns contents of fit_depth as text
 %        str2double(get(hObject,'String')) returns contents of fit_depth as a double
+
+
 [hObject,handles] = update_patches(hObject,handles);
+
+% fit data to processed curve and display fitresult
+[hObject,handles] = curve_fit_functions(hObject,handles);
+guidata(hObject,handles);
+
+% update gui fit results
+[hObject,handles] = update_fit_results(hObject,handles);
+
+
 guidata(hObject,handles)
 
 
@@ -856,7 +887,18 @@ function fit_perc_Callback(hObject, ~, handles)
 
 % Hints: get(hObject,'String') returns contents of fit_perc as text
 %        str2double(get(hObject,'String')) returns contents of fit_perc as a double
+
+
 [hObject,handles] = update_patches(hObject,handles);
+
+% fit data to processed curve and display fitresult
+[hObject,handles] = curve_fit_functions(hObject,handles);
+guidata(hObject,handles);
+
+% update gui fit results
+[hObject,handles] = update_fit_results(hObject,handles);
+
+
 guidata(hObject,handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -939,15 +981,29 @@ discarded = handles.progress.num_discarded;
 
 switch handles.options.model
     case 'bihertz'
-        handles.T_result(curve_index-discarded,:) = {handles.file_names(curve_index),...
-                           uint64(curve_index),...
-                           handles.fit_results.initial_E_s,...
-                           handles.fit_results.initial_E_h,...
-                           handles.fit_results.initial_d_h,...
-                           handles.fit_results.fit_E_s,...
-                           handles.fit_results.fit_E_h,...
-                           handles.fit_results.fit_d_h,...
-                           handles.fit_results.rsquare_fit};
+        if handles.options.bihertz_variant == 1
+            handles.T_result(curve_index-discarded,:) = {handles.file_names(curve_index),...
+                               uint64(curve_index),...
+                               handles.fit_results.initial_E_s,...
+                               handles.fit_results.initial_E_h,...
+                               handles.fit_results.initial_d_h,...
+                               handles.fit_results.fit_E_s,...
+                               handles.fit_results.fit_E_h,...
+                               handles.fit_results.fit_d_h,...
+                               handles.fit_results.rsquare_fit};
+        elseif handles.options.bihertz_variant == 2
+            handles.T_result(curve_index-discarded,:) = {handles.file_names(curve_index),...
+                               uint64(curve_index),...
+                               handles.fit_results.initial_E_s,...
+                               handles.fit_results.initial_E_h,...
+                               handles.fit_results.initial_d_h,...
+                               handles.fit_results.initial_s_p,...
+                               handles.fit_results.fit_E_s,...
+                               handles.fit_results.fit_E_h,...
+                               handles.fit_results.fit_d_h,...
+                               handles.fit_results.fit_s_p,...
+                               handles.fit_results.rsquare_fit};
+        end
 
     case 'hertz'
         handles.T_result(curve_index-discarded,:) = {handles.file_names(curve_index),...
@@ -1234,21 +1290,41 @@ curve_index = handles.current_curve-1;
 if curve_index == 1
     switch handles.options.model
         case 'bihertz'
-            varTypes = {'string','uint64','double','double','double',...
-                        'double','double','double','double'};
-            varNames = {'File_name','Index','initial_E_s_Pa','initial_E_h_Pa',...
-                        'initial_d_h_m','fit_E_s_Pa','fit_E_h_Pa','fit_d_h_m','rsquare_fit'};
-            handles.T_result = table('Size',[handles.num_files 9],'VariableTypes',varTypes,'VariableNames',varNames);
+            if handles.options.bihertz_variant == 1
+                varTypes = {'string','uint64','double','double','double',...
+                            'double','double','double','double'};
+                varNames = {'File_name','Index','initial_E_s_Pa','initial_E_h_Pa',...
+                            'initial_d_h_m','fit_E_s_Pa','fit_E_h_Pa','fit_d_h_m','rsquare_fit'};
+                handles.T_result = table('Size',[handles.num_files 9],'VariableTypes',varTypes,'VariableNames',varNames);
+            elseif handles.options.bihertz_variant == 2
+                varTypes =  {'string','uint64','double','double','double','double',...
+                                 'double','double','double','double','double'};
+                varNames = {'File_name','Index','initial_E_s_Pa','initial_E_h_Pa',...
+                            'initial_d_h_m','initial_s_p_m','fit_E_s_Pa','fit_E_h_Pa','fit_d_h_m','fit_s_p_m','rsquare_fit'};
+                handles.T_result = table('size',[handles.num_files 11],'VariableTypes',varTypes,'VariableNames',varNames);
+            end
         case 'hertz'
             varTypes =  {'string','uint64','double','double'};
             varNames = {'File_name','Index','EModul','rsquare_fit'};
             handles.T_result = table('size',[handles.num_files 4],'VariableTypes',varTypes,'VariableNames',varNames);
     end
 else
+    discarded = handles.progress.num_discarded;
     if curve_index ~= handles.num_files
         switch handles.options.model
             case 'bihertz'
-                handles.T_result(end+1,:) = {missing,...
+                if handles.options.bihertz_variant == 1
+                    handles.T_result(curve_index-discarded,:) = {missing,...
+                                               uint64(0),...
+                                               0,...
+                                               0,...
+                                               0,...
+                                               0,...
+                                               0,...
+                                               0,...
+                                               0};
+                elseif handles.options.bihertz_variant == 2
+                    handles.T_result(curve_index-discarded,:) = {missing,...
                                            uint64(0),...
                                            0,...
                                            0,...
@@ -1256,9 +1332,12 @@ else
                                            0,...
                                            0,...
                                            0,...
+                                           0,...
+                                           0,...
                                            0};
+                end
             case 'hertz'
-                handles.T_result(end+1,:) = {missing,uint64(0), 0, 0};
+                handles.T_result(curve_index-discarded,:) = {missing,uint64(0), 0, 0};
         end
     end
 end
@@ -1393,15 +1472,29 @@ for a = 1:loop_it
     discarded = handles.progress.num_discarded;
     switch handles.options.model
     case 'bihertz'
-        handles.T_result(curve_index-discarded,:) = {handles.file_names(curve_index),...
-                           uint64(curve_index),...
-                           handles.fit_results.initial_E_s,...
-                           handles.fit_results.initial_E_h,...
-                           handles.fit_results.initial_d_h,...
-                           handles.fit_results.fit_E_s,...
-                           handles.fit_results.fit_E_h,...
-                           handles.fit_results.fit_d_h,...
-                           handles.fit_results.rsquare_fit};
+        if handles.options.bihertz_variant == 1
+            handles.T_result(curve_index-discarded,:) = {handles.file_names(curve_index),...
+                               uint64(curve_index),...
+                               handles.fit_results.initial_E_s,...
+                               handles.fit_results.initial_E_h,...
+                               handles.fit_results.initial_d_h,...
+                               handles.fit_results.fit_E_s,...
+                               handles.fit_results.fit_E_h,...
+                               handles.fit_results.fit_d_h,...
+                               handles.fit_results.rsquare_fit};
+        elseif handles.options.bihertz_variant == 2
+            handles.T_result(curve_index-discarded,:) = {handles.file_names(curve_index),...
+                               uint64(curve_index),...
+                               handles.fit_results.initial_E_s,...
+                               handles.fit_results.initial_E_h,...
+                               handles.fit_results.initial_d_h,...
+                               handles.fit_results.initial_s_p,...
+                               handles.fit_results.fit_E_s,...
+                               handles.fit_results.fit_E_h,...
+                               handles.fit_results.fit_d_h,...
+                               handles.fit_results.fit_s_p,...
+                               handles.fit_results.rsquare_fit};
+        end
 
     case 'hertz'
         handles.T_result(curve_index-discarded,:) = {handles.file_names(curve_index),...
@@ -1438,7 +1531,7 @@ for a = 1:loop_it
     [hObject,handles] = process_options(hObject,handles);
     
     %Only show the curve when the user want to see it
-    if strcmp(answer_display, 'Yes')
+    if strcmp(answer_display, 'Yes') || isempty(answer_display)
         % draw new curve
         switch handles.options.model
             case 'bihertz'
@@ -1468,6 +1561,8 @@ for a = 1:loop_it
     guidata(hObject,handles);
 
 end
+% reset user aswer for displaying curves
+handles.answer_display = [];
 
 % reable buttons after processing
 handles.button_keep.Enable = 'on';
@@ -1487,15 +1582,29 @@ if ~getappdata(wb,'canceling')
     discarded = handles.progress.num_discarded;
     switch handles.options.model
     case 'bihertz'
-        handles.T_result(curve_index-discarded,:) = {handles.file_names(curve_index),...
-                           uint64(curve_index),...
-                           handles.fit_results.initial_E_s,...
-                           handles.fit_results.initial_E_h,...
-                           handles.fit_results.initial_d_h,...
-                           handles.fit_results.fit_E_s,...
-                           handles.fit_results.fit_E_h,...
-                           handles.fit_results.fit_d_h,...
-                           handles.fit_results.rsquare_fit};
+        if handles.options.bihertz_variant == 1
+            handles.T_result(curve_index-discarded,:) = {handles.file_names(curve_index),...
+                               uint64(curve_index),...
+                               handles.fit_results.initial_E_s,...
+                               handles.fit_results.initial_E_h,...
+                               handles.fit_results.initial_d_h,...
+                               handles.fit_results.fit_E_s,...
+                               handles.fit_results.fit_E_h,...
+                               handles.fit_results.fit_d_h,...
+                               handles.fit_results.rsquare_fit};
+        elseif handles.options.bihertz_variant == 2
+            handles.T_result(curve_index-discarded,:) = {handles.file_names(curve_index),...
+                               uint64(curve_index),...
+                               handles.fit_results.initial_E_s,...
+                               handles.fit_results.initial_E_h,...
+                               handles.fit_results.initial_d_h,...
+                               handles.fit_results.initial_s_p,...
+                               handles.fit_results.fit_E_s,...
+                               handles.fit_results.fit_E_h,...
+                               handles.fit_results.fit_d_h,...
+                               handles.fit_results.fit_s_p,...
+                               handles.fit_results.rsquare_fit};
+        end
 
     case 'hertz'
         handles.T_result(curve_index-discarded,:) = {handles.file_names(curve_index),...
@@ -1585,20 +1694,6 @@ function fit_model_popup_Callback(hObject, ~, handles)
 % switch panels
 switch hObject.Value
     case 1
-        handles.uipanel5.Visible = 'on';
-        handles.uipanel10.Visible = 'on';
-        handles.hertz_fit_panel.Visible = 'off';
-        handles.map_axes.Visible = 'off';
-        handles.options.model = 'bihertz';
-        % recreate T_results if exists
-        if isfield(handles,'T_result')
-        varTypes =  {'string','uint64','double','double','double',...
-                             'double','double','double','double'};
-        varNames = {'File_name','Index','initial_E_s_Pa','initial_E_h_Pa',...
-                    'initial_d_h_m','fit_E_s_Pa','fit_E_h_Pa','fit_d_h_m','rsquare_fit'};
-        handles.T_result = table('size',[handles.num_files 9],'VariableTypes',varTypes,'VariableNames',varNames);
-        end
-    case 2
         handles.uipanel5.Visible = 'off';
         handles.uipanel10.Visible = 'off';
         handles.hertz_fit_panel.Visible = 'on';
@@ -1610,25 +1705,60 @@ switch hObject.Value
             varNames = {'File_name','Index','EModul','rsquare_fit'};
             handles.T_result = table('size',[handles.num_files 4],'VariableTypes',varTypes,'VariableNames',varNames);
         end
+                
+    case 2
+        handles.uipanel5.Visible = 'on';
+        handles.uipanel10.Visible = 'on';
+        handles.hertz_fit_panel.Visible = 'off';
+        handles.map_axes.Visible = 'off';
+        handles.options.model = 'bihertz';
+        handles.options.bihertz_variant = 1;
+        handles = grid_creation_function(handles);
+        % recreate T_results if exists
+        if isfield(handles,'T_result')
+            varTypes =  {'string','uint64','double','double','double',...
+                                 'double','double','double','double'};
+            varNames = {'File_name','Index','initial_E_s_Pa','initial_E_h_Pa',...
+                        'initial_d_h_m','fit_E_s_Pa','fit_E_h_Pa','fit_d_h_m','rsquare_fit'};
+            handles.T_result = table('size',[handles.num_files 9],'VariableTypes',varTypes,'VariableNames',varNames);
+        end
+        
+    case 3
+        handles.uipanel5.Visible = 'on';
+        handles.uipanel10.Visible = 'on';
+        handles.hertz_fit_panel.Visible = 'off';
+        handles.map_axes.Visible = 'off';
+        handles.options.model = 'bihertz';
+        handles.options.bihertz_variant = 2;
+        handles = grid_creation_function(handles);
+        % recreate T_results if exists
+        if isfield(handles,'T_result')
+            varTypes =  {'string','uint64','double','double','double','double',...
+                                 'double','double','double','double','double'};
+            varNames = {'File_name','Index','initial_E_s_Pa','initial_E_h_Pa',...
+                        'initial_d_h_m','initial_s_p_m','fit_E_s_Pa','fit_E_h_Pa','fit_d_h_m','fit_s_p_m','rsquare_fit'};
+            handles.T_result = table('size',[handles.num_files 11],'VariableTypes',varTypes,'VariableNames',varNames);
+        end
+        
 end
 
-try     % if curves are loaded
-% draw new curve
-switch handles.options.model
-    case 'bihertz'
-        [handles] = plot_bihertz(handles);
-        guidata(hObject,handles);
-    case 'hertz'
-        [hObject,handles] = plot_hertz(hObject,handles);
-        guidata(hObject,handles);
-end
+try % if curves are loaded
+    % draw new curve
+    switch handles.options.model
+        case 'bihertz'
+            [handles] = plot_bihertz(handles);
+            guidata(hObject,handles);
+        case 'hertz'
+            [hObject,handles] = plot_hertz(hObject,handles);
+            guidata(hObject,handles);
+    end
 
-% fit data to processed curve and display fitresult
-[hObject,handles] = curve_fit_functions(hObject,handles);
-guidata(hObject,handles);
+    % fit data to processed curve and display fitresult
+    [hObject,handles] = curve_fit_functions(hObject,handles);
+    guidata(hObject,handles);
 
-% update gui fit results
-[hObject,handles] = update_fit_results(hObject,handles);
+    % update gui fit results
+    [hObject,handles] = update_fit_results(hObject,handles);
 catch
    % if no curve is loaded don't do anything 
 end
@@ -1637,7 +1767,7 @@ guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function fit_model_popup_CreateFcn(hObject, ~, ~)
+function fit_model_popup_CreateFcn(hObject, ~, handles)
 % hObject    handle to fit_model_popup (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -1647,6 +1777,7 @@ function fit_model_popup_CreateFcn(hObject, ~, ~)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
 
 
 % --------------------------------------------------------------------
@@ -1829,9 +1960,6 @@ else
     %Nothing
 end
 guidata(hObject,handles)
-    
-
-
     
 
 
@@ -2335,6 +2463,36 @@ btngroup_contact_SelectionChangedFcn(handles.btngroup_contact,[], handles);
 % --- Executes during object creation, after setting all properties.
 function contact_percentage_hertz_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to contact_percentage_hertz (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes during object creation, after setting all properties.
+function uipanel10_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to uipanel10 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+
+
+function result_switch_point_Callback(hObject, eventdata, handles)
+% hObject    handle to result_switch_point (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of result_switch_point as text
+%        str2double(get(hObject,'String')) returns contents of result_switch_point as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function result_switch_point_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to result_switch_point (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
