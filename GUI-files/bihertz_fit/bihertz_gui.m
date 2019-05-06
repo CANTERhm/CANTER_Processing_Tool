@@ -1639,8 +1639,7 @@ if ~getappdata(wb,'canceling')
         'Processing completed!','Yes','No','Yes');
 
     if strcmp(answer,'Yes')
-        if strcmp(handles.edit_savepath.String,'     savepath')
-            [file,path] = uiputfile({'*.tsv;*.xlsx','Save files (*.tsv,*.xlsx)';...
+        [file,path] = uiputfile({'*.tsv;*.xlsx','Save files (*.tsv,*.xlsx)';...
                 '*.*','All Files (*.*)'},'Save results',handles.last_save_path);
            
             
@@ -1657,18 +1656,9 @@ if ~getappdata(wb,'canceling')
                     delete(savepath)
                 end
                 save_table(handles.T_result,'fileFormat','excel','savepath',savepath);
-                handles.save_status = 1;
+                handles.save_status = 0;
                 handles.save_status_led.BackgroundColor = [0 1 0];
             end
-        else 
-            savepath = handles.edit_savepath.String;
-            save_table(handles.T_result,'fileFormat','tsv','savepath',savepath);
-            save_diffract = split(savepath,'.tsv');
-            savepath = strcat(save_diffract,'.xlsx');
-            save_table(handles.T_result,'fileFormat','excel','savepath',savepath);
-            handles.save_status = 0;
-            handles.save_status_led.BackgroundColor = [0 1 0];
-        end
     end
 end
 delete(wb)
