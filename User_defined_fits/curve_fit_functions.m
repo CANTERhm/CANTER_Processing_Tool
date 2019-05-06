@@ -19,6 +19,9 @@ function [hObject,handles] = curve_fit_functions(hObject,handles, varargin)
 %   * fit_E_h -> fitresult for E_h
 %   * fit_d_h -> fitresult for d_h
 %   * rsqare_fit -> R^2 of bihertz fit
+%   And in case of the bihertz_split_heavyside fit model also:
+%   * initial_s_p
+%   * fit_s_p
 %
 %   *HERTZ_FIT* : Function for the bihertz gui to do the Hertz fit on
 %   the processed data, plot the fit-curve on the main plot window and
@@ -29,6 +32,9 @@ function [hObject,handles] = curve_fit_functions(hObject,handles, varargin)
 % 
 
 %%
+
+warning off;
+
 item = handles.options.model;
 switch item
     
@@ -55,33 +61,74 @@ switch item
         par0(1) = E_s;
         par0(2) = E_h;
         par0(3) = d_h;
-        [fit,~,~,~,~,Rs] = bihertz_sum_heaviside(x_fit,y_fit,par0,angle,poisson,'plot','off');
-       
-        % saving fit results in handles
-        handles.fit_results = struct('initial_E_s',E_s,'gof_soft',gof_soft,...
-            'initial_E_h',E_h,'initial_d_h',d_h,'gof_hard',gof_hard,...
-            'fit_E_s',fit(1),'fit_E_h',fit(2),'fit_d_h',fit(3),'rsquare_fit',Rs);
-        guidata(hObject,handles);
         
-        % add fit to main plot window
-        figure(handles.figures.main_fig)
-        hold(handles.figures.main_ax,'on');
-        func = @(par,d)tan(angle.*pi/180)/(2*(1-poisson.^2))*par(1).*d.^2+tan(angle.*pi/180)/(2.*(1-poisson^2)).*((heaviside(d-par(3))-1)*(-1)).*par(2).*(d-par(3)).^2;
-        mask = x_fit < 0;
-        y_plot(length(x_fit)) = 0;
-        x_draw = x_fit(mask);
-        y_plot(mask) = func(fit,x_draw);
-        try
-            delete(handles.figures.fit_plot)
-        catch 
-            %nix%
+        % get user answer regarding displaying fits
+        answer_display = [];
+        if nargin == 3
+            answer_display = varargin{1};
         end
-        handles.figures.fit_plot = plot(x_fit.*1e6,y_plot.*1e9','r-');
-        drawnow;
-        hold(handles.figures.main_ax,'off');
         
-        % show fit results in gui
-        % ..........................................
+        
+        switch handles.options.bihertz_variant
+            case 1
+                [fit,~,~,~,~,Rs] = bihertz_sum_heaviside(x_fit,y_fit,par0,angle,poisson,'plot','off');
+                % add fit to main plot window
+                if strcmp(answer_display, 'Yes') || isempty(answer_display)
+                    figure(handles.figures.main_fig)
+                    hold(handles.figures.main_ax,'on');
+                    func = @(par,d)tan(angle.*pi/180)/(2*(1-poisson.^2))*par(1).*d.^2+tan(angle.*pi/180)/(2.*(1-poisson^2)).*((heaviside(d-par(3))-1)*(-1)).*par(2).*(d-par(3)).^2;
+                    mask = x_fit < 0;
+                    y_plot(length(x_fit)) = 0;
+                    x_draw = x_fit(mask);
+                    y_plot(mask) = func(fit,x_draw);
+                    try
+                        delete(handles.figures.fit_plot)
+                    catch 
+                        %nix%
+                    end
+                    handles.figures.fit_plot = plot(x_fit.*1e6,y_plot.*1e9','r-');
+                    drawnow;
+                    hold(handles.figures.main_ax,'off');
+                    
+                end
+                
+                % saving fit results in handles
+                handles.fit_results = struct('initial_E_s',E_s,'gof_soft',gof_soft,...
+                    'initial_E_h',E_h,'initial_d_h',d_h,'gof_hard',gof_hard,...
+                    'fit_E_s',fit(1),'fit_E_h',fit(2),'fit_d_h',fit(3),'rsquare_fit',Rs);
+                guidata(hObject,handles);
+                
+            case 2
+                [fit,~,~,~,~,Rs,init_s_p] = bihertz_split_heaviside(x_fit,y_fit,par0,angle,poisson,'plot','off');
+                % add fit to main plot window
+                if strcmp(answer_display, 'Yes') || isempty(answer_display)
+                    figure(handles.figures.main_fig)
+                    hold(handles.figures.main_ax,'on');
+                    func = @(par,d)tan(angle.*pi/180)/(2.*(1-poisson^2)).*heaviside(d-par(4)).*par(1).*d.^2 ...
+                                  +tan(angle.*pi/180)/(2.*(1-poisson^2)).*(heaviside(d-par(4))-1).*(-1).*par(2).*(d-par(3)).^2;
+                    mask = x_fit < 0;
+                    y_plot(length(x_fit)) = 0;
+                    x_draw = x_fit(mask);
+                    y_plot(mask) = func(fit,x_draw);
+                    try
+                        delete(handles.figures.fit_plot)
+                    catch 
+                        %nix%
+                    end
+                    handles.figures.fit_plot = plot(x_fit.*1e6,y_plot.*1e9','r-');
+                    drawnow;
+                    hold(handles.figures.main_ax,'off');
+                end
+                
+                % saving fit results in handles
+                handles.fit_results = struct('initial_E_s',E_s,'gof_soft',gof_soft,...
+                    'initial_E_h',E_h,'initial_d_h',d_h,'initial_s_p',init_s_p,'gof_hard',gof_hard,...
+                    'fit_E_s',fit(1),'fit_E_h',fit(2),'fit_d_h',fit(3),'fit_s_p',fit(4),'rsquare_fit',Rs);
+                guidata(hObject,handles);
+        end
+        
+        
+               
         
     % Hertz_Fit
     case 'hertz'
@@ -126,5 +173,6 @@ switch item
        
 end
 
+warning on;
 
 guidata(hObject,handles);
