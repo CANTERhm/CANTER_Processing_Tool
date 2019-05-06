@@ -197,12 +197,12 @@ if comp
     end
 else
     handles.options(:).sensitivity = 0;
-    if strcmp(handles.options.tip_sample_correction,'yes')
+    if strcmp(handles.correction_group.SelectedObject.Tag,'yes')
         handles.options.sensitivity = sens;
     end
 
     handles.options(:).spring_const = 0;
-    if strcmp(handles.options.tip_sample_correction,'yes')
+    if strcmp(handles.correction_group.SelectedObject.Tag,'yes')
         handles.options.spring_const = cons;
     end
     
