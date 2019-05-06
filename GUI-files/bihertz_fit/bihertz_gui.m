@@ -352,8 +352,11 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
         str = sprintf('Spring constant: %.4f N/m',handles.options.spring_const);
         set(handles.text_spring_const,'String',str);
         
-        % set the prefered load path also as prefered save path
-        handles.last_save_path = handles.last_load_path;
+        % set the prefered load path also as prefered save path if save
+        % path is empty
+        if isempty(handles.save_path)
+            handles.last_save_path = handles.last_load_path;
+        end
 
         switch handles.loadtype
             case 'file'
