@@ -354,7 +354,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
         
         % set the prefered load path also as prefered save path if save
         % path is empty
-        if isempty(handles.save_path)
+        if isempty(handles.last_save_path)
             handles.last_save_path = handles.last_load_path;
         end
 
