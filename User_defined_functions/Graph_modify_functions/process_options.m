@@ -46,8 +46,7 @@ switch handles.options.bihertz_baseline
         
     case 'offset_and_tilt'
         %Finds the baseline and save the edges
-        %[handles.baselineedges] = BaselineFinder(handles.proc_curves.(c_string).x_values, handles.proc_curves.(c_string).y_values, 'FitWindowSize', 10);
-        [handles.baselineedges] = BaselineFinderTest(handles.proc_curves.(c_string).x_values, handles.proc_curves.(c_string).y_values);
+        [handles.baselineedges] = BaselineFinder(handles.proc_curves.(c_string).x_values, handles.proc_curves.(c_string).y_values, 'FitWindowSize', 10);
         
         %Correct the Tilt
         [handles.proc_curves.(c_string).y_values] = TiltCorrection(handles.proc_curves.(c_string).x_values, handles.proc_curves.(c_string).y_values, handles.baselineedges);
