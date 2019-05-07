@@ -47,9 +47,28 @@ zippath = fullfile(pathname, zipfile);
 copyfile (mappath, zippath);
 
 unzipfolder = fullfile(pathname, 'Forcemap');
-unzip(zippath, unzipfolder);
 
-Indexfolder = strcat(unzipfolder, '/index');
+% unzip file eather with 7zip or unzip
+try
+    path_parts = split(pwd,filesep);
+    unzip(fullfile(path_parts{1:end-2},'7-Zip.zip'),fullfile(path_parts{1:end-2},'7-Zip'));
+    zip_prog_path = fullfile(path_parts{1:end-2},'7-Zip','7z.exe');
+    zip_command = 'x';
+    switches = ['-r' ' ' '-y' ' ' '-o' '"' unzipfolder '"' ];
+    status = system(['"' zip_prog_path '"' ' ' zip_command  ' ' '"' zippath '"' ' ' switches]);
+    rmdir(fullfile(path_parts{1:end-2},'7-Zip'));
+catch
+    warning('7zip wasn''found; matlabs unzip function was used instead!');
+    unzip(zippath, unzipfolder);
+end
+
+if status ~= 0
+    warning('7zip wasn''t successful in unziping. Matlabs unuip function was used instead!');
+    unzip(zippath, unzipfolder);
+end
+    
+
+Indexfolder = fullfile(unzipfolder,'index');
 folder = dir(Indexfolder); % get the information of all files in the chosen folder
 files = {folder.name}; % get names(amount of curves) of all files
 files = files(3:length(files)); % get rid of the first two lines with no suitable information
