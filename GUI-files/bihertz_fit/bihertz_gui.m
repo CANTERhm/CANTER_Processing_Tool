@@ -1289,6 +1289,14 @@ handles.save_status_led.BackgroundColor = [1 0 0];
 % Subtract 1 from the current curve value
 curve_index = handles.current_curve-1;
 
+% change listbox element and save previous string                  
+it = handles.listbox1.String;
+prev_string = it{curve_index,1};
+it{curve_index,1} = sprintf('curve %3u  ->  unprocessed',curve_index);
+handles.listbox1.String = it;
+prev_string = split(prev_string,'  ->  ');
+prev_string = prev_string{2};
+
 % undo previous fit results
 if curve_index == 1
     switch handles.options.model
@@ -1314,10 +1322,17 @@ if curve_index == 1
 else
     discarded = handles.progress.num_discarded;
     if curve_index ~= handles.num_files
+        
+        if strcmp(prev_string,'processed')
+            T_indx = curve_index-discarded;
+        else
+            T_indx = size(handles.T_result,1)+1;
+        end
+        
         switch handles.options.model
             case 'bihertz'
                 if handles.options.bihertz_variant == 1
-                    handles.T_result(curve_index-discarded,:) = {missing,...
+                    handles.T_result(T_indx,:) = {missing,...
                                                uint64(0),...
                                                0,...
                                                0,...
@@ -1327,7 +1342,7 @@ else
                                                0,...
                                                0};
                 elseif handles.options.bihertz_variant == 2
-                    handles.T_result(curve_index-discarded,:) = {missing,...
+                    handles.T_result(T_indx,:) = {missing,...
                                            uint64(0),...
                                            0,...
                                            0,...
@@ -1340,16 +1355,11 @@ else
                                            0};
                 end
             case 'hertz'
-                handles.T_result(curve_index-discarded,:) = {missing,uint64(0), 0, 0};
+                handles.T_result(T_indx,:) = {missing,uint64(0), 0, 0};
         end
     end
 end
                 
-% change listbox element and save previous string                  
-it = handles.listbox1.String;
-prev_string = it{curve_index,1};
-it{curve_index,1} = sprintf('curve %3u  ->  unprocessed',curve_index);
-handles.listbox1.String = it;
 
 
 % Save the new current_curve value
@@ -1388,8 +1398,6 @@ guidata(hObject,handles);
 guidata(hObject,handles);
 
 % update progress values
-prev_string = split(prev_string,'  ->  ');
-prev_string = prev_string{2};
 switch prev_string
     case 'processed'
         handles.progress.num_unprocessed = handles.progress.num_unprocessed +1;
