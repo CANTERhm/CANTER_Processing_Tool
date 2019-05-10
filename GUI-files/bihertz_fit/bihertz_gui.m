@@ -941,29 +941,317 @@ function button_undo_highlighted_Callback(hObject, ~, handles)
 % hObject    handle to button_undo_highlighted (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
 selection_num = handles.listbox1.Value;
 selection_diff = handles.current_curve - selection_num;
-for i=1:selection_diff
-    button_undo_Callback(handles.button_undo,[],handles)
-    handles = guidata(handles.button_undo);
+
+% set save status to 1
+handles.save_status = 1;
+handles.save_status_led.BackgroundColor = [1 0 0];
+
+% if pushed after reaching the last curve keep and discard buttons are
+% enabled again
+new_curve_index = handles.current_curve;
+if new_curve_index == handles.num_files
+    handles.button_keep.Enable = 'on';
+    handles.button_discard.Enable = 'on';
+    handles.button_keep_all.Enable = 'on';
+    handles.fit_model_popup.Enable = 'off';
 end
-% switch all buttons to off after processing
-handles.button_keep_highlighted.Enable = 'off';
-handles.button_undo_highlighted.Enable = 'off';
-handles.button_discard_highlighted.Enable = 'off';
-guidata(hObject,handles)
+guidata(hObject,handles);
+
+if new_curve_index == handles.num_files
+   handles.current_curve = handles.current_curve+1;
+   selection_diff = selection_diff+1;
+end
+
+
+for i=1:selection_diff
+    
+    % Subtract 1 from the current curve value
+    curve_index = handles.current_curve-1;
+
+    % change listbox element and save previous string                  
+    it = handles.listbox1.String;
+    prev_string = it{curve_index,1};
+    it{curve_index,1} = sprintf('curve %3u  ->  unprocessed',curve_index);
+    handles.listbox1.String = it;
+    prev_string = split(prev_string,'  ->  ');
+    prev_string = prev_string{2};
+
+    % undo previous fit results
+    if curve_index == 1
+        switch handles.options.model
+            case 'bihertz'
+                if handles.options.bihertz_variant == 1
+                    varTypes = {'string','uint64','double','double','double',...
+                                'double','double','double','double'};
+                    varNames = {'File_name','Index','initial_E_s_Pa','initial_E_h_Pa',...
+                                'initial_d_h_m','fit_E_s_Pa','fit_E_h_Pa','fit_d_h_m','rsquare_fit'};
+                    handles.T_result = table('Size',[handles.num_files 9],'VariableTypes',varTypes,'VariableNames',varNames);
+                elseif handles.options.bihertz_variant == 2
+                    varTypes =  {'string','uint64','double','double','double','double',...
+                                     'double','double','double','double','double'};
+                    varNames = {'File_name','Index','initial_E_s_Pa','initial_E_h_Pa',...
+                                'initial_d_h_m','initial_s_p_m','fit_E_s_Pa','fit_E_h_Pa','fit_d_h_m','fit_s_p_m','rsquare_fit'};
+                    handles.T_result = table('size',[handles.num_files 11],'VariableTypes',varTypes,'VariableNames',varNames);
+                end
+            case 'hertz'
+                varTypes =  {'string','uint64','double','double'};
+                varNames = {'File_name','Index','EModul','rsquare_fit'};
+                handles.T_result = table('size',[handles.num_files 4],'VariableTypes',varTypes,'VariableNames',varNames);
+        end
+    else
+        discarded = handles.progress.num_discarded;
+        if curve_index ~= handles.num_files
+
+            if strcmp(prev_string,'processed')
+                T_indx = curve_index-discarded;
+            else
+                T_indx = size(handles.T_result,1)+1;
+            end
+
+            switch handles.options.model
+                case 'bihertz'
+                    if handles.options.bihertz_variant == 1
+                        handles.T_result(T_indx,:) = {missing,...
+                                                   uint64(0),...
+                                                   0,...
+                                                   0,...
+                                                   0,...
+                                                   0,...
+                                                   0,...
+                                                   0,...
+                                                   0};
+                    elseif handles.options.bihertz_variant == 2
+                        handles.T_result(T_indx,:) = {missing,...
+                                               uint64(0),...
+                                               0,...
+                                               0,...
+                                               0,...
+                                               0,...
+                                               0,...
+                                               0,...
+                                               0,...
+                                               0,...
+                                               0};
+                    end
+                case 'hertz'
+                    handles.T_result(T_indx,:) = {missing,uint64(0), 0, 0};
+            end
+        end
+    end
+    
+    % Save the new current_curve value
+    handles.current_curve = curve_index;
+    new_curve_index = curve_index;
+    guidata(hObject,handles);
+    
+    % update progress values
+    switch prev_string
+        case 'processed'
+            handles.progress.num_unprocessed = handles.progress.num_unprocessed +1;
+            handles.progress.num_processed = handles.progress.num_processed -1; 
+        case 'discarded'
+            handles.progress.num_unprocessed = handles.progress.num_unprocessed +1;
+            handles.progress.num_discarded = handles.progress.num_discarded -1;
+    end
+    guidata(hObject,handles);
+    
+    % write process info
+    [hObject,handles] = update_progress_info(hObject,handles);
+    guidata(hObject,handles);  
+    
+end
+
+if handles.ibw == true
+elseif strcmp(handles.loadtype,'file') && handles.ibw == false
+    % update current curve marker on map axes
+    handles = update_curve_marker(handles);
+end
+
+% highlight next list item
+handles.listbox1.Value = new_curve_index;
+guidata(hObject,handles);
+
+
+% Process new curve
+[hObject,handles] = process_options(hObject,handles);
+    
+% Draw new curve
+switch handles.options.model
+    case 'bihertz'
+        [handles] = plot_bihertz(handles);
+        guidata(hObject,handles);
+    case 'hertz'
+        [hObject,handles] = plot_hertz(hObject,handles);
+        guidata(hObject,handles);
+end
+% fit data to processed curve and display fitresult
+[hObject,handles] = curve_fit_functions(hObject,handles);
+guidata(hObject,handles);
+
+% update gui fit results
+[hObject,handles] = update_fit_results(hObject,handles);
+guidata(hObject,handles);
+
+% when first curve reached disable undo button and Youngs Modulus image
+if new_curve_index == 1
+    handles.button_undo.Enable = 'off';
+    handles.fit_model_popup.Enable = 'on';
+    handles.channel_names = {'height', 'slope'}';
+    handles.image_channels_popup.String = handles.channel_names;
+end
+
+guidata(hObject,handles);
+
+
+
+
+
+
+
 
 % --- Executes on button press in button_discard_highlighted.
 function button_discard_highlighted_Callback(hObject, ~, handles)
 % hObject    handle to button_discard_highlighted (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
 selection_num = handles.listbox1.Value;
 selection_diff = selection_num - handles.current_curve;
+
+
+
 for i=1:selection_diff
-    button_discard_Callback(handles.button_discard,[],handles)
-    handles = guidata(handles.button_discard);
+    % Don't write fit results
+    curve_index = handles.current_curve;
+    discarded = handles.progress.num_discarded;
+    handles.T_result(curve_index-discarded,:) = [];
+    handles.save_status = 1;
+    
+    % change listbox element                  
+    it = handles.listbox1.String;
+    it{curve_index,1} = sprintf('curve %3u  ->  discarded',curve_index);
+    handles.listbox1.String = it;
+
+    if handles.ibw == true
+    elseif strcmp(handles.loadtype,'file') && handles.ibw == false
+        % update current curve marker on map axes
+        handles = update_curve_marker(handles);
+    end
+    
+    % add 1 to the current_curve value
+    handles.current_curve = curve_index +1;
+    new_curve_index = curve_index + 1;
+    guidata(hObject,handles);
+
+    if new_curve_index == handles.num_files+1
+
+        % disable buttons during processing
+        handles.button_keep.Enable = 'off';
+        handles.button_discard.Enable = 'off';
+        handles.button_keep_all.Enable = 'off';
+
+        % update progress values
+        handles.progress.num_unprocessed = handles.progress.num_unprocessed -1;
+        handles.progress.num_discarded = handles.progress.num_discarded +1; 
+
+        % write process info
+        [hObject,handles] = update_progress_info(hObject,handles);
+        guidata(hObject,handles);
+
+        % save dialog
+        answer = questdlg({'Curve processing completed!',...
+            'Do you want to save the results?'},...
+            'Processing completed!','Yes','No','Yes');
+
+        if strcmp(answer,'Yes')
+            if strcmp(handles.edit_savepath.String,'     savepath')
+                [file,path] = uiputfile({'*.tsv;*.xlsx','Save files (*.tsv,*.xlsx)';...
+                    '*.*','All Files (*.*)'},'Save results',handles.last_save_path);
+
+
+                if path ~= 0
+                    % save path for later revokes of uiputfile
+                    handles.last_save_path = path;
+
+                    savepath = fullfile(path,file);
+                    save_table(handles.T_result,'fileFormat','tsv','savepath',savepath);
+                    save_diffract = split(savepath,'.tsv');
+                    savepath_cell = strcat(save_diffract(1),'.xlsx');
+                    savepath = savepath_cell{1};
+                    if exist(savepath,'file') == 2
+                        delete(savepath)
+                    end
+                    save_table(handles.T_result,'fileFormat','excel','savepath',savepath);
+                    handles.save_status = 1;
+                    handles.save_status_led.BackgroundColor = [0 1 0];
+                end
+            else 
+                savepath = handles.edit_savepath.String;
+                save_table(handles.T_result,'fileFormat','tsv','savepath',savepath);
+                save_diffract = split(savepath,'.tsv');
+                savepath = strcat(save_diffract,'.xlsx');
+                if exist(savepath,'file') == 2
+                        delete(savepath)
+                end
+                save_table(handles.T_result,'fileFormat','excel','savepath',savepath);
+                handles.save_status = 0;
+                handles.save_status_led.BackgroundColor = [0 1 0];
+            end
+        end
+
+    else
+
+        % highlight next list item
+        handles.listbox1.Value = new_curve_index;
+        guidata(hObject,handles);
+
+        % update progress values
+        handles.progress.num_unprocessed = handles.progress.num_unprocessed -1;
+        handles.progress.num_discarded = handles.progress.num_discarded +1;
+        guidata(hObject,handles);
+
+        % write process info
+        [hObject,handles] = update_progress_info(hObject,handles);
+        guidata(hObject,handles);
+
+        % activate undo button when first time pushed
+        if curve_index == 1
+            handles.button_undo.Enable = 'on';
+            handles.btn_histogram.Enable = 'on';
+            handles.btn_gof.Enable = 'on';
+        end
+
+    end
+        
+    
+       
 end
+
+%Process new curve
+[hObject,handles] = process_options(hObject,handles);
+
+% draw new curve
+switch handles.options.model
+    case 'bihertz'
+        [handles] = plot_bihertz(handles);
+        guidata(hObject,handles);
+    case 'hertz'
+        [hObject,handles] = plot_hertz(hObject,handles);
+        guidata(hObject,handles);
+end
+
+% fit data to processed curve and display fitresult
+[hObject,handles] = curve_fit_functions(hObject,handles);
+guidata(hObject,handles);
+
+% update gui fit results
+[hObject,handles] = update_fit_results(hObject,handles);
+guidata(hObject,handles);
+
+
 % switch all buttons to off after processing
 handles.button_keep_highlighted.Enable = 'off';
 handles.button_undo_highlighted.Enable = 'off';
@@ -1287,6 +1575,16 @@ function button_undo_Callback(hObject, ~, handles)
 handles.save_status = 1;
 handles.save_status_led.BackgroundColor = [1 0 0];
 
+% if undo button is pushed after reaching last curve reactivate buttons and
+% adjust current curve
+if handles.current_curve == handles.num_files
+   handles.current_curve = handles.current_curve+1;
+   
+   handles.button_keep.Enable = 'on';
+    handles.button_discard.Enable = 'on';
+    handles.button_keep_all.Enable = 'on';
+    handles.fit_model_popup.Enable = 'off';
+end
 
 % Subtract 1 from the current curve value
 curve_index = handles.current_curve-1;
@@ -1298,6 +1596,18 @@ it{curve_index,1} = sprintf('curve %3u  ->  unprocessed',curve_index);
 handles.listbox1.String = it;
 prev_string = split(prev_string,'  ->  ');
 prev_string = prev_string{2};
+
+% do the string correction again, if the selection was on the last element
+% which is an unprocessed one with adjusted curve_index
+if strcmp(prev_string,'unprocessed')
+    curve_index = curve_index - 1;
+    it = handles.listbox1.String;
+    prev_string = it{curve_index,1};
+    it{curve_index,1} = sprintf('curve %3u  ->  unprocessed',curve_index);
+    handles.listbox1.String = it;
+    prev_string = split(prev_string,'  ->  ');
+    prev_string = prev_string{2};
+end
 
 % undo previous fit results
 if curve_index == 1
@@ -1422,14 +1732,7 @@ if new_curve_index == 1
     handles.image_channels_popup.String = handles.channel_names;
 end
 
-% if pushed after reaching the last curve keep and discard buttons are
-% enabled again
-if new_curve_index == handles.num_files-1
-    handles.button_keep.Enable = 'on';
-    handles.button_discard.Enable = 'on';
-    handles.button_keep_all.Enable = 'on';
-    handles.fit_model_popup.Enable = 'off';
-end
+
 guidata(hObject,handles);
     
 
@@ -1441,6 +1744,10 @@ function button_keep_all_Callback(hObject, ~, handles)
 % hObject    handle to button_keep_all (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% disable fit model popup
+handles.fit_model_popup.Enable = 'off';
 
 % disable buttons during processing
 handles.button_keep.Enable = 'off';
@@ -1465,7 +1772,7 @@ loop_it = (handles.num_files - curve_index);
 
 % initialise waitbar with cancel button
 wb = waitbar(0,sprintf('curve %3u of %3u',curve_index,handles.num_files),...
-    'CreateCancelBtn','setappdata(gcbf,''canceling'',1)');
+    'CreateCancelBtn','setappdata(gcbf,''canceling'',1)','WindowStyle','modal');
 setappdata(wb,'canceling',0);
 
 % Do the keep and apply function with or without graphical presentation
@@ -1745,8 +2052,14 @@ switch hObject.Value
         
 end
 
-try % if curves are loaded
-    % draw new curve
+try delete(handles.figures.patch_handle); catch;  end
+try delete(handles.figures.baseline); catch; end
+try delete(handles.figures.baselineedges); catch; end
+try delete(handles.figures.baselineedges_2); catch; end
+try delete(handles.figures.fittedcurve); catch; end
+try delete(handles.figures.contactpoint_line); catch; end
+
+try  % draw new curve
     switch handles.options.model
         case 'bihertz'
             [handles] = plot_bihertz(handles);
