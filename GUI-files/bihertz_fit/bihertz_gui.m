@@ -1919,8 +1919,14 @@ switch hObject.Value
         
 end
 
-try % if curves are loaded
-    % draw new curve
+try delete(handles.figures.patch_handle); catch;  end
+try delete(handles.figures.baseline); catch; end
+try delete(handles.figures.baselineedges); catch; end
+try delete(handles.figures.baselineedges_2); catch; end
+try delete(handles.figures.fittedcurve); catch; end
+try delete(handles.figures.contactpoint_line); catch; end
+
+try  % draw new curve
     switch handles.options.model
         case 'bihertz'
             [handles] = plot_bihertz(handles);
