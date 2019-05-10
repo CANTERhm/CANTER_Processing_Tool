@@ -1117,12 +1117,141 @@ function button_discard_highlighted_Callback(hObject, ~, handles)
 % hObject    handle to button_discard_highlighted (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
 selection_num = handles.listbox1.Value;
 selection_diff = selection_num - handles.current_curve;
+
+
+
 for i=1:selection_diff
-    button_discard_Callback(handles.button_discard,[],handles)
-    handles = guidata(handles.button_discard);
+    % Don't write fit results
+    curve_index = handles.current_curve;
+    discarded = handles.progress.num_discarded;
+    handles.T_result(curve_index-discarded,:) = [];
+    handles.save_status = 1;
+    
+    % change listbox element                  
+    it = handles.listbox1.String;
+    it{curve_index,1} = sprintf('curve %3u  ->  discarded',curve_index);
+    handles.listbox1.String = it;
+
+    if handles.ibw == true
+    elseif strcmp(handles.loadtype,'file') && handles.ibw == false
+        % update current curve marker on map axes
+        handles = update_curve_marker(handles);
+    end
+    
+    % add 1 to the current_curve value
+    handles.current_curve = curve_index +1;
+    new_curve_index = curve_index + 1;
+    guidata(hObject,handles);
+
+    if new_curve_index == handles.num_files+1
+
+        % disable buttons during processing
+        handles.button_keep.Enable = 'off';
+        handles.button_discard.Enable = 'off';
+        handles.button_keep_all.Enable = 'off';
+
+        % update progress values
+        handles.progress.num_unprocessed = handles.progress.num_unprocessed -1;
+        handles.progress.num_discarded = handles.progress.num_discarded +1; 
+
+        % write process info
+        [hObject,handles] = update_progress_info(hObject,handles);
+        guidata(hObject,handles);
+
+        % save dialog
+        answer = questdlg({'Curve processing completed!',...
+            'Do you want to save the results?'},...
+            'Processing completed!','Yes','No','Yes');
+
+        if strcmp(answer,'Yes')
+            if strcmp(handles.edit_savepath.String,'     savepath')
+                [file,path] = uiputfile({'*.tsv;*.xlsx','Save files (*.tsv,*.xlsx)';...
+                    '*.*','All Files (*.*)'},'Save results',handles.last_save_path);
+
+
+                if path ~= 0
+                    % save path for later revokes of uiputfile
+                    handles.last_save_path = path;
+
+                    savepath = fullfile(path,file);
+                    save_table(handles.T_result,'fileFormat','tsv','savepath',savepath);
+                    save_diffract = split(savepath,'.tsv');
+                    savepath_cell = strcat(save_diffract(1),'.xlsx');
+                    savepath = savepath_cell{1};
+                    if exist(savepath,'file') == 2
+                        delete(savepath)
+                    end
+                    save_table(handles.T_result,'fileFormat','excel','savepath',savepath);
+                    handles.save_status = 1;
+                    handles.save_status_led.BackgroundColor = [0 1 0];
+                end
+            else 
+                savepath = handles.edit_savepath.String;
+                save_table(handles.T_result,'fileFormat','tsv','savepath',savepath);
+                save_diffract = split(savepath,'.tsv');
+                savepath = strcat(save_diffract,'.xlsx');
+                if exist(savepath,'file') == 2
+                        delete(savepath)
+                end
+                save_table(handles.T_result,'fileFormat','excel','savepath',savepath);
+                handles.save_status = 0;
+                handles.save_status_led.BackgroundColor = [0 1 0];
+            end
+        end
+
+    else
+
+        % highlight next list item
+        handles.listbox1.Value = new_curve_index;
+        guidata(hObject,handles);
+
+        % update progress values
+        handles.progress.num_unprocessed = handles.progress.num_unprocessed -1;
+        handles.progress.num_discarded = handles.progress.num_discarded +1;
+        guidata(hObject,handles);
+
+        % write process info
+        [hObject,handles] = update_progress_info(hObject,handles);
+        guidata(hObject,handles);
+
+        % activate undo button when first time pushed
+        if curve_index == 1
+            handles.button_undo.Enable = 'on';
+            handles.btn_histogram.Enable = 'on';
+            handles.btn_gof.Enable = 'on';
+        end
+
+    end
+        
+    
+       
 end
+
+%Process new curve
+[hObject,handles] = process_options(hObject,handles);
+
+% draw new curve
+switch handles.options.model
+    case 'bihertz'
+        [handles] = plot_bihertz(handles);
+        guidata(hObject,handles);
+    case 'hertz'
+        [hObject,handles] = plot_hertz(hObject,handles);
+        guidata(hObject,handles);
+end
+
+% fit data to processed curve and display fitresult
+[hObject,handles] = curve_fit_functions(hObject,handles);
+guidata(hObject,handles);
+
+% update gui fit results
+[hObject,handles] = update_fit_results(hObject,handles);
+guidata(hObject,handles);
+
+
 % switch all buttons to off after processing
 handles.button_keep_highlighted.Enable = 'off';
 handles.button_undo_highlighted.Enable = 'off';
@@ -1616,6 +1745,10 @@ function button_keep_all_Callback(hObject, ~, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+
+% disable fit model popup
+handles.fit_model_popup.Enable = 'off';
+
 % disable buttons during processing
 handles.button_keep.Enable = 'off';
 handles.button_discard.Enable = 'off';
@@ -1639,7 +1772,7 @@ loop_it = (handles.num_files - curve_index);
 
 % initialise waitbar with cancel button
 wb = waitbar(0,sprintf('curve %3u of %3u',curve_index,handles.num_files),...
-    'CreateCancelBtn','setappdata(gcbf,''canceling'',1)');
+    'CreateCancelBtn','setappdata(gcbf,''canceling'',1)','WindowStyle','modal');
 setappdata(wb,'canceling',0);
 
 % Do the keep and apply function with or without graphical presentation
