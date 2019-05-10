@@ -76,7 +76,6 @@ zer_fun = @(d) tan(angle.*pi/180)/(2.*(1-poisson^2)).*par0(1).*d.^2 - tan(angle.
 par0(4) = min(fzero(zer_fun,min(x_fit)));
 par0(4) = par0(4)*1e6;
 
-disp(par0);
 
 % fit bihertz-sum-heaviside model with nlinfit
 [fit,residual,Jac_fit,CovB,MSE] = nlinfit(x_fit,y_fit,func,par0);
