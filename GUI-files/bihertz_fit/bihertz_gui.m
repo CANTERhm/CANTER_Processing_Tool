@@ -46,7 +46,9 @@ end
 
 
 % --- Executes just before bihertz_gui is made visible.
-function bihertz_gui_OpeningFcn(hObject, ~, handles, varargin)
+function bihertz_gui_OpeningFcn(hObject, ~, handles, varargin),
+    
+    
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
