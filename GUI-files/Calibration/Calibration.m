@@ -1,5 +1,27 @@
 function varargout = Calibration(varargin)
-% CALIBRATION MATLAB code for Calibration.fig
+%% LICENSE
+% 
+% 
+% CANTER_Auswertetool: A tool for the data processing of force-indentation curves and more ...
+%     Copyright (C) 2018-2019  Bastian Hartmann and Lutz Fleischhauer
+% 
+%     This program is free software: you can redistribute it and/or modify
+%     it under the terms of the GNU General Public License as published by
+%     the Free Software Foundation, either version 3 of the License, or
+%     (at your option) any later version.
+% 
+%     This program is distributed in the hope that it will be useful,
+%     but WITHOUT ANY WARRANTY; without even the implied warranty of
+%     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%     GNU General Public License for more details.
+% 
+%     You should have received a copy of the GNU General Public License
+%     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+%     
+%   
+    
+    
+%% CALIBRATION MATLAB code for Calibration.fig
 %      CALIBRATION, by itself, creates a new CALIBRATION or raises the existing
 %      singleton*.
 %
