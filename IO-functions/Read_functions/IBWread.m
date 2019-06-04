@@ -9,7 +9,6 @@ end
 % read headers
 [D.binHeader, D.waveHeader, FFN] = readIBWheaders(FN);
 fid = fopen(FFN,'r');
-fid = fopen(FFN,'r');
 % 	For numeric waves, the type field is interpreted bitwise. One of the following bits, as represented by symbols defined in IgorBin.h, will be set:
 % 
 % % #define NT_CMPLX 1   % Complex numbers.
