@@ -2848,10 +2848,71 @@ function handles = colorbar_helpf(ax_handle,handles)
                 % find min and max of CData
                 c_min = min(min(image_handle.CData));
                 c_max = max(max(image_handle.CData));
+                % set min and max as new tick min and max
+                c_ticks = linspace(c_min,c_max,5);
+                cbar.Ticks = c_ticks;
+                % determine if the maximum dimension is nm or µm and
+                % correct the tick lables of the colorbar
+                check = c_max < 1e-6;
+                lables = cbar.TickLables;
+                    for i = 5
+                       lable_char = lables{i};
+                       lable_num = str2double(lable_char);
+                       if check
+                           lable_num = lable_num*1e9;
+                           lables(i) = {sprintf('%.0f nm',lable_num)};
+                       else
+                           lable_num = lable_num*1e6;
+                           lables(i) = {sprintf('%.0f µm',lable_num)};
+                       end
+                    end
+                    cbar.TickLables = lables;
             case 'slope'
-                
+                % find min and max of CData
+                c_min = min(min(image_handle.CData));
+                c_max = max(max(image_handle.CData));
+                % set min and max as new tick min and max
+                c_ticks = linspace(c_min,c_max,5);
+                cbar.Ticks = c_ticks;
+                % determine if the maximum dimension is nm or µm and
+                % correct the tick lables of the colorbar
+                check = c_max < 1e6;
+                lables = cbar.TickLables;
+                    for i = 5
+                       lable_char = lables{i};
+                       lable_num = str2double(lable_char);
+                       if check
+                           lable_num = lable_num*1e-3;
+                           lables(i) = {sprintf('%3.0f mV/µm',lable_num)};
+                       else
+                           lable_num = lable_num*1e-6;
+                           lables(i) = {sprintf('%.1f V/µm',lable_num)};
+                       end
+                    end
+                    cbar.TickLables = lables;
             case 'adhesion'
-                
+                % find min and max of CData
+                c_min = min(min(image_handle.CData));
+                c_max = max(max(image_handle.CData));
+                % set min and max as new tick min and max
+                c_ticks = linspace(c_min,c_max,5);
+                cbar.Ticks = c_ticks;
+                % determine if the maximum dimension is nm or µm and
+                % correct the tick lables of the colorbar
+                check = c_max < 1;
+                lables = cbar.TickLables;
+                    for i = 5
+                       lable_char = lables{i};
+                       lable_num = str2double(lable_char);
+                       if check
+                           lable_num = lable_num*1e3;
+                           lables(i) = {sprintf('%3.0f mV',lable_num)};
+                       else
+                           lable_num = lable_num*1e6;
+                           lables(i) = {sprintf('%1.1f V',lable_num)};
+                       end
+                    end
+                    cbar.TickLables = lables;
             case 'vDeflection'
                 
             otherwise
