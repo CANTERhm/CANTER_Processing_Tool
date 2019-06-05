@@ -1,9 +1,9 @@
 function imageFiles = ForceMapImageData(filepath)
-%%  FORCEMAPIMAGEDATA:
+%%  FORCEMAPIMAGEDATA: Provides the image data of the available channels
+%   of an .force or .jpk file
 %   
-%   
-%   
-%   
+%   UNDER CONSTRUCTION
+%   -> Support for .jpk file is not jet implemented.
 %   
 %   
 %   
