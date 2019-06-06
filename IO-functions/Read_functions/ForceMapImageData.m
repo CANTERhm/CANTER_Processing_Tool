@@ -32,7 +32,7 @@ colormap = info(1).Colormap;
 colormap(256,:) = [1 1 1];
 
     for i = 1:num_of_files
-        if i==1
+        if i == 1
             imageFiles.thumbnail = struct;
             image_type = 'thumbnail';
             imageFiles.(image_type).channel = image_type;

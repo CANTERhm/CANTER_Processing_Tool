@@ -19,8 +19,8 @@ function varargout = bihertz_gui(varargin)
 %     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 %     
 %   
-    
-    
+% 
+%    
 %%    
 % BIHERTZ_GUI MATLAB code for bihertz_gui.fig
 %      BIHERTZ_GUI, by itself, creates a new BIHERTZ_GUI or raises the existing
@@ -434,7 +434,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                            hline = findall(gca,'Type','image');
                            set(hline(1),'uicontextmenu',handles.map_axes_context);
                            set_afm_gold;
-                           colorbar(handles.map_axes);
+                           handles = colorbar_helpf(handles.map_axes,handles);
                            break
                        elseif i==length(handles.channel_names) && ~strcmp(handles.channel_names{i},'height')
                            handles.image_channels_popup.Value = 1;
@@ -445,7 +445,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                            hline = findall(gca,'Type','image');
                            set(hline(1),'uicontextmenu',handles.map_axes_context);
                            set_afm_gold;
-                           colorbar(handles.map_axes);
+                           handles = colorbar_helpf(handles.map_axes,handles);
                        end
                    end
                    
@@ -602,7 +602,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                     axes(handles.map_axes);
                     imshow(handles.MFP_height_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
                     set_afm_gold();
-                    colorbar(handles.map_axes);
+                    handles = colorbar_helpf(handles.map_axes,handles);
 
                 else
                     handles.loaded_file_type = 'txt';
@@ -2370,13 +2370,13 @@ if (handles.ibw == true)
         axes(handles.map_axes);
         imshow(handles.MFP_height_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
         set_afm_gold();
-        colorbar(handles.map_axes);
+        handles = colorbar_helpf(handles.map_axes,handles);
         
     elseif strcmp(channel_string, 'slope')
         axes(handles.map_axes);
         imshow(handles.MFP_mslope_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
         set_afm_gold();
-        colorbar(handles.map_axes);
+        handles = colorbar_helpf(handles.map_axes,handles);
         
     elseif strcmp(channel_string, 'Youngs Modulus')
         
@@ -2409,7 +2409,7 @@ if (handles.ibw == true)
         axes(handles.map_axes);
         imshow(handles.MFP_Ymodulus_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
         set_afm_gold();
-        colorbar(handles.map_axes);
+        handles = colorbar_helpf(handles.map_axes,handles);
         
     elseif strcmp(channel_string, 'Contactpoint')
         
@@ -2437,7 +2437,7 @@ if (handles.ibw == true)
         axes(handles.map_axes);
         imshow(cpoint_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
         set_afm_gold();
-        colorbar(handles.map_axes);
+        handles = colorbar_helpf(handles.map_axes,handles);
 
     end
 else
@@ -2463,7 +2463,7 @@ else
     hline = findall(gca,'Type','image');
     set(hline(1),'uicontextmenu',handles.map_axes_context);
     set_afm_gold;
-    colorbar(handles.map_axes);
+    handles = colorbar_helpf(handles.map_axes,handles);
 end
 guidata(hObject,handles);
 
@@ -2518,7 +2518,7 @@ handles = update_curve_marker(handles);
 hline = findall(gca,'Type','image');
 set(hline(1),'uicontextmenu',handles.map_axes_context);
 set_afm_gold;
-colorbar(handles.map_axes);
+handles = colorbar_helpf(handles.map_axes,handles);
 guidata(hObject,handles);
 
 
@@ -2551,7 +2551,7 @@ handles = update_curve_marker(handles);
 hline = findall(gca,'Type','image');
 set(hline(1),'uicontextmenu',handles.map_axes_context);
 set_afm_gold;
-colorbar(handles.map_axes);
+handles = colorbar_helpf(handles.map_axes,handles);
 guidata(hObject,handles);
 
 
@@ -2584,7 +2584,7 @@ handles = update_curve_marker(handles);
 hline = findall(gca,'Type','image');
 set(hline(1),'uicontextmenu',handles.map_axes_context);
 set_afm_gold;
-colorbar(handles.map_axes);
+handles = colorbar_helpf(handles.map_axes,handles);
 guidata(hObject,handles);
 
 
@@ -2914,7 +2914,28 @@ function handles = colorbar_helpf(ax_handle,handles)
                     end
                     cbar.TickLables = lables;
             case 'vDeflection'
-                
+                % find min and max of CData
+                c_min = min(min(image_handle.CData));
+                c_max = max(max(image_handle.CData));
+                % set min and max as new tick min and max
+                c_ticks = linspace(c_min,c_max,5);
+                cbar.Ticks = c_ticks;
+                % determine if the maximum dimension is nm or µm and
+                % correct the tick lables of the colorbar
+                check = c_max < 1;
+                lables = cbar.TickLables;
+                    for i = 5
+                       lable_char = lables{i};
+                       lable_num = str2double(lable_char);
+                       if check
+                           lable_num = lable_num*1e3;
+                           lables(i) = {sprintf('%3.0f mV',lable_num)};
+                       else
+                           lable_num = lable_num*1e6;
+                           lables(i) = {sprintf('%1.1f V',lable_num)};
+                       end
+                    end
+                    cbar.TickLables = lables;
             otherwise
                 warning('No colorbar processing is availlible for the choosen map channel');
         end
