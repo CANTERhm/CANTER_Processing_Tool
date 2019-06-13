@@ -1,6 +1,7 @@
 function save_table(varargin)
-%% SAVE_TABLE: saves a table or vectors to a excel or tsv file.
+%% SAVE_TABLE: saves a table, struct or vectors to a excel or tsv file.
 %              vectors can be a string array or a numeric array.
+%              The struct must contain the vectors as fields.
 % 
 %   Name-Vaue-Pairs:
 %   - Name:     'fileFormat'
@@ -123,6 +124,9 @@ if isa(varargin{1},'numeric') || isa(varargin{1},'string') || isa(varargin{1},'c
         T(:,i) = table(Matr);
     end
     
+elseif isa(varargin{1}, 'struct')
+    T = struct2table(varargin{1});
+    
 elseif isa(varargin{1},'table')
     
     T = varargin{1};
@@ -130,7 +134,7 @@ elseif isa(varargin{1},'table')
 end
 
 % parse the name-value-pairs to inputParser
-if isvector(varargin{1}) || isa(varargin{1},'string')
+if (isvector(varargin{1}) && isnumeric(varargin{1})) || isa(varargin{1},'string')
 parse(p,varargin{len+1:end});
 else
 parse(p,varargin{2:end});
