@@ -145,7 +145,30 @@ colormap(256,:) = [1 1 1];
                     off_num = b+2;
                     % caltulation
                     im_data = (im_data.*info(i).UnknownTags(mult_num).Value)+info(i).UnknownTags(off_num).Value;
-                    imageFiles.(image_type).vDeflection_data = im_data;         
+                    imageFiles.(image_type).vDeflection_data = im_data;
+                otherwise
+                    imageFiles.(channel_name) = struct;
+                    image_type = channel_name;
+                    info_table = struct2table(info(i).UnknownTags);
+                    imageFiles.(image_type).channel = info_table.Value{info_table.ID==32850};
+                    imageFiles.(image_type).data_unit = info_table.Value{info_table.ID==32978};
+                    setDirectory(T,i);
+                    im_data_int = read(T);
+                    im_data_int = flip(im_data_int,1);
+                    % real value calculation for slope
+                    im_data = double(im_data_int);
+                    % find location of multiplier and offset
+                    for b=1:length(info(i).UnknownTags)
+                        find_var = info(i).UnknownTags(b).Value;
+                        if strcmp(find_var,'LinearScaling')
+                            break
+                        end
+                    end
+                    mult_num = b+1;
+                    off_num = b+2;
+                    % caltulation
+                    im_data = (im_data.*info(i).UnknownTags(mult_num).Value)+info(i).UnknownTags(off_num).Value;
+                    imageFiles.(image_type).(sprintf('%s_data',image_type)) = im_data;
             end
 
             % write general information similar for all channels
