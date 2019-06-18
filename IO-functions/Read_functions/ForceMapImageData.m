@@ -1,9 +1,9 @@
 function imageFiles = ForceMapImageData(filepath)
-%%  FORCEMAPIMAGEDATA:
+%%  FORCEMAPIMAGEDATA: Provides the image data of the available channels
+%   of an .force or .jpk file
 %   
-%   
-%   
-%   
+%   UNDER CONSTRUCTION
+%   -> Support for .jpk file is not jet implemented.
 %   
 %   
 %   
@@ -32,7 +32,7 @@ colormap = info(1).Colormap;
 colormap(256,:) = [1 1 1];
 
     for i = 1:num_of_files
-        if i==1
+        if i == 1
             imageFiles.thumbnail = struct;
             image_type = 'thumbnail';
             imageFiles.(image_type).channel = image_type;

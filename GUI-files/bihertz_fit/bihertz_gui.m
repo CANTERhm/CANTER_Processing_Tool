@@ -19,8 +19,8 @@ function varargout = bihertz_gui(varargin)
 %     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 %     
 %   
-    
-    
+% 
+%    
 %%    
 % BIHERTZ_GUI MATLAB code for bihertz_gui.fig
 %      BIHERTZ_GUI, by itself, creates a new BIHERTZ_GUI or raises the existing
@@ -93,6 +93,7 @@ handles.options = varargin{1};
 handles.curves = struct();
 handles.figures = struct('main_fig',[]);
 handles.load_status = 0;
+handles.loaded_file_type = 'none';
 handles.save_status = [];
 handles.interpolation_type = 'bicubic';
 handles.ibw = false;
@@ -386,6 +387,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
         switch handles.loadtype
             case 'file'
                 if handles.filefilter == 1
+                   handles.loaded_file_type = 'jpk-force-map';
                    [x_data,y_data, ~, ~, Forcecurve_label,~,~,name_of_file,map_images] = ReadJPKMaps(handles.edit_filepath.String);
                    % create filename array
                    Forcecurve_label = Forcecurve_label';
@@ -432,6 +434,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                            hline = findall(gca,'Type','image');
                            set(hline(1),'uicontextmenu',handles.map_axes_context);
                            set_afm_gold;
+                           handles = colorbar_helpf(handles.map_axes,handles);
                            break
                        elseif i==length(handles.channel_names) && ~strcmp(handles.channel_names{i},'height')
                            handles.image_channels_popup.Value = 1;
@@ -442,6 +445,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                            hline = findall(gca,'Type','image');
                            set(hline(1),'uicontextmenu',handles.map_axes_context);
                            set_afm_gold;
+                           handles = colorbar_helpf(handles.map_axes,handles);
                        end
                    end
                    
@@ -502,6 +506,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                 
                 % Check if the folder contains .ibw files from the MFP-3D
                 if strcmp(filetype(1,2), 'ibw') == 1
+                    handles.loaded_file_type = 'ibw';
                     handles.ibw = true;
                     [x_data,y_data,~,~, Forcecurve_label, name_of_file, mfpmapdata] = ReadMFPMaps(folderpath);
                     Forcecurve_label = Forcecurve_label';
@@ -596,15 +601,11 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                     handles.image_channels_popup.Value = 1;
                     axes(handles.map_axes);
                     imshow(handles.MFP_height_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
-                    axes(handles.colorgradient);
-                    imshow(handles.colorgrad_height, 'InitialMagnification', 'fit', 'XData', [1 3], 'YData', [1 100], 'DisplayRange', []);
-                    set(handles.colorgradient_max, 'String', sprintf('%.2f',max(max(handles.MFP_height_matrix))));
-                    set(handles.colorgradient_min, 'String', sprintf('%.2f',min(min(handles.MFP_height_matrix))));
-                    set(handles.colorgradient,'Ydir','normal'); %Set the maximum value as top
-                    set(handles.colorgradient_unit, 'String', '[µm]');
                     set_afm_gold();
+                    handles = colorbar_helpf(handles.map_axes,handles);
 
                 else
+                    handles.loaded_file_type = 'txt';
                     T_files_in_folder = struct2table(listing);
                     files_in_folder = table2array(T_files_in_folder(:,1));
                     files_in_folder(1:2) = [];                              % cell array with all file names
@@ -2369,25 +2370,13 @@ if (handles.ibw == true)
         axes(handles.map_axes);
         imshow(handles.MFP_height_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
         set_afm_gold();
-        axes(handles.colorgradient);
-        imshow(handles.colorgrad_height, 'InitialMagnification', 'fit', 'XData', [1 3], 'YData', [1 100], 'DisplayRange', []);
-        set(handles.colorgradient_max, 'String', sprintf('%.2f',max(max(handles.MFP_height_matrix))));
-        set(handles.colorgradient_min, 'String', sprintf('%.2f',min(min(handles.MFP_height_matrix))));
-        set(handles.colorgradient_unit, 'String', '[µm]');
-        set(handles.colorgradient,'Ydir','normal'); %Set the maximum value as top
-        set_afm_gold();
+        handles = colorbar_helpf(handles.map_axes,handles);
         
     elseif strcmp(channel_string, 'slope')
         axes(handles.map_axes);
         imshow(handles.MFP_mslope_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
         set_afm_gold();
-        axes(handles.colorgradient);
-        imshow(handles.colorgrad_slope, 'InitialMagnification', 'fit', 'XData', [1 3], 'YData', [1 100], 'DisplayRange', []);
-        set(handles.colorgradient_max, 'String', sprintf('%.2f',max(max(handles.MFP_mslope_matrix))));
-        set(handles.colorgradient_min, 'String', sprintf('%.2f',min(min(handles.MFP_mslope_matrix))));
-        set(handles.colorgradient_unit, 'String', '[V/µm]');
-        set(handles.colorgradient,'Ydir','normal'); %Set the maximum value as top
-        set_afm_gold();
+        handles = colorbar_helpf(handles.map_axes,handles);
         
     elseif strcmp(channel_string, 'Youngs Modulus')
         
@@ -2418,15 +2407,9 @@ if (handles.ibw == true)
         handles.colorgrad_Ymodulus = flipud(linspace(min(min(handles.MFP_Ymodulus_matrix)), max(max(handles.MFP_Ymodulus_matrix)), 100))';
         %Display the Youngs Modulus matrix
         axes(handles.map_axes);
-        imshow(handles.MFP_Ymodulus_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', [min(min(Ymodulus_matrix)) max(max(Ymodulus_matrix))]);
+        imshow(handles.MFP_Ymodulus_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
         set_afm_gold();
-        axes(handles.colorgradient);
-        imshow(handles.colorgrad_Ymodulus, 'InitialMagnification', 'fit', 'XData', [1 3], 'YData', [1 100], 'DisplayRange', []);
-        set(handles.colorgradient_max, 'String', sprintf('%.2f',(max(max(handles.MFP_Ymodulus_matrix)))/1000));
-        set(handles.colorgradient_min, 'String', sprintf('%.2f',(min(min(handles.MFP_Ymodulus_matrix)))/1000));
-        set(handles.colorgradient_unit, 'String', '[kPa]');
-        set(handles.colorgradient,'Ydir','normal'); %Set the maximum value as top
-        set_afm_gold();
+        handles = colorbar_helpf(handles.map_axes,handles);
         
     elseif strcmp(channel_string, 'Contactpoint')
         
@@ -2453,14 +2436,8 @@ if (handles.ibw == true)
         cpoint_matrix = flip(cpoint_matrix);
         axes(handles.map_axes);
         imshow(cpoint_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
-        colorgrad = flipud(linspace(min(min(cpoint_matrix)), max(max(cpoint_matrix)), 100))';
-        axes(handles.colorgradient);
-        imshow(colorgrad, 'InitialMagnification', 'fit', 'XData', [1 3], 'YData', [1 100], 'DisplayRange', []);
-        set(handles.colorgradient_max, 'String', sprintf('%.2f',max(max(cpoint_matrix))));
-        set(handles.colorgradient_min, 'String', sprintf('%.2f',min(min(cpoint_matrix))));
-        set(handles.colorgradient,'Ydir','normal'); %Set the maximum value as top
-        set(handles.colorgradient_unit, 'String', '[µm]');
         set_afm_gold();
+        handles = colorbar_helpf(handles.map_axes,handles);
 
     end
 else
@@ -2486,6 +2463,7 @@ else
     hline = findall(gca,'Type','image');
     set(hline(1),'uicontextmenu',handles.map_axes_context);
     set_afm_gold;
+    handles = colorbar_helpf(handles.map_axes,handles);
 end
 guidata(hObject,handles);
 
@@ -2540,6 +2518,7 @@ handles = update_curve_marker(handles);
 hline = findall(gca,'Type','image');
 set(hline(1),'uicontextmenu',handles.map_axes_context);
 set_afm_gold;
+handles = colorbar_helpf(handles.map_axes,handles);
 guidata(hObject,handles);
 
 
@@ -2572,6 +2551,7 @@ handles = update_curve_marker(handles);
 hline = findall(gca,'Type','image');
 set(hline(1),'uicontextmenu',handles.map_axes_context);
 set_afm_gold;
+handles = colorbar_helpf(handles.map_axes,handles);
 guidata(hObject,handles);
 
 
@@ -2604,6 +2584,7 @@ handles = update_curve_marker(handles);
 hline = findall(gca,'Type','image');
 set(hline(1),'uicontextmenu',handles.map_axes_context);
 set_afm_gold;
+handles = colorbar_helpf(handles.map_axes,handles);
 guidata(hObject,handles);
 
 
@@ -2840,3 +2821,145 @@ function result_switch_point_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Colorbar helper function to display the colorbar properly.
+function handles = colorbar_helpf(ax_handle,handles)
+    axes(ax_handle);
+    cbar = colorbar(ax_handle);
+    cbar.Ruler.Exponent = 0;
+    image_handle = findobj(ax_handle,'Type','image');
+    if isempty(image_handle)
+        warning('No image object was found in the given axes object');
+        return;
+    end
+    map_type = handles.loaded_file_type;
+    channels = handles.image_channels_popup.String;
+    channel_indx = handles.image_channels_popup.Value;
+    channel = channels{channel_indx};
+    
+    if strcmp(map_type,'ibw')
+        % the following is the colorbar correction for ibw-maps
+%         switch channel
+%             case 'slope'
+%             
+%         end
+    elseif strcmp(map_type,'jpk-force-map')
+        % the following is the colorbar correction for jpk-force-maps
+        switch channel
+            case 'height' 
+                % find min and max of CData
+                c_min = min(min(image_handle.CData));
+                c_max = max(max(image_handle.CData));
+                % determine if the maximum dimension is nm or µm and
+                % correct the tick lables of the colorbar
+                check = abs(c_max) < 1e-6;
+                labels = cbar.TickLabels;
+                for i = 1:length(labels)
+                   lable_char = labels{i};
+                   label_num = str2double(lable_char);
+                   if check
+                       label_num = label_num*1e9;
+                       labels(i) = {sprintf('%.0f nm',label_num)};
+                       max_label = sprintf('max: %g nm',c_max*1e9);
+                       min_label = sprintf('min: %g nm',c_min*1e9);                           
+                   else
+                       label_num = label_num*1e6;
+                       labels(i) = {sprintf('%.2f µm',label_num)};
+                       max_label = sprintf('max: %g µm',c_max*1e6);
+                       min_label = sprintf('min: %g µm',c_min*1e6);  
+                   end
+                end
+                cbar.TickLabels = labels;
+                % provide min and max information of shown data
+                title(ax_handle,{'Full data range:';max_label;min_label},'FontSize',9);
+            case 'slope'
+                % find min and max of CData
+                c_min = min(min(image_handle.CData));
+                c_max = max(max(image_handle.CData));
+                % determine if the maximum dimension is nm or µm and
+                % correct the tick lables of the colorbar
+                check = abs(c_max) < 1e6;
+                labels = cbar.TickLabels;
+                for i = 1:length(labels)
+                   label_char = labels{i};
+                   label_num = str2double(label_char);
+                   if isnan(label_num)
+                       split_cell = strsplit(label_char,'\\times10^{');
+                       new_string = sprintf('%se%s',split_cell{1},split_cell{2}(1:end-1));
+                       label_num = str2double(new_string);
+                   end
+                   if check
+                       label_num = label_num*1e-3;
+                       labels(i) = {sprintf('%3.0f mV/µm',label_num)};
+                       max_label = sprintf('max: %g mV/µm',c_max*1e-3);
+                       min_label = sprintf('min: %g mV/µm',c_min*1e-3);
+                   else
+                       label_num = label_num*1e-6;
+                       labels(i) = {sprintf('%.1f V/µm',label_num)};
+                       max_label = sprintf('max: %g V/µm',c_max*1e-6);
+                       min_label = sprintf('min: %g V/µm',c_min*1e-6);
+                   end
+                end
+                cbar.TickLabels = labels;
+                % provide min and max information of shown data
+                title(ax_handle,{'Full data range:';max_label;min_label},'FontSize',9);
+            case 'adhesion'
+                % find min and max of CData
+                c_min = min(min(image_handle.CData));
+                c_max = max(max(image_handle.CData));
+                % determine if the maximum dimension is nm or µm and
+                % correct the tick lables of the colorbar
+                check = abs(c_max) < 1;
+                labels = cbar.TickLabels;
+                for i = 1:length(labels)
+                   lable_char = labels{i};
+                   label_num = str2double(lable_char);
+                   if check
+                       label_num = label_num*1e3;
+                       labels(i) = {sprintf('%3.0f mV',label_num)};
+                       max_label = sprintf('max: %g mV',c_max*1e3);
+                       min_label = sprintf('min: %g mV',c_min*1e3);
+                   else
+                       label_num = label_num*1e6;
+                       labels(i) = {sprintf('%1.1f V',label_num)};
+                       max_label = sprintf('max: %g V',c_max*1e6);
+                       min_label = sprintf('min: %g V',c_min*1e6);
+                   end
+                end
+                cbar.TickLabels = labels;
+                % provide min and max information of shown data
+                title(ax_handle,{'Full data range:';max_label;min_label},'FontSize',9);
+            case 'vDeflection'
+                % find min and max of CData
+                c_min = min(min(image_handle.CData));
+                c_max = max(max(image_handle.CData));
+                % determine if the maximum dimension is nm or µm and
+                % correct the tick lables of the colorbar
+                check = abs(c_max) < 1;
+                labels = cbar.TickLabels;
+                for i = 1:length(labels)
+                   lable_char = labels{i};
+                   label_num = str2double(lable_char);
+                   if check
+                       label_num = label_num*1e3;
+                       labels(i) = {sprintf('%3.0f mV',label_num)};
+                       max_label = sprintf('max: %g mV',c_max*1e3);
+                       min_label = sprintf('min: %g mV',c_min*1e3);
+                   else
+                       label_num = label_num*1e6;
+                       labels(i) = {sprintf('%1.1f V',label_num)};
+                       max_label = sprintf('max: %g V',c_max*1e6);
+                       min_label = sprintf('min: %g V',c_min*1e6);
+                   end
+                end
+                cbar.TickLabels = labels;
+                % provide min and max information of shown data
+                title(ax_handle,{'Full data range:';max_label;min_label},'FontSize',9);
+            otherwise
+                warning('No colorbar processing is availlible for the choosen map channel');
+        end
+    else
+        % no matching file type is loaded
+        return;
+    end
