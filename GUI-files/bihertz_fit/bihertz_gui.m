@@ -2352,7 +2352,17 @@ x_led = (window_width*handles.def_led_x)/handles.def_wind_width;
 y_led = (window_height*handles.def_led_y)/handles.def_wind_height;
 handles.save_status_led.Position(1) = x_led;
 handles.save_status_led.Position(2) = y_led;
+
+% change info panel column width
+handles.info_table.Units = 'pixel';
+table_width = handles.info_table.Position(3);
+handles.info_table.ColumnWidth = {table_width/2-1,table_width/2-1};
+handles.info_table.Units = 'normalized';
+
+
 guidata(hObject,handles);
+
+
 
 
 % --- Executes on selection change in image_channels_popup.
