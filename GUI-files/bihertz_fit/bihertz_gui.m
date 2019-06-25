@@ -2,8 +2,8 @@ function varargout = bihertz_gui(varargin)
 %% LICENSE
 % 
 % 
-% CANTER_Auswertetool: A tool for the data processing of force-indentation curves and more ...
-%     Copyright (C) 2018-2019  Bastian Hartmann and Lutz Fleischhauer
+% CANTER Processing Tool: A tool for the data processing of force-indentation curves and more ...
+%     Copyright (C) 2018-present  Bastian Hartmann and Lutz Fleischhauer
 % 
 %     This program is free software: you can redistribute it and/or modify
 %     it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ function varargout = bihertz_gui(varargin)
 
 % Edit the above text to modify the response to help bihertz_gui
 
-% Last Modified by GUIDE v2.5 29-Apr-2019 14:46:51
+% Last Modified by GUIDE v2.5 25-Jun-2019 17:33:42
     warning off
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -2963,3 +2963,20 @@ function handles = colorbar_helpf(ax_handle,handles)
         % no matching file type is loaded
         return;
     end
+
+
+% --------------------------------------------------------------------
+function help_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to help_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function help_wiki_Callback(hObject, eventdata, handles)
+% hObject    handle to help_wiki (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% if clicked, open the help wiki on our github site
+web('https://github.com/CANTERhm/Canter_Matlab_Library/wiki/2a.-Force-indentation-processing','-browser');

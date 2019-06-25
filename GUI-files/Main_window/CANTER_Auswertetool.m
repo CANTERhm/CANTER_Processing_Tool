@@ -22,7 +22,7 @@ function [varargout] = CANTER_Auswertetool(varargin)
 
 % Edit the above text to modify the response to help CANTER_Auswertetool
 
-% Last Modified by GUIDE v2.5 02-Jul-2018 15:23:02
+% Last Modified by GUIDE v2.5 25-Jun-2019 17:14:02
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -146,10 +146,13 @@ function menu_help_Callback(hObject, eventdata, handles)
 
 
 % --------------------------------------------------------------------
-function help_readme_Callback(hObject, eventdata, handles)
-% hObject    handle to help_readme (see GCBO)
+function help_wiki_Callback(hObject, eventdata, handles)
+% hObject    handle to help_wiki (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+% if clicked, open the help wiki on our github site
+web('https://github.com/CANTERhm/Canter_Matlab_Library/wiki/1.-Start-the-CANTER-Processing-Tool','-browser');
 
 
 % --- Executes when selected object is changed in bihertz_buttongroup_processing.
