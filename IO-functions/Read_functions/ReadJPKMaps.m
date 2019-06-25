@@ -19,6 +19,8 @@ function [x_data,y_data, x_data_retract, y_data_retract, Forcecurve_count, varar
 % varargout{2} = pathname;
 % varargout{3} = filename;
 % varargout{4} = map_images;
+% varargout{5} = all_info;  -> A struct containing all availlable
+% information about the map_inamges the force-map contains.
 % 
 % encoder:
 % (1)= offset_scaling_height;
@@ -85,8 +87,9 @@ Forcecurve_count = regexprep(Forcecurve_count, '\s+', ''); % Get rid of the empt
 
 % provide images of map channels
 force_path = fullfile(unzipfolder,'data-image.force');
-map_images = ForceMapImageData(force_path);
+[map_images,all_info] = ForceMapImageData(force_path);
 varargout{4} = map_images;
+varargout{5} = all_info;
 
 x_data_raw = struct; %Height Extend 
 y_data_raw = struct; %vDeflection Extend

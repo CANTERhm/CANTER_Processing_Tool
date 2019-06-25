@@ -388,7 +388,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
             case 'file'
                 if handles.filefilter == 1
                    handles.loaded_file_type = 'jpk-force-map';
-                   [x_data,y_data, ~, ~, Forcecurve_label,~,~,name_of_file,map_images] = ReadJPKMaps(handles.edit_filepath.String);
+                   [x_data,y_data, ~, ~, Forcecurve_label,~,~,name_of_file,map_images,handles.map_file_info] = ReadJPKMaps(handles.edit_filepath.String);
                    % create filename array
                    Forcecurve_label = Forcecurve_label';
                    curves_in_map = strcat(name_of_file,'.',Forcecurve_label);
@@ -682,7 +682,10 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
             num_files = i-1;                % number of fully loaded curves
             handles.num_files = i-1;        % provide max curve number in handles                    
         end
-                
+        
+        % provide file information in the info panel
+        handles = info_panel_helpf(handles);        
+        
         % write progress values
         % needed variables
         handles.progress = struct('num_unprocessed',num_files,...
@@ -699,7 +702,8 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
         % options.
         try
         [hObject,handles] = process_options(hObject,handles);
-        catch
+        catch % ME
+            % if you can
         end
         %%
         
@@ -2973,3 +2977,28 @@ function handles = colorbar_helpf(ax_handle,handles)
         % no matching file type is loaded
         return;
     end
+    
+% --- Colorbar helper function to display the colorbar properly.
+function handles = info_panel_helpf(handles)
+    %     Function to read file information and display them in the info panel
+    
+    % Check if a jpk-force-map was loaded
+    if strcmp(handles.loaded_file_type,'jpk-force-map')
+        
+        
+        
+        
+    % Check if ibw files were loaded
+    elseif handles.ibw
+        
+        
+        
+    % Check if txt files were loaded
+%     elseif 
+        
+        
+        
+    end
+    
+    
+    
