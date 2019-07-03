@@ -388,7 +388,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
             case 'file'
                 if handles.filefilter == 1
                    handles.loaded_file_type = 'jpk-force-map';
-                   [x_data,y_data, ~, ~, Forcecurve_label,~,~,name_of_file,map_images,handles.map_file_info] = ReadJPKMaps(handles.edit_filepath.String);
+                   [x_data,y_data, ~, ~, Forcecurve_label,~,~,name_of_file,map_images,~,handles.map_info_array] = ReadJPKMaps(handles.edit_filepath.String);
                    % create filename array
                    Forcecurve_label = Forcecurve_label';
                    curves_in_map = strcat(name_of_file,'.',Forcecurve_label);
@@ -603,6 +603,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                     imshow(handles.MFP_height_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
                     set_afm_gold();
                     handles = colorbar_helpf(handles.map_axes,handles);
+                    
 
                 else
                     handles.loaded_file_type = 'txt';
@@ -2983,11 +2984,10 @@ function handles = info_panel_helpf(handles)
     %     Function to read file information and display them in the info panel
     
     % Check if a jpk-force-map was loaded
-    if strcmp(handles.loaded_file_type,'jpk-force-map')
+    if strcmp(handles.loaded_file_type,'jpk-force-map') 
         
-        
-        
-        
+        handles.info_table.Data = handles.map_info_array;
+                
     % Check if ibw files were loaded
     elseif handles.ibw
         
