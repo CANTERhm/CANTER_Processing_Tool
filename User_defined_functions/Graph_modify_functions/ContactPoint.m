@@ -10,7 +10,7 @@ y_fit = y(baseline_edges(1,1):baseline_edges(1,2));
 [p, ~] = polyfit(x_fit,y_fit,1);
 y_linfit = polyval(p, x);
 
-% Check how the contact point shell be found
+% Check how the contact point shall be found
 real_contactpoint = []; % prelocate real_contactpoint to surpress error
 SelectedMode = handles.btngroup_contact.SelectedObject.String;
 switch SelectedMode
