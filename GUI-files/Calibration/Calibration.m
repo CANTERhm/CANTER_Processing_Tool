@@ -3,7 +3,7 @@ function varargout = Calibration(varargin)
 % 
 % 
 % CANTER_Auswertetool: A tool for the data processing of force-indentation curves and more ...
-%     Copyright (C) 2018-2019  Bastian Hartmann and Lutz Fleischhauer
+%     Copyright (C) 2018-present  Bastian Hartmann and Lutz Fleischhauer
 % 
 %     This program is free software: you can redistribute it and/or modify
 %     it under the terms of the GNU General Public License as published by
