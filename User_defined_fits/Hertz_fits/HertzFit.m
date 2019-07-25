@@ -14,8 +14,8 @@ function [EModul,varargout] = HertzFit(x,y,d_int, angle, poisson, handles)
 func_string = sprintf('(tan(%f.*pi/180)/(2*(1-%f.^2)).*x.^2)',angle,poisson);
 
 % Set all the values into um so the calculation is easier
-d_int=d_int*1e6;
-xData=xData*1e6;
+d_int = d_int*1e6;
+xData = xData*1e6;
 
 
 ft = fittype( {func_string}, 'independent', 'x', 'dependent', 'y', 'coefficients', {'EModul'} );
@@ -37,18 +37,15 @@ xData = xData*1e-6;
 
 EModul = fitresult.EModul;
 
-for i = 1:length(xData)
-fittedcurve_x(i) = xData(i);
-    if xData(i)< 0
-        fittedcurve_y(i) = EModul*((tan(angle.*pi/180)/(2*(1-poisson.^2)).*(xData(i).^2)));
-    else
-        fittedcurve_y (i) = 0;
-    end
-end
+baseline_mask = xData<0;
+fittedcurve_y = zeros(length(xData),1);
+fittedcurve_y(baseline_mask) = EModul*((tan(angle.*pi/180)/(2*(1-poisson.^2)).*(xData(baseline_mask).^2)));
 
-% Reconvert the Data into um or nN to show them
-fittedcurve_x = (fittedcurve_x/1e-6)';
-fittedcurve_y = (fittedcurve_y/1e-9)';
+
+
+% Reconvert the Data into µm or nN to show them
+fittedcurve_x = (xData.*1e6)';
+fittedcurve_y = (fittedcurve_y.*1e9)';
 varargout{1} = gof;
 varargout{2} = fittedcurve_x;
 varargout{3} = fittedcurve_y;
