@@ -11,7 +11,7 @@ function [x_corrected]=ContactPoint_via_hertz(x, y, baseline_edges, handles,vara
     
     %% Code
     
-    %Get the baseline via the baselineedges
+    % Get the baseline via the baselineedges
     x_fit = x(baseline_edges(1,1):baseline_edges(1,2));
     y_fit = y(baseline_edges(1,1):baseline_edges(1,2));
 
@@ -35,7 +35,7 @@ function [x_corrected]=ContactPoint_via_hertz(x, y, baseline_edges, handles,vara
 
     % approximation and calculation of contact point via liniarized
     % hertz model
-    [~,d_h,~] = initial_guess_hard(x_corrected,y,(perc_steps),17.5,0.5,'plot','off');
+    [E_h,d_h,~] = initial_guess_hard(x_corrected,y,(perc_steps),handles.tip_angle,handles.poisson,'plot','off');
 
     % Set the new contactpoint as 0/0
     x_corrected = x_corrected-d_h;
