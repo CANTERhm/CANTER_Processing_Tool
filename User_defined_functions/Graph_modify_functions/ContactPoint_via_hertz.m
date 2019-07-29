@@ -20,22 +20,22 @@ function [x_corrected]=ContactPoint_via_hertz(x, y, baseline_edges, handles,vara
     y_linfit = polyval(p, x);
     
     % Get first the intersection point of the baseline and the graph
-    contactpoint = find(y-y_linfit <= 0, 1, 'last');
+    contactpoint = find(y-y_linfit <= 0, 1, 'last')+1;
 
     % Set the preliminar contactpoint as 0/0
     x_corrected = x-(x(contactpoint));  
     
     % when the optional parameter is empty, perc_steps will
-    % be set to the defauld value of 10
+    % be set to the defauld value of 20
     if isempty(varargin{1})
-        perc_steps = 10;
+        perc_steps = 20;
     else
         perc_steps = varargin{1};
     end
 
     % approximation and calculation of contact point via liniarized
     % hertz model
-    [E_h,d_h,~] = initial_guess_hard(x_corrected,y,(perc_steps),handles.tip_angle,handles.poisson,'plot','off');
+    [~,d_h,~] = initial_guess_hard(x_corrected,y,perc_steps,handles.tip_angle,handles.poisson,'plot','off');
 
     % Set the new contactpoint as 0/0
     x_corrected = x_corrected-d_h;
