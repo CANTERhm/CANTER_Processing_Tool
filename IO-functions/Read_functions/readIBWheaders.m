@@ -1,4 +1,4 @@
-function [BH, H, FFN] = readIBWheaders(FFN);
+function [BH, H, FFN] = readIBWheaders(FFN)
 % readIBWheaders - read BinHeader & WaveHeader segments of Igor IBW file
 %  [BH, WH, FFN] = readIBWheaders('foo') reads BinHeader & WaveHeader of
 %   file Foo.ibw - Versions 2 and 5 only. FFN is full filename.
@@ -16,7 +16,7 @@ MAX_UNIT_CHARS = 3;
 BH = readIBWbinheader(FFN);
 fid = fopen(FFN,'r');
 switch BH.version
-    case 2,
+    case 2
         %         The version 2 file has the following general layout.
         %         BinHeader2 structure: 16 bytes
         %         WaveHeader2 structure excluding wData field; 110 bytes
@@ -57,7 +57,7 @@ switch BH.version
         H.waveNoteH = fread(fid,1, 'uint32'); %  Handle waveNoteH;     // Used in memory only. Write zero. Ignore on read.
         %
         H.wData = fread(fid,4, 'single').'; %  float wData[4];      // The start of the array of waveform data.
-    case 5,
+    case 5
         %         The version 5 file has the following general layout.
         %         BinHeader5 structure: 64 bytes
         %         WaveHeader5 structure excluding wData field: 320 bytes
@@ -67,7 +67,7 @@ switch BH.version
         H.next = fread(fid,1, 'int32');  % link to next wave in linked list.
         %
         H.creationDate = fread(fid,1, 'uint32');  % DateTime of creation.
-        H.modDate = fread(fid,1, 'uint32');  % DateTime of creation.
+        H.modDate = fread(fid,1, 'uint32');  % DateTime of modification.
         %
         H.npnts = fread(fid,1, 'int32');  % Total number of points (multiply dimensions up to first zero).
         H.type = fread(fid,1, 'uint16'); % See types (e.g. NT_FP64) above. Zero for text waves.
@@ -235,7 +235,7 @@ fclose(fid);
 %  float wData[1];      % The start of the array of data. Must be 64 bit aligned.
 % };
 
-function s=local_char(S);
+function s=local_char(S)
 % null-terminated string -> char string
 S = S(:).';
 S = S(S~=0);
