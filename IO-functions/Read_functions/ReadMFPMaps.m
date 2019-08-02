@@ -5,9 +5,8 @@ function [x_data, y_data, x_data_retract, y_data_retract, Forcecurve_count, file
 %                                                                         %
 % ************************************************************************%
     
-folder = dir(strcat(pathname)); % get the information of all files in the chosen folder
+folder = dir(fullfile(strcat(pathname),'*.ibw')); % get the information of all files in the chosen folder
 files = {folder.name}'; % get names of all files in folder
-files = files(3:length(files)); % get rid of the first two lines with no suitable information
 [~,file_name,~] = fileparts(pathname); % save the name of the folder as file_name
 
 % defining the illustraiting wait bar
@@ -31,7 +30,7 @@ end
     
     fileroot = fullfile(pathname,files{i}); % part for the actual IBW file
     data = IBWread(fileroot); % import the actual IBW file
-    [info_cell] = read_WaveNotes(data.WaveNotes);
+    [info_cell,additional_parameters] = read_WaveNotes(data);
     x_data_raw = data.y(:,1).*(-1); % write x values from IBW file to x_data
     
     %% replace 1e7 with corresponding value from WaveNotes!!!!!!!!!!!!!!!!
@@ -46,21 +45,15 @@ end
     x_data_retract.(Forcecurve_count{i}) = x_data_raw(I+1:end,1); % keep the retract part
     y_data_retract.(Forcecurve_count{i}) = y_data_raw(I+1:end,1); % keep the retract part
     
-    %% This part can be compleatly replace by the read_WaveNotes function!!!!!!!!!!!!!!!!
-% % %Test to read additional map data
-% %     if i == 1
-% %         mfpmapdata = data.WaveNotes;
-% % %         scanpt_loc = strfind(data.WaveNotes, 'FMapScanPoints');
-% % %         scanpt = str2num(data.WaveNotes((scanpt_loc)+16:(scanpt_loc)+17));
-% % %         scanl_loc = strfind(data.WaveNotes, 'FMapScanLines');
-% % %         scanl = str2num(data.WaveNotes((scanl_loc)+15:(scanl_loc)+17));
-% %     end
     
     %% updating the wait bar
     waitbar(i/(length(files)));
 
-end
-
+ end
+% write the output variable mfpmapdata
+mfpmapdata{1} = info_cell;
+mfpmapdata{2} = additional_parameters;
+ 
 %% close the wait bar
 close(wbar)
 
