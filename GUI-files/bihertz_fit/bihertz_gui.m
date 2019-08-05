@@ -2983,20 +2983,14 @@ function handles = info_panel_helpf(handles)
     %     Function to read file information and display them in the info panel
     
     % Check if a jpk-force-map was loaded
-    if strcmp(handles.loaded_file_type,'jpk-force-map') 
-        
-        handles.info_table.Data = handles.map_info_array;
-                
+    if strcmp(handles.loaded_file_type,'jpk-force-map')         
+        handles.info_table.Data = handles.map_info_array;                
     % Check if ibw files were loaded
-    elseif handles.ibw
-        
-        
-        
+    elseif handles.ibw        
+        handles.info_table.Data = handles.mfpmapdata{1};        
     % Check if txt files were loaded
 %     elseif 
-        
-        
-        
+            
     end
     
     
