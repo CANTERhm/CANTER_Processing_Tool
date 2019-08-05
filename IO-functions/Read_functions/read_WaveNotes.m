@@ -7,8 +7,6 @@ function [info_cell_array,varargout] = read_WaveNotes(data)
 
 
 %% code
-% preallocate the function output info_cell_array
-info_cell_array = [];
 
 % split data to local variables
 ibwread_notes = data.WaveNotes;
@@ -57,7 +55,6 @@ info_cell_array = {'Microscope Model','';...
                    'Z Length','';...
                    'Vert. Tip Speed','';...
                    'Extend Time','';...
-                   'Extend Length','';...
                    'Sample Rate',''};
 
 % preallocate additional_struct
@@ -106,7 +103,7 @@ for i=1:length(list_comparison)
         case 'InvOLS'
             invols = str2double(split_pairs{list_comparison(i),2});
             if isnan(invols)
-               additional_struct.InvOLS = 'invalid value!'; 
+               additional_struct.InvOLS = 'Invalid value!'; 
                warning('Invalid value for InvOLS!');
             else
                 additional_struct.InvOLS = invols;
@@ -120,7 +117,7 @@ for i=1:length(list_comparison)
             indexes = cellfun(@(x) str2double(x),indexes_split);
             if any(isnan(indexes))
                 additional_struct.Indexes = indexes'+1; % +1 because Igor counts starting with 0 and MATLAB counts starting with 1
-                additional_struct.Indexes(isnan(indexes)') = 'invalid value!'; 
+                additional_struct.Indexes(isnan(indexes)') = 'Invalid value!'; 
                 warning('One or more invalid values for indexes!');
             else
                 additional_struct.Indexes = indexes'+1; % +1 because Igor counts starting with 0 and MATLAB counts starting with 1
@@ -130,7 +127,7 @@ for i=1:length(list_comparison)
         case 'SpringConstant'
             springconstant = str2double(split_pairs{list_comparison(i),2});
             if isnan(springconstant)
-               additional_struct.SpringConstant = 'invalid value!'; 
+               additional_struct.SpringConstant = 'Invalid value!'; 
                warning('Invalid value for SpringConstant!');
             else
                 additional_struct.SpringConstant = springconstant;
@@ -140,7 +137,7 @@ for i=1:length(list_comparison)
         case 'KappaFactor'
             kappa = str2double(split_pairs{list_comparison(i),2});
             if isnan(kappa)
-               additional_struct.KappaFactor = 'invalid value!'; 
+               additional_struct.KappaFactor = 'Invalid value!'; 
                warning('Invalid value for KappaFactor!');
             else
                 additional_struct.KappaFactor = kappa;
@@ -150,8 +147,8 @@ for i=1:length(list_comparison)
         case 'Velocity'
             velocity = str2double(split_pairs{list_comparison(i),2});
             if isnan(velocity)
-               additional_struct.Velocity = 'invalid value!'; 
-               warning('Invalid value for Velocity!');
+               additional_struct.Velocity = 'Invalid value!'; 
+               warning('Invalid value for Velocity (Vert. Tip Speed)!');
             else
                 additional_struct.Velocity = velocity;
             end
@@ -160,7 +157,7 @@ for i=1:length(list_comparison)
         case 'ForceDist'
             forcedist = str2double(split_pairs{list_comparison(i),2});
             if isnan(forcedist)
-               additional_struct.ForceDist = 'invalid value!'; 
+               additional_struct.ForceDist = 'Invalid value!'; 
                warning('Invalid value for ForceDist!');
             else
                 additional_struct.ZLength = forcedist;
@@ -176,10 +173,6 @@ end     % for i=1:length(list_comparison)
 % delete used indices from list_comparison
 list_comparison = list_comparison(~used_indices);
 
-% write some values of additionnal_struct in info_cell_array
-info_cell_array{15,2} = additional_struct.ZLength;
-info_cell_array{16,2} = additional_struct.Velocity;
-info_cell_array{18,2} = additional_struct.Indexes(2);
 
 % write all remaining values to info_cell_array
 for i = 1:length(list_comparison)
@@ -238,35 +231,122 @@ for i = 1:length(list_comparison)
            end
            
        case 'FMapScanPoints'
-           
+           additional_struct.FMapScanPoints = str2double(split_pairs{list_comparison(i),2});
+           if isnan(additional_struct.FMapScanPoints)
+               additional_struct.FMapScanPoints = 'Invalid value!';
+               warning('Invalid value in FMapScanPoints')
+           end
            
        case 'FMapScanLines'
-           
+           additional_struct.FMapScanLines = str2double(split_pairs{list_comparison(i),2});
+           if isnan(additional_struct.FMapScanLines)
+               additional_struct.FMapScanLines = 'Invalid value!';
+               warning('Invalid value in FMapScanLines');
+           end
            
        case 'TriggerType'
-           
+           triggertype = str2double(split_pairs{list_comparison(i),2});
+           if isnan(triggertype)
+              info_cell_array{13,2} = 'Invalid value!';
+              warning('Invalid value in TriggerType');
+           else
+              if triggertype == 0
+                 info_cell_array{13,2} = 'Relative'; 
+              else
+                  info_cell_array{13,2} = 'Absolute';
+              end
+           end
            
        case 'UseVelocity'
-           
+           info_cell_array(14,2) = split_pairs(list_comparison(1),2);
            
        case 'TriggerPoint'
-           
+           triggerpoint = str2double(split_pairs{list_comparison(i),2});
+           if isnan(triggerpoint)
+              additional_struct.TriggerPoint = 'Invalid value!';
+              warning('Invalid value in TriggerPoint');
+           else
+               additional_struct.TriggerPoint = triggerpoint;
+           end
            
        case 'NumPtsPerSec'
-           
-           
+           samplerate = str2double(split_pairs{list_comparison(i),2});
+           if isnan(samplerate)
+               info_cell_array{20,2} = 'Invalid value!';
+               warning('Invalid value in NumPtsPerSec');
+           else
+               samplerate_string = sprintf('%.0f Hz',samplerate);
+               info_cell_array{20,2} = samplerate_string;
+           end
    end
 end
+                  
+% write date and time information in info_cell_array and calculate missing
+% fields of info_cell_array
 
+% 1. Write date and time information
+info_cell_array{4,2} = datestr(data.creationDate,1);
+info_cell_array{5,2} = datestr(data.creationDate,14);
 
-disp(info_cell_array)                  
-% write date and time information in info_cell_array
+% 2. Write Map Size to info_cell_array
+fast = additional_struct.FastScanSize;
+slow = additional_struct.SlowScanSize;
+if strcmp(fast,'Invalid value!') || strcmp(slow,'Invalid value!')
+    info_cell_array{11,2} = 'Invalid value!';
+    warning('Invalid value in Map Size!\nEither FastScanSize or/and SlowScanSize have an invalid value!%s',' ');
+else
+ info_cell_array{11,2} = sprintf('%.2g x %.2g µm',fast*1e6,slow*1e6); 
+end
 
+% 3. Write Pixels information to info_cell_array
+fast_p = additional_struct.FMapScanPoints;
+slow_p = additional_struct.FMapScanLines;
+if strcmp(fast_p,'Invalid value!') || strcmp(slow_p,'Invalid value!')
+    info_cell_array{12,2} = 'Invalid value!';
+    warning('Invalid value in Pixels\nEither FMapScanPoints or/and FMapScanLines have an invalid value!%s',' ');
+else
+    info_cell_array{12,2} = sprintf('%d x %d',fast_p,slow_p);
+end
                        
+% 4. Write Vert. Tip Speed to info_cell_array
+velocity = additional_struct.Velocity;
+if strcmp(velocity,'Invalid value!')
+   info_cell_array{17,2} = 'Invalid value!'; 
+else
+    info_cell_array{17,2} = sprintf('%.2g µm/s',velocity*1e6);
+end
+
+% 5. Write Extend Time to info_cell_array
+zlength = additional_struct.ZLength;
+velocity = additional_struct.Velocity;
+if strcmp(zlength,'Invalid value!') || strcmp(velocity,'Invalid value!')
+    info_cell_array{18,2} = 'Invalid value!';
+    warning('Invalid value in Extend Time\nEither ZLength or/and Velocity have an invalid value!%s',' ')
+else
+    info_cell_array{18,2} = sprintf('%.3g s',zlength/velocity);
+end
                        
-                       
-                       
-                       
-                       
+% 6.Write Triggerpoint value to info_cell_array
+triggerpoint = additional_struct.TriggerPoint;
+triggerchannel = info_cell_array{7,2};
+if strcmp(triggerpoint,'Invalid value!')
+   info_cell_array{15,2} = 'Invalid value!';
+else
+    switch triggerchannel
+        case 'DeflVolts'
+            info_cell_array{15,2} = sprintf('%.2g V',triggerpoint);
+        case 'Deflection'
+            info_cell_array{15,2} = sprintf('%.2g nm',triggerpoint*1e9);
+        case 'Force'
+            info_cell_array{15,2} = sprintf('%.2g nN',triggerpoint*1e9);
+        otherwise
+            info_cell_array{15,2} = sprintf('%g (no Unit)',triggerpoint);
+    end
+end
+
+% 7. Write ZLength to info_cell_array
+info_cell_array{16,2} = sprintf('%.2g µm',additional_struct.ZLength*1e6);
+
+% set additional_struct as optional output
 varargout{1} = additional_struct;
 
