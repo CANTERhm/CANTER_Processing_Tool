@@ -388,7 +388,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
             case 'file'
                 if handles.filefilter == 1
                    handles.loaded_file_type = 'jpk-force-map';
-                   [x_data,y_data, ~, ~, Forcecurve_label,~,~,name_of_file,map_images] = ReadJPKMaps(handles.edit_filepath.String);
+                   [x_data,y_data, ~, ~, Forcecurve_label,~,~,name_of_file,map_images,~,handles.map_info_array] = ReadJPKMaps(handles.edit_filepath.String);
                    % create filename array
                    Forcecurve_label = Forcecurve_label';
                    curves_in_map = strcat(name_of_file,'.',Forcecurve_label);
@@ -464,7 +464,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                         'UNDER CONSTRUCTION!');
                 end
                 num_files = length(Forcecurve_label);
-                % preinitialise curve struct
+                % preallocate curve struct
                 for i=1:num_files
                     c_string = sprintf('curve%u',i);
                     curves.(c_string) = struct('x_values',[],'y_values',[]);                    
@@ -501,11 +501,11 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                 
             case 'folder'
                 folderpath = get(handles.edit_filepath,'String');       % get folder location
-                listing = dir(folderpath);                              % information of files in folder
-                filetype = strsplit(listing(3).name, '.');
+                listing = [dir(fullfile(folderpath,'*.ibw'));dir(fullfile(folderpath,'*.txt'))];    % information of files in folder
+                [~,~,filetype] = fileparts(listing(1).name);
                 
                 % Check if the folder contains .ibw files from the MFP-3D
-                if strcmp(filetype(1,2), 'ibw')
+                if strcmp(filetype, '.ibw')
                     handles.loaded_file_type = 'ibw';
                     handles.ibw = true;
                     [x_data,y_data,~,~, Forcecurve_label, name_of_file, mfpmapdata] = ReadMFPMaps(folderpath);
@@ -513,6 +513,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                     curves_in_map = strcat(name_of_file,'.',Forcecurve_label);
                     handles.file_names = curves_in_map;
                     num_files = length(Forcecurve_label);
+                    handles.mfpmapdata = mfpmapdata;
                     % preinitialise curve struct
                     for i=1:num_files
                         c_string = sprintf('curve%u',i);
@@ -530,10 +531,9 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                     guidata(hObject,handles);
                     
                     % Get the size of the forcemap
-                    scanpt_loc = strfind(mfpmapdata, 'FMapScanPoints');
-                    scanpt = str2double(mfpmapdata((scanpt_loc)+16:(scanpt_loc)+17));
-                    scanl_loc = strfind(mfpmapdata, 'FMapScanLines');
-                    scanl = str2double(mfpmapdata((scanl_loc)+15:(scanl_loc)+17));
+                    map_parameters = mfpmapdata{2};
+                    scanpt = map_parameters.FMapScanPoints;
+                    scanl = map_parameters.FMapScanLines;
                     handles.MFP_height_matrix = zeros(scanl,scanpt);
                     handles.MFP_mslope_matrix = zeros(scanl,scanpt);
                     handles.MFP_fmap_num_line = scanl;    %Number of lines in the forcemap
@@ -682,7 +682,10 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
             num_files = i-1;                % number of fully loaded curves
             handles.num_files = i-1;        % provide max curve number in handles                    
         end
-                
+        
+        % provide file information in the info panel
+        handles = info_panel_helpf(handles);        
+        
         % write progress values
         % needed variables
         handles.progress = struct('num_unprocessed',num_files,...
@@ -699,7 +702,8 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
         % options.
         try
         [hObject,handles] = process_options(hObject,handles);
-        catch
+        catch % ME
+            % if you can
         end
         %%
         
@@ -2352,7 +2356,17 @@ x_led = (window_width*handles.def_led_x)/handles.def_wind_width;
 y_led = (window_height*handles.def_led_y)/handles.def_wind_height;
 handles.save_status_led.Position(1) = x_led;
 handles.save_status_led.Position(2) = y_led;
+
+% change info panel column width
+handles.info_table.Units = 'pixel';
+table_width = handles.info_table.Position(3);
+handles.info_table.ColumnWidth = {table_width/2-1,table_width/2-1};
+handles.info_table.Units = 'normalized';
+
+
 guidata(hObject,handles);
+
+
 
 
 % --- Executes on selection change in image_channels_popup.
@@ -2655,7 +2669,7 @@ if handles.load_status ~=0
             [hObject,handles] = plot_hertz(hObject,handles);
             guidata(hObject,handles);
     end
-
+    
     % fit data to processed curve and display fitresult
     [hObject,handles] = curve_fit_functions(hObject,handles);
     guidata(hObject,handles);
@@ -2963,8 +2977,29 @@ function handles = colorbar_helpf(ax_handle,handles)
         % no matching file type is loaded
         return;
     end
-
-
+    
+% --- Colorbar helper function to display the colorbar properly.
+function handles = info_panel_helpf(handles)
+    %     Function to read file information and display them in the info panel
+    
+    % Check if a jpk-force-map was loaded
+    if strcmp(handles.loaded_file_type,'jpk-force-map') 
+        
+        handles.info_table.Data = handles.map_info_array;
+                
+    % Check if ibw files were loaded
+    elseif handles.ibw
+        
+        
+        
+    % Check if txt files were loaded
+%     elseif 
+        
+        
+        
+    end
+    
+    
 % --------------------------------------------------------------------
 function help_menu_Callback(hObject, eventdata, handles)
 % hObject    handle to help_menu (see GCBO)
