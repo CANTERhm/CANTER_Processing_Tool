@@ -19,6 +19,8 @@ function [x_data,y_data, x_data_retract, y_data_retract, Forcecurve_count, varar
 % varargout{2} = pathname;
 % varargout{3} = filename;
 % varargout{4} = map_images;
+% varargout{5} = map_info;      -> A struct containing all availlable information about the loaded map images in raw format.
+% varargout{6} = info_array;    -> Contains all information about the laoded map as a cell array (first column: names, second column: values)
 % 
 % encoder:
 % (1)= offset_scaling_height;
@@ -64,11 +66,14 @@ catch
 end
 
 if status ~= 0
-    warning('7zip wasn''t successful in unziping. Matlabs unuip function was used instead!');
+    warning('7zip wasn''t successful in unziping. Matlabs unzip function was used instead!');
     unzip(zippath, unzipfolder);
 end
     
+% get general information about laoded map
+info_array = get_map_info(unzipfolder);
 
+% laod the force curves
 Indexfolder = fullfile(unzipfolder,'index');
 folder = dir(Indexfolder); % get the information of all files in the chosen folder
 files = {folder.name}; % get names(amount of curves) of all files
@@ -85,8 +90,10 @@ Forcecurve_count = regexprep(Forcecurve_count, '\s+', ''); % Get rid of the empt
 
 % provide images of map channels
 force_path = fullfile(unzipfolder,'data-image.force');
-map_images = ForceMapImageData(force_path);
+[map_images,all_info] = ForceMapImageData(force_path);
 varargout{4} = map_images;
+varargout{5} = all_info;
+varargout{6} = info_array;
 
 x_data_raw = struct; %Height Extend 
 y_data_raw = struct; %vDeflection Extend
@@ -276,4 +283,178 @@ delete(zippath);
 close(wbar);
 end
 
+% help function to get all important information about the force-map
+function info_array = get_map_info(map_folder_path)
+    
+    % initialize output cell array
+    info_array = {'SPM_Version',[];...
+                  'Start_Date',[];...
+                  'Start_Time',[];...
+                  'Feedback_Mode',[];...
+                  'Closed_Loop',[];...
+                  'Account',[];...
+                  'XY_Scanner',[];...
+                  'Z_Scanner',[];...
+                  'Z_Range',[];...
+                  'Size',[];...
+                  'Pixels',[];...
+                  'Force_Settings',[];...
+                  'Setpoint',[];...
+                  'Z_Length',[];...
+                  'Extend_Time',[];...
+                  'Tip_Speed',[];...
+                  'Pixel_Num',[];...
+                  'Sample_Rate',[]};
+    
+    % get file id of header.properties file
+    header_file_path = fullfile(map_folder_path,'header.properties');
+    header_file_id = fopen(header_file_path,'rt');
+    if header_file_id == -1
+        error('Function: ReadJPKMaps -> Helpfunction: get_map_info: header.properties file wasn''t found');
+    end
+    
+    % read text file fields in cell array
+    file_output = textscan(header_file_id,['%s' '%s'],'HeaderLines',1,'Delimiter','=');
+    
+    % separate names and values
+    names_cell = file_output{1,1};
+    values_cell = file_output{1,2};
+    
+    % define all strings that has to be searched for
+    match_strings = {'force-scan-map.description.source-software';...
+                     'force-scan-map.start-time';...
+                     'force-scan-map.feedback-mode.name';...
+                     'force-scan-map.settings.force-settings.closed-loop';...
+                     'force-scan-map.description.user-name';...
+                     'force-scan-map.environment.xy-scanner-position-map.xy-scanner.tip-scanner.xy-scanner.description';...
+                     'force-scan-map.environment.z-scanner-map.z-scanner.internal-z-scanner.z-scanner-environment.z-scanner.fancy-name';...
+                     'force-scan-map.environment.z-scanner-map.z-scanner.internal-z-scanner.z-scanner-environment.z-range.fancyname';...
+                     'force-scan-map.position-pattern.grid.ulength';...
+                     'force-scan-map.position-pattern.grid.vlength';...
+                     'force-scan-map.position-pattern.grid.ilength';...
+                     'force-scan-map.position-pattern.grid.jlength';...
+                     'force-scan-map.settings.force-settings.type';...
+                     'force-scan-map.settings.force-settings.relative-setpoint';...
+                     'force-scan-map.settings.force-settings.relative-z-start';...
+                     'force-scan-map.settings.force-settings.relative-z-end';...
+                     'force-scan-map.settings.force-settings.extend-scan-time';...
+                     'force-scan-map.settings.force-settings.extend-k-length'};
+    
+    % find indices of all match_strings in names_cell
+    Match = cellfun(@(x) ismember(x, match_strings), names_cell, 'UniformOutput', 0);
+    match_ind = find(cell2mat(Match));
+    
+    % write values from values_cell to the right array fields using the
+    % matched indices
+    for i = 1:length(match_ind)
+        indx = match_ind(i);
+        switch names_cell{indx}
+            
+            case 'force-scan-map.description.source-software'     
+                info_array(1,2) = values_cell(indx);    % write software version to corresponding array field
+                
+            case 'force-scan-map.start-time'
+                d_t_value = values_cell{indx};
+                d_t_sep = split(d_t_value);     % split string to separate date and time
+                info_array{2,2} = d_t_sep{1};   % write date value to corresponding array field
+                
+                if strcmp(d_t_sep{3},'+0200')   % if matching do replacement
+                   d_t_sep{3} = 'CEST';
+                end
+                if strcmp(d_t_sep{3},'+0100')   % if matching do replacement
+                   d_t_sep{3} = 'CET';
+                end
+                
+                t_z_string = [d_t_sep{2} ' ' d_t_sep{3}];   % insert space between time and time-zone
+                t_z_string = replace(t_z_string,'\','');      % get rid of backspaces
+                
+                info_array{3,2} = t_z_string;   % write time&zone value to corresponding array field
+                
+            case 'force-scan-map.feedback-mode.name'
+                info_array(4,2) = values_cell(indx);
+                
+            case 'force-scan-map.settings.force-settings.closed-loop'
+                info_array(5,2) = values_cell(indx);    % write closed loop status to corresponding array field
+                
+            case 'force-scan-map.description.user-name'
+                info_array(6,2) = values_cell(indx);    % write user name to corresponding array field
+                
+            case 'force-scan-map.environment.xy-scanner-position-map.xy-scanner.tip-scanner.xy-scanner.description'
+                info_array(7,2) = values_cell(indx);    % write xy scanner dexcription to corresponding array field
+                
+            case 'force-scan-map.environment.z-scanner-map.z-scanner.internal-z-scanner.z-scanner-environment.z-scanner.fancy-name'
+                info_array(8,2) = values_cell(indx);    % write z scanner name to corresponding array field
+                
+            case 'force-scan-map.environment.z-scanner-map.z-scanner.internal-z-scanner.z-scanner-environment.z-range.fancyname'
+                z_scanner_name = values_cell{indx};                             % get z scanner name
+                info_array{9,2} = sprintf(strrep(z_scanner_name,'\u','\x'));    % replace \u with \x for correct unicode interpretation and write z scanner name to array field
+                
+            case 'force-scan-map.position-pattern.grid.ulength'
+                ulength = str2double(values_cell{indx});    % write ulength to variable for later calculation
+                
+            case 'force-scan-map.position-pattern.grid.vlength'
+                vlength = str2double(values_cell{indx});    % write vlength to variable for later colculation
+                
+            case 'force-scan-map.position-pattern.grid.ilength'
+                ilength = values_cell{indx};    % write string of ilength to variable for later concatenation
+                
+            case 'force-scan-map.position-pattern.grid.jlength'
+                jlength = values_cell{indx};    % write string of jlength to variable for later concatenation
+                
+            case 'force-scan-map.settings.force-settings.type'
+                info_array(12,2) = values_cell(indx);   % write type of force settings to corresponding array field
+                
+            case 'force-scan-map.settings.force-settings.relative-setpoint'
+                setpoint = str2double(values_cell{indx});   % get value of setpoint
+                if setpoint < 1 % decide with is the suitable unit and write it to corresponding array field
+                   info_array{13,2} = sprintf('%.0f mV',setpoint*1e3);
+                else
+                   info_array{13,2} = [values_cell{indx} ' V']; 
+                end     
+                
+            case 'force-scan-map.settings.force-settings.relative-z-start'
+                z_start = str2double(values_cell{indx});    % write z start value to variable for later calculation
+                
+            case 'force-scan-map.settings.force-settings.relative-z-end'
+                z_end = str2double(values_cell{indx});      % write z end value to variable for later calculation
+                
+            case 'force-scan-map.settings.force-settings.extend-scan-time'
+                extend_time = str2double(values_cell{indx});    % convert extend time to double
+                if extend_time < 1                              % determine if it's smaller then 1 and write the time with correct unit to corresponding array field
+                    info_array{15,2} = [sprintf('%.2f ms',extend_time*1e3)];
+                else
+                    info_array{15,2} = [sprintf('%.3f s',extend_time) ' s'];
+                end
+                
+            case 'force-scan-map.settings.force-settings.extend-k-length'
+                pixel_num = str2double(values_cell{indx});  % write pixel number to varaible for later calculation
+                info_array{17,2} = pixel_num;   % write pixerl number in corresponding array field
+                
+        end
+        
+    end
+    
+    
+    % write map size to info_array
+    info_array{10,2} = sprintf('%.4g x %.4g µm',ulength*1e6,vlength*1e6);
+
+    % write pixels to info_array
+    info_array{11,2} = sprintf('%s x %s',ilength,jlength);
+  
+    % calculate z length and write value to corresponding array field
+    z_len = abs(z_start - z_end);
+    info_array{14,2} = sprintf('%.2f µm',z_len*1e6);
+
+    % calculate vertical tip speed and write value to correxponding array
+    % field
+    tip_speed = z_len / extend_time;
+    info_array{16,2} = sprintf('%.2f µm/s',tip_speed*1e6);
+
+    % calculate sample rate and write value to corresponding array field
+    sample_rate = pixel_num / extend_time;
+    info_array{18,2} = sprintf('%g Hz',sample_rate);
+    
+    % kill file id
+    fclose(header_file_id);
+end
 

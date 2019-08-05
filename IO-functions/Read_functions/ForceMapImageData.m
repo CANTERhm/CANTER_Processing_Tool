@@ -1,4 +1,4 @@
-function imageFiles = ForceMapImageData(filepath)
+function [imageFiles,varargout] = ForceMapImageData(filepath)
 %%  FORCEMAPIMAGEDATA: Provides the image data of the available channels
 %   of an .force or .jpk file
 %   
@@ -21,6 +21,9 @@ copyfile(filepath,filepath_tiff);
 warning off
 T = Tiff(filepath_tiff);
 info = imfinfo(filepath_tiff);
+
+% provide the image info struct also in the varargout
+varargout{1} = info;
 
 
 
