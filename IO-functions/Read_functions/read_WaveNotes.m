@@ -276,7 +276,7 @@ for i = 1:length(list_comparison)
                warning('Invalid value in NumPtsPerSec');
            else
                samplerate_string = sprintf('%.0f Hz',samplerate);
-               info_cell_array{20,2} = samplerate_string;
+               info_cell_array{19,2} = samplerate_string;
            end
    end
 end
