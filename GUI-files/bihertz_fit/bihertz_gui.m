@@ -2747,7 +2747,7 @@ if any(EModul)
     EModul(EModul == 0)=[];
     EModul(isnan(EModul)) = [];
     EModul = EModul/1000;
-    [h,~] = histogram_fits(EModul, 'gauss', floor(max(EModul)/25));
+    [h,~] = histogram_fits(EModul, 'gauss', 100);
     h.Histogram_handle.FaceColor = [1 0.72 0.73];
     h.Histogram_handle.EdgeColor = [0.77 0.32 0.34];
     title('Youngs Modulus');
@@ -2792,7 +2792,7 @@ if any(rsquare)
     handles.GoFFig = figure('Name','Histogram: Goodness of Fit','Units', 'normalized', 'NumberTitle','off', 'Color', 'white');
     rsquare(rsquare <= 0)=[];
     rsquare(isnan(rsquare)) = [];
-    [h] = histogram_fits(rsquare, 'none', 100);
+    [h] = histogram_fits(rsquare, 'none', 50);
     h.Histogram_handle.FaceColor = [1 0.72 0.73];
     h.Histogram_handle.EdgeColor = [0.77 0.32 0.34];
     xlim([0 1])
