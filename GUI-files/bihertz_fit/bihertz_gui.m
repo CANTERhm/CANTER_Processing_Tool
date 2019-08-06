@@ -557,7 +557,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                             line_count = scanl;
                         end
                         %Get the height value of each curve
-                        handles.MFP_height_matrix(line_count,pt_count) = max(y_data.(Forcecurve_label{i})*-1); %The MFP-3D Software uses the negative max value
+                        handles.MFP_height_matrix(line_count,pt_count) = min(x_data.(Forcecurve_label{i}));
                         
                         %Get the measured slope value of each curve
                         y_data_singlecurve = y_data.(Forcecurve_label{i});
@@ -565,7 +565,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                         y_data_fit = y_data_singlecurve((length(y_data_singlecurve)-round(0.02*length(y_data_singlecurve))):end);
                         x_data_fit = x_data_singlecurve((length(x_data_singlecurve)-round(0.02*length(x_data_singlecurve))):end);
                         [p] = polyfit(x_data_fit, y_data_fit, 1);
-                        handles.MFP_mslope_matrix(line_count,pt_count) = p(1)*-1e-6;
+                        handles.MFP_mslope_matrix(line_count,pt_count) = p(1);
                         
                         if pt_count == scanpt
                             pt_count = 0;
@@ -2906,7 +2906,7 @@ function handles = colorbar_helpf(ax_handle,handles)
                 c_max = max(max(image_handle.CData));
                 % determine if the maximum dimension is nm or µm and
                 % correct the tick lables of the colorbar
-                check = abs(c_max) < 1e-6;
+                check = abs(c_max) < 1e-6 && abs(c_min) < 1e-6;
                 labels = cbar.TickLabels;
                 for i = 1:length(labels)
                    lable_char = labels{i};
@@ -2932,7 +2932,7 @@ function handles = colorbar_helpf(ax_handle,handles)
                 c_max = max(max(image_handle.CData));
                 % determine if the maximum dimension is nm or µm and
                 % correct the tick lables of the colorbar
-                check = abs(c_max) < 1e6;
+                check = abs(c_max) < 1e6 && abs(c_min) < 1e6;
                 labels = cbar.TickLabels;
                 for i = 1:length(labels)
                    label_char = labels{i};
@@ -2963,7 +2963,7 @@ function handles = colorbar_helpf(ax_handle,handles)
                 c_max = max(max(image_handle.CData));
                 % determine if the maximum dimension is nm or µm and
                 % correct the tick lables of the colorbar
-                check = abs(c_max) < 1;
+                check = abs(c_max) < 1 && abs(c_min) < 1;
                 labels = cbar.TickLabels;
                 for i = 1:length(labels)
                    lable_char = labels{i};
@@ -2988,7 +2988,7 @@ function handles = colorbar_helpf(ax_handle,handles)
                 c_max = max(max(image_handle.CData));
                 % determine if the maximum dimension is nm or µm and
                 % correct the tick lables of the colorbar
-                check = abs(c_max) < 1;
+                check = abs(c_max) < 1 && abs(c_min) < 1;
                 labels = cbar.TickLabels;
                 for i = 1:length(labels)
                    lable_char = labels{i};
@@ -3013,7 +3013,7 @@ function handles = colorbar_helpf(ax_handle,handles)
                 c_max = max(max(image_handle.CData));
                 % determine if the maximum dimension is nm or µm and
                 % correct the tick lables of the colorbar
-                check = abs(c_max) < 1;
+                check = abs(c_max) < 1 && abs(c_min) < 1;
                 labels = cbar.TickLabels;
                 for i = 1:length(labels)
                    lable_char = labels{i};
