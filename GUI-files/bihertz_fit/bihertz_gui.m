@@ -2919,13 +2919,13 @@ function handles = colorbar_helpf(ax_handle,handles)
                    if check
                        label_num = label_num*1e9;
                        labels(i) = {sprintf('%.0f nm',label_num)};
-                       max_label = sprintf('max: %.2f nm',c_max*1e9);
-                       min_label = sprintf('min: %.2f nm',c_min*1e9);                           
+                       max_label = sprintf('max: %.2g nm',c_max*1e9);
+                       min_label = sprintf('min: %.2g nm',c_min*1e9);                           
                    else
                        label_num = label_num*1e6;
                        labels(i) = {sprintf('%.2f µm',label_num)};
-                       max_label = sprintf('max: %.2f µm',c_max*1e6);
-                       min_label = sprintf('min: %.2f µm',c_min*1e6);  
+                       max_label = sprintf('max: %.2g µm',c_max*1e6);
+                       min_label = sprintf('min: %.2g µm',c_min*1e6);  
                    end
                 end
                 cbar.TickLabels = labels;
@@ -2950,13 +2950,13 @@ function handles = colorbar_helpf(ax_handle,handles)
                    if check
                        label_num = label_num*1e-3;
                        labels(i) = {sprintf('%3.0f mV/µm',label_num)};
-                       max_label = sprintf('max: %g mV/µm',c_max*1e-3);
-                       min_label = sprintf('min: %g mV/µm',c_min*1e-3);
+                       max_label = sprintf('max: %.2g mV/µm',c_max*1e-3);
+                       min_label = sprintf('min: %.2g mV/µm',c_min*1e-3);
                    else
                        label_num = label_num*1e-6;
                        labels(i) = {sprintf('%.1f V/µm',label_num)};
-                       max_label = sprintf('max: %g V/µm',c_max*1e-6);
-                       min_label = sprintf('min: %g V/µm',c_min*1e-6);
+                       max_label = sprintf('max: %.2g V/µm',c_max*1e-6);
+                       min_label = sprintf('min: %.2g V/µm',c_min*1e-6);
                    end
                 end
                 cbar.TickLabels = labels;
@@ -2976,12 +2976,12 @@ function handles = colorbar_helpf(ax_handle,handles)
                    if check
                        label_num = label_num*1e3;
                        labels(i) = {sprintf('%3.0f mV',label_num)};
-                       max_label = sprintf('max: %g mV',c_max*1e3);
-                       min_label = sprintf('min: %g mV',c_min*1e3);
+                       max_label = sprintf('max: %.2g mV',c_max*1e3);
+                       min_label = sprintf('min: %.2g mV',c_min*1e3);
                    else
                        labels(i) = {sprintf('%1.1f V',label_num)};
-                       max_label = sprintf('max: %g V',c_max);
-                       min_label = sprintf('min: %g V',c_min);
+                       max_label = sprintf('max: %.2g V',c_max);
+                       min_label = sprintf('min: %.2g V',c_min);
                    end
                 end
                 cbar.TickLabels = labels;
@@ -3001,12 +3001,12 @@ function handles = colorbar_helpf(ax_handle,handles)
                    if check
                        label_num = label_num*1e3;
                        labels(i) = {sprintf('%3.0f mV',label_num)};
-                       max_label = sprintf('max: %g mV',c_max*1e3);
-                       min_label = sprintf('min: %g mV',c_min*1e3);
+                       max_label = sprintf('max: %.2g mV',c_max*1e3);
+                       min_label = sprintf('min: %.2g mV',c_min*1e3);
                    else
                        labels(i) = {sprintf('%1.1f V',label_num)};
-                       max_label = sprintf('max: %g V',c_max);
-                       min_label = sprintf('min: %g V',c_min);
+                       max_label = sprintf('max: %.2g V',c_max);
+                       min_label = sprintf('min: %.2g V',c_min);
                    end
                 end
                 cbar.TickLabels = labels;
@@ -3026,12 +3026,12 @@ function handles = colorbar_helpf(ax_handle,handles)
                    if check
                        label_num = label_num*1e3;
                        labels(i) = {sprintf('%3.0f mV',label_num)};
-                       max_label = sprintf('max: %g mV',c_max*1e3);
-                       min_label = sprintf('min: %g mV',c_min*1e3);
+                       max_label = sprintf('max: %.2g mV',c_max*1e3);
+                       min_label = sprintf('min: %.2g mV',c_min*1e3);
                    else
                        labels(i) = {sprintf('%1.1f V',label_num)};
-                       max_label = sprintf('max: %g V',c_max);
-                       min_label = sprintf('min: %g V',c_min);
+                       max_label = sprintf('max: %.2g V',c_max);
+                       min_label = sprintf('min: %.2g V',c_min);
                    end
                 end
                 cbar.TickLabels = labels;
