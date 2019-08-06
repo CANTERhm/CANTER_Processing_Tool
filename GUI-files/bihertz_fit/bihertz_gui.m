@@ -557,7 +557,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                             line_count = scanl;
                         end
                         %Get the height value of each curve
-                        handles.MFP_height_matrix(line_count,pt_count) = max(y_data.(Forcecurve_label{i})*-1); %The MFP-3D Software uses the negative max value
+                        handles.MFP_height_matrix(line_count,pt_count) = x_data.(Forcecurve_label{i})(end); %The MFP-3D Software uses the negative max value
                         
                         %Get the measured slope value of each curve
                         y_data_singlecurve = y_data.(Forcecurve_label{i});
@@ -580,6 +580,11 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                         wb_num = i/num_files;
                         waitbar(wb_num,wb,sprintf('Loading progress: %.f%%',wb_num*100))
                     end
+                    %Subtract the minimum value of the height matrix to get
+                    %the real height
+                    lowest_point = min(min(handles.MFP_height_matrix));
+                    handles.MFP_height_matrix = handles.MFP_height_matrix-lowest_point;
+                    
                     %Replace all the left zeros by the minimal/maximal value to get
                     %still a good image
                     mslope_matrix = handles.MFP_mslope_matrix;
@@ -2914,13 +2919,13 @@ function handles = colorbar_helpf(ax_handle,handles)
                    if check
                        label_num = label_num*1e9;
                        labels(i) = {sprintf('%.0f nm',label_num)};
-                       max_label = sprintf('max: %g nm',c_max*1e9);
-                       min_label = sprintf('min: %g nm',c_min*1e9);                           
+                       max_label = sprintf('max: %.2f nm',c_max*1e9);
+                       min_label = sprintf('min: %.2f nm',c_min*1e9);                           
                    else
                        label_num = label_num*1e6;
                        labels(i) = {sprintf('%.2f µm',label_num)};
-                       max_label = sprintf('max: %g µm',c_max*1e6);
-                       min_label = sprintf('min: %g µm',c_min*1e6);  
+                       max_label = sprintf('max: %.2f µm',c_max*1e6);
+                       min_label = sprintf('min: %.2f µm',c_min*1e6);  
                    end
                 end
                 cbar.TickLabels = labels;
