@@ -258,7 +258,17 @@ for i = 1:length(list_comparison)
            end
            
        case 'UseVelocity'
-           info_cell_array(14,2) = split_pairs(list_comparison(1),2);
+           usevelocity = split_pairs{list_comparison(i),2};
+           usevelocity = strip(usevelocity);
+           switch usevelocity
+               case '1'
+                   info_cell_array{14,2} = 'true';
+               case '0'
+                   info_cell_array{14,2} = 'false';
+               otherwise
+                   info_cell_array{14,2} = usevelocity;
+           end
+           
            
        case 'TriggerPoint'
            triggerpoint = str2double(split_pairs{list_comparison(i),2});
