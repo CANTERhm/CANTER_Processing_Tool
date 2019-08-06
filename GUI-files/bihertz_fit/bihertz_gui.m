@@ -2852,13 +2852,7 @@ function handles = colorbar_helpf(ax_handle,handles)
     channel_indx = handles.image_channels_popup.Value;
     channel = channels{channel_indx};
     
-    if strcmp(map_type,'ibw')
-        % the following is the colorbar correction for ibw-maps
-%         switch channel
-%             case 'slope'
-%             
-%         end
-    elseif strcmp(map_type,'jpk-force-map')
+    if strcmp(map_type,'jpk-force-map') || strcmp(map_type,'ibw')
         % the following is the colorbar correction for jpk-force-maps
         switch channel
             case 'height' 
@@ -2935,10 +2929,9 @@ function handles = colorbar_helpf(ax_handle,handles)
                        max_label = sprintf('max: %g mV',c_max*1e3);
                        min_label = sprintf('min: %g mV',c_min*1e3);
                    else
-                       label_num = label_num*1e6;
                        labels(i) = {sprintf('%1.1f V',label_num)};
-                       max_label = sprintf('max: %g V',c_max*1e6);
-                       min_label = sprintf('min: %g V',c_min*1e6);
+                       max_label = sprintf('max: %g V',c_max);
+                       min_label = sprintf('min: %g V',c_min);
                    end
                 end
                 cbar.TickLabels = labels;
@@ -2961,10 +2954,34 @@ function handles = colorbar_helpf(ax_handle,handles)
                        max_label = sprintf('max: %g mV',c_max*1e3);
                        min_label = sprintf('min: %g mV',c_min*1e3);
                    else
-                       label_num = label_num*1e6;
                        labels(i) = {sprintf('%1.1f V',label_num)};
-                       max_label = sprintf('max: %g V',c_max*1e6);
-                       min_label = sprintf('min: %g V',c_min*1e6);
+                       max_label = sprintf('max: %g V',c_max);
+                       min_label = sprintf('min: %g V',c_min);
+                   end
+                end
+                cbar.TickLabels = labels;
+                % provide min and max information of shown data
+                title(ax_handle,{'Full data range:';max_label;min_label},'FontSize',9);
+            case 'hDeflection'
+                % find min and max of CData
+                c_min = min(min(image_handle.CData));
+                c_max = max(max(image_handle.CData));
+                % determine if the maximum dimension is nm or µm and
+                % correct the tick lables of the colorbar
+                check = abs(c_max) < 1;
+                labels = cbar.TickLabels;
+                for i = 1:length(labels)
+                   lable_char = labels{i};
+                   label_num = str2double(lable_char);
+                   if check
+                       label_num = label_num*1e3;
+                       labels(i) = {sprintf('%3.0f mV',label_num)};
+                       max_label = sprintf('max: %g mV',c_max*1e3);
+                       min_label = sprintf('min: %g mV',c_min*1e3);
+                   else
+                       labels(i) = {sprintf('%1.1f V',label_num)};
+                       max_label = sprintf('max: %g V',c_max);
+                       min_label = sprintf('min: %g V',c_min);
                    end
                 end
                 cbar.TickLabels = labels;
@@ -2974,7 +2991,7 @@ function handles = colorbar_helpf(ax_handle,handles)
                 warning('No colorbar processing is availlible for the choosen map channel');
         end
     else
-        % no matching file type is loaded
+        warning('No matching filetype for the color bar processing is loaded!')
         return;
     end
     
