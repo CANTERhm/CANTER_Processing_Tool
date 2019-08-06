@@ -65,6 +65,8 @@ else
     gui_mainfcn(gui_State, varargin{:});
 
 end
+
+    warning on
 % End initialization code - DO NOT EDIT
 
 
@@ -122,6 +124,7 @@ end
 
 handles = grid_creation_function(handles);
 
+warning on
 guidata(hObject,handles);
 
 
@@ -952,6 +955,7 @@ function button_keep_highlighted_Callback(hObject, ~, handles)
 % hObject    handle to button_keep_highlighted (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+curve_index_old = handles.current_curve;
 selection_num = handles.listbox1.Value;
 selection_diff = selection_num - handles.current_curve;
 for i=1:selection_diff
@@ -962,6 +966,24 @@ end
 handles.button_keep_highlighted.Enable = 'off';
 handles.button_undo_highlighted.Enable = 'off';
 handles.button_discard_highlighted.Enable = 'off';
+
+% activate buttons when called from first curve
+if curve_index_old == 1
+    handles.button_undo.Enable = 'on';
+    handles.btn_histogram.Enable = 'on';
+    handles.btn_gof.Enable = 'on';
+    handles.channel_names = [handles.channel_names(:,1);{'Youngs Modulus'}];
+    handles.image_channels_popup.String = handles.channel_names;
+end
+
+% when last curve is reached
+if selection_num == handles.num_files
+    handles.button_keep.Enable = 'off';
+    handles.button_discard.Enable = 'off';
+    handles.button_keep_all.Enable = 'off';
+    handles.button_undo.Enable = 'on';
+    handles.fit_model_popup.Enable = 'off';
+end
 guidata(hObject,handles)
 
 % --- Executes on button press in button_undo_highlighted.
@@ -1127,8 +1149,13 @@ guidata(hObject,handles);
 if new_curve_index == 1
     handles.button_undo.Enable = 'off';
     handles.fit_model_popup.Enable = 'on';
-    handles.channel_names = {'height', 'slope'}';
-    handles.image_channels_popup.String = handles.channel_names;
+    handles.btn_histogram.Enable = 'off';
+    handles.btn_gof.Enable = 'off';
+    channel_find = cellfun(@(x)strcmp(x,'Youngs Modulus'),handles.channel_names);
+    if any(channel_find)
+        handles.channel_names = handles.channel_names(~channel_find);
+        handles.image_channels_popup.String = handles.channel_names;
+    end
 end
 
 guidata(hObject,handles);
@@ -1447,7 +1474,7 @@ else
         handles.button_undo.Enable = 'on';
         handles.btn_histogram.Enable = 'on';
         handles.btn_gof.Enable = 'on';
-        handles.channel_names = {'height', 'slope', 'Youngs Modulus'}';
+        handles.channel_names = [handles.channel_names(:,1);{'Youngs Modulus'}];
         handles.image_channels_popup.String = handles.channel_names;
     end
     
@@ -1756,8 +1783,13 @@ guidata(hObject,handles);
 if new_curve_index == 1
     handles.button_undo.Enable = 'off';
     handles.fit_model_popup.Enable = 'on';
-    handles.channel_names = {'height', 'slope'}';
-    handles.image_channels_popup.String = handles.channel_names;
+    handles.btn_histogram.Enable = 'off';
+    handles.btn_gof.Enable = 'off';
+    channel_find = cellfun(@(x)strcmp(x,'Youngs Modulus'),handles.channel_names);
+    if any(channel_find)
+        handles.channel_names = handles.channel_names(~channel_find);
+        handles.image_channels_popup.String = handles.channel_names;
+    end
 end
 
 
@@ -1783,9 +1815,9 @@ handles.button_discard.Enable = 'off';
 handles.button_keep_all.Enable = 'off';
 handles.button_undo.Enable = 'off';
 
-%Enable histogram buttons
-handles.btn_histogram.Enable = 'on';
-handles.btn_gof.Enable = 'on';
+% disable histogram buttons
+handles.btn_histogram.Enable = 'off';
+handles.btn_gof.Enable = 'off';
 
 % Enable Youngs Modulus image
 handles.channel_names = {'height', 'slope', 'Youngs Modulus', 'Contactpoint'}';
@@ -1917,6 +1949,8 @@ handles.button_keep.Enable = 'on';
 handles.button_discard.Enable = 'on';
 handles.button_keep_all.Enable = 'on';
 handles.button_undo.Enable = 'on';
+handles.btn_histogram.Enable = 'on';
+handles.btn_gof.Enable = 'on';
 
 if ~getappdata(wb,'canceling')
     
@@ -2690,36 +2724,41 @@ function btn_histogram_Callback(hObject, ~, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 try
-    close(handles.fig3)
-    handles = rmfield(handles, 'fig3');
+    close(handles.EModulFig)
+    handles = rmfield(handles, 'EModulFig');
 catch
 end
 if isempty(findobj('Name', 'Histogram: Goodness of Fit'))
     try
-        handles = rmfield(handles, 'fig4');
+        handles = rmfield(handles, 'GoFFig');
     catch
     end
 end
-handles.fig3 = figure('Name','Histogram: Youngs Modulus','Units', 'normalized', 'NumberTitle','off', 'Color', 'white');
 EModul = handles.T_result.EModul;
-EModul(EModul == 0)=[];
-EModul = EModul/1000;
-[h,~] = histogram_fits(EModul, 'gauss', floor(max(EModul)/25));
-h.Histogram_handle.FaceColor = [1 0.72 0.73];
-h.Histogram_handle.EdgeColor = [0.77 0.32 0.34];
-title('Youngs Modulus');
-xlabel('Youngs Modulus [kPa]');
-ylabel('Frequency');
+if any(EModul)
+    handles.EModulFig = figure('Name','Histogram: Youngs Modulus','Units', 'normalized', 'NumberTitle','off', 'Color', 'white');
+    EModul(EModul == 0)=[];
+    EModul(isnan(EModul)) = [];
+    EModul = EModul/1000;
+    [h,~] = histogram_fits(EModul, 'gauss', floor(max(EModul)/25));
+    h.Histogram_handle.FaceColor = [1 0.72 0.73];
+    h.Histogram_handle.EdgeColor = [0.77 0.32 0.34];
+    title('Youngs Modulus');
+    xlabel('Youngs Modulus [kPa]');
+    ylabel('Frequency');
 
-%Present both histograms in a good way if both are opened
-if isfield(handles, 'fig4') == 1
-    handles.fig3.Position = [0.1 0.3 0.4 0.5];
-    handles.fig4.Position = [0.5 0.3 0.4 0.5];
-    figure(handles.fig3);
-    figure(handles.fig4);
+    %Present both histograms in a good way if both are opened
+    if isfield(handles, 'GoFFig') == 1
+        handles.EModulFig.Position = [0.1 0.3 0.4 0.5];
+        handles.GoFFig.Position = [0.5 0.3 0.4 0.5];
+        figure(handles.EModulFig);
+        figure(handles.GoFFig);
+    else
+        handles.EModulFig.Position = [0.1 0.3 0.4 0.5];
+        figure(handles.EModulFig);
+    end
 else
-    handles.fig3.Position = [0.1 0.3 0.4 0.5];
-    figure(handles.fig3);
+    warning('No results are available at the moment!')
 end
 
 guidata(hObject,handles);
@@ -2731,40 +2770,44 @@ function btn_gof_Callback(hObject, ~, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 try
-    close(handles.fig4)
-    handles = rmfield(handles, 'fig4');
+    close(handles.GoFFig)
+    handles = rmfield(handles, 'GoFFig');
 catch
 end
 if isempty(findobj('Name', 'Histogram: Youngs Modulus'))
     try
-        handles = rmfield(handles, 'fig3');
+        handles = rmfield(handles, 'EModulFig');
     catch
     end
 end
-handles.fig4 = figure('Name','Histogram: Goodness of Fit','Units', 'normalized', 'NumberTitle','off', 'Color', 'white');
 rsquare = handles.T_result.rsquare_fit;
-rsquare(rsquare <= 0)=[];
-[h] = histogram_fits(rsquare, 'none', 100);
-h.Histogram_handle.FaceColor = [1 0.72 0.73];
-h.Histogram_handle.EdgeColor = [0.77 0.32 0.34];
-xlim([0 1])
-xticks([0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1])
-xticklabels({0, [], 0.1, [], 0.2, [], 0.3, [], 0.4, [], 0.5, [], 0.6, [], 0.7, [], 0.8, [], 0.9, [], 1})
-title('Goodness of Fit')
-xlabel('Goodness of Fit[rsquare]')
-ylabel('Frequency')
+if any(rsquare)
+    handles.GoFFig = figure('Name','Histogram: Goodness of Fit','Units', 'normalized', 'NumberTitle','off', 'Color', 'white');
+    rsquare(rsquare <= 0)=[];
+    rsquare(isnan(rsquare)) = [];
+    [h] = histogram_fits(rsquare, 'none', 100);
+    h.Histogram_handle.FaceColor = [1 0.72 0.73];
+    h.Histogram_handle.EdgeColor = [0.77 0.32 0.34];
+    xlim([0 1])
+    xticks([0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1])
+    xticklabels({0, [], 0.1, [], 0.2, [], 0.3, [], 0.4, [], 0.5, [], 0.6, [], 0.7, [], 0.8, [], 0.9, [], 1})
+    title('Goodness of Fit')
+    xlabel('Goodness of Fit[rsquare]')
+    ylabel('Frequency')
 
-%Present both histograms in a good way if both are opened
-if isfield(handles, 'fig3') == 1
-    handles.fig3.Position = [0.1 0.3 0.4 0.5];
-    handles.fig4.Position = [0.5 0.3 0.4 0.5];
-    figure(handles.fig3);
-    figure(handles.fig4);
+    %Present both histograms in a good way if both are opened
+    if isfield(handles, 'EModulFig') == 1
+        handles.EModulFig.Position = [0.1 0.3 0.4 0.5];
+        handles.GoFFig.Position = [0.5 0.3 0.4 0.5];
+        figure(handles.EModulFig);
+        figure(handles.GoFFig);
+    else
+        handles.GoFFig.Position = [0.1 0.3 0.4 0.5];
+        figure(handles.GoFFig);
+    end
 else
-    handles.fig4.Position = [0.1 0.3 0.4 0.5];
-    figure(handles.fig4);
+    warning('No results are available at the moment!')
 end
-
 guidata(hObject,handles);
 
 
