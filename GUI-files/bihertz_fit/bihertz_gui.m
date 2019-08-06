@@ -2500,18 +2500,20 @@ else
     if strcmp(channel_string,'height')
         channel_image = handles.map_images.height.(sprintf('absolute_%s_data%s',...
         channel_string,interpolation_string));
-    else
+    elseif isfield(handles.map_images,channel_string)  
         channel_image = handles.map_images.(channel_string).(sprintf('%s_data%s',...
-            channel_string,interpolation_string));
+        channel_string,interpolation_string));
     end
-    axes(handles.map_axes);
-    imshow(flip(channel_image,1),[],'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel]);
-    handles.map_axes.YDir = 'normal';
-    handles = update_curve_marker(handles);
-    hline = findall(gca,'Type','image');
-    set(hline(1),'uicontextmenu',handles.map_axes_context);
-    set_afm_gold;
-    handles = colorbar_helpf(handles.map_axes,handles);
+    if isfield(handles.map_images,channel_string)
+        axes(handles.map_axes);
+        imshow(flip(channel_image,1),[],'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel]);
+        handles.map_axes.YDir = 'normal';
+        handles = update_curve_marker(handles);
+        hline = findall(gca,'Type','image');
+        set(hline(1),'uicontextmenu',handles.map_axes_context);
+        set_afm_gold;
+        handles = colorbar_helpf(handles.map_axes,handles);
+    end
 end
 guidata(hObject,handles);
 
