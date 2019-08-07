@@ -425,7 +425,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                            handles.map_info.processing_grid(grid_index,2) = i;
                        end
                    end                           
-                       
+                   
                    % write image channels in popup
                    handles.image_channels_popup.Enable = 'on';
                    for i=1:length(handles.channel_names)
@@ -589,11 +589,11 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                     %still a good image
                     mslope_matrix = handles.MFP_mslope_matrix;
                     mslope_matrix(mslope_matrix==0) = [];
-                    handles.MFP_mslope_matrix(handles.MFP_mslope_matrix==0) = (min(min(mslope_matrix))); %Calling min twice is a trick to get the minimum value of an array
+                    handles.MFP_mslope_matrix(handles.MFP_mslope_matrix==0) = (min(min(mslope_matrix))); %Calling min twice is a trick to get the minimum value of a whole matrix
                  
                     height_matrix = handles.MFP_height_matrix;
                     height_matrix(height_matrix==0) = [];
-                    handles.MFP_height_matrix(handles.MFP_height_matrix ==0) = (max(max(height_matrix))); %Calling max twice is a trick to get the maximum value of an array
+                    handles.MFP_height_matrix(handles.MFP_height_matrix ==0) = (min(min(height_matrix))); %Calling min twice is a trick to get the minimum value of a whole matrix                
                     
                     % Get the color gradient for each matrix
                     handles.colorgrad_height = flipud(linspace(min(min(handles.MFP_height_matrix)), max(max(handles.MFP_height_matrix)), 100))';
@@ -611,6 +611,29 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                     imshow(handles.MFP_height_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
                     set_afm_gold();
                     handles = colorbar_helpf(handles.map_axes,handles);
+                    
+                    % create processing grid for visual curve feedback
+                    handles.map_info = struct('x_pixel',0,'y_pixel',0,'processing_grid',[0,0]);
+                    handles.map_info.x_pixel = map_parameters.FMapScanPoints;
+                    handles.map_info.y_pixel = map_parameters.FMapScanLines;
+                    handles.map_info.processing_grid = zeros(handles.map_info.x_pixel*handles.map_info.y_pixel,2);
+                    grid_index = 0;
+                    for i=1:(handles.map_info.y_pixel)
+                        for j = 1:(handles.map_info.x_pixel)
+                            grid_index = grid_index + 1;
+                            handles.map_info.processing_grid(grid_index,1) = j;
+                            handles.map_info.processing_grid(grid_index,2) = i;
+                        end
+                    end
+                    handles.map_info.processing_grid(:,2) = flip(handles.map_info.processing_grid(:,2));
+ 
+                    % display first processing grid point and text
+                    axes(handles.map_axes);
+                    hold(handles.map_axes,'on');
+                    handles.figures.proc_point = plot(1,map_parameters.FMapScanLines,'.w','MarkerSize',15);
+                    handles.figures.proc_text = text(1.5,map_parameters.FMapScanLines-0.5,'1','Color','w','FontWeight','bold');
+                    hold(handles.map_axes,'off');
+                    guidata(hObject,handles);
 
                 else
                     handles.loaded_file_type = 'txt';
@@ -684,11 +707,11 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
         handles.save_status = 0;            % set save status tag to 0
         handles.save_status_led.BackgroundColor = [1 0 0];
         delete(wb)                          % delete loading waitbar
-        if i == num_files
+        if length(fieldnames(curves)) == num_files
             handles.num_files = num_files;  % provide max curve number in handles
         else
-            num_files = i-1;                % number of fully loaded curves
-            handles.num_files = i-1;        % provide max curve number in handles                    
+            num_files = length(fieldnames(curves))-1;                % number of fully loaded curves
+            handles.num_files = length(fieldnames(curves))-1;        % provide max curve number in handles                    
         end
         
         % provide file information in the info panel
@@ -1120,6 +1143,8 @@ for i=1:selection_diff
 end
 
 if handles.ibw == true
+    % update current curve marker on map axes
+    handles = update_curve_marker(handles);
 elseif strcmp(handles.loadtype,'file') && handles.ibw == false
     % update current curve marker on map axes
     handles = update_curve_marker(handles);
@@ -1196,6 +1221,8 @@ for i=1:selection_diff
     handles.listbox1.String = it;
 
     if handles.ibw == true
+        % update current curve marker on map axes
+        handles = update_curve_marker(handles);
     elseif strcmp(handles.loadtype,'file') && handles.ibw == false
         % update current curve marker on map axes
         handles = update_curve_marker(handles);
@@ -1378,7 +1405,8 @@ new_curve_index = curve_index + 1;
 guidata(hObject,handles);
 
 if handles.ibw == true
-    
+    % update current curve marker on map axes
+    handles = update_curve_marker(handles);
 elseif strcmp(handles.loadtype,'file') && handles.ibw == false
     % update current curve marker on map axes
     handles = update_curve_marker(handles);
@@ -1740,6 +1768,8 @@ new_curve_index = curve_index;
 guidata(hObject,handles);
 
 if handles.ibw == true
+    % update current curve marker on map axes
+    handles = update_curve_marker(handles);
 elseif strcmp(handles.loadtype,'file') && handles.ibw == false
     % update current curve marker on map axes
     handles = update_curve_marker(handles);
@@ -2520,6 +2550,10 @@ else
         handles = colorbar_helpf(handles.map_axes,handles);
     end
 end
+
+% update current curve marker on map axes
+handles = update_curve_marker(handles);
+
 guidata(hObject,handles);
 
 % --- Executes during object creation, after setting all properties.
