@@ -373,6 +373,9 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
         handles.poisson = handles.options.poisson;
         handles.tip_shape = handles.options.tip_shape;
         
+        % reset invalid_data_type controle parameter
+        handles.invalid_data_type = false;
+        
 
 
         % provide processing infos
@@ -635,15 +638,15 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                     hold(handles.map_axes,'off');
                     guidata(hObject,handles);
 
-                else
+               elseif strcmp(filetype, '.txt')
+			
                     handles.loaded_file_type = 'txt';
                     T_files_in_folder = struct2table(listing);
-                    files_in_folder = table2array(T_files_in_folder(:,1));
-                    files_in_folder(1:2) = [];                              % cell array with all file names
+                    files_in_folder = table2array(T_files_in_folder(:,1));  % cell array with all file names
                     handles.file_names = files_in_folder;                   % save the filenames
                     num_files = length(files_in_folder);                    % number of files in folder
 
-                    % preinitialise curve struct
+                    % preallocate curve struct
                     for i=1:num_files
                         c_string = sprintf('curve%u',i);
                         curves.(c_string) = struct('x_values',[],'y_values',[]);                    
@@ -670,6 +673,12 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                         % get first line with number
                         testid = fopen(filepath);
                         line = fgetl(testid);
+                        
+                        if i == 1
+                            % preallocate info_cell_array
+                            info_cell_array = {};
+                        end
+                        
                         count = 1;
                         while ischar(line)
                             line = fgetl(testid);
@@ -677,10 +686,14 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                             if ~strcmp(line_sep{1},'#') && ~isempty(line_sep{1})
                                 break
                             end
+                            if i == 1
+                                info_cell_array(end+1,1) = {line};
+                            end
                             count = count + 1;
                         end       
                         count = count + 1;
-                        fclose(testid);         
+                        fclose(testid); 
+                        handles.text_file_info = read_JPK_text_header(info_cell_array);
                         coordinates = import_force_curve_txt_file_fast(filepath,count);
                         c_string = sprintf('curve%u',i);
                         curves.(c_string).x_values = coordinates.x_values;
@@ -697,114 +710,121 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                     % plot an channel image dummy
                     axes(handles.map_axes);
                     imshow('no_image_dummy.jpg');
-                end    
+                else
+                    warndlg('No readable datatype is contained in the choosen folder!');
+                    handles.invalid_data_type = true;
+                end  
         end
         
-        handles.listbox1.Value = 1;         % highlight listbox item number one
-        handles.curves = curves;            % write curves struct to handles
-        handles.current_curve = 1;          % set the current curve to first
-        handles.load_status = 1;            % set load status tag to 1
-        handles.save_status = 0;            % set save status tag to 0
-        handles.save_status_led.BackgroundColor = [1 0 0];
-        delete(wb)                          % delete loading waitbar
+        if ~handles.invalid_data_type
+        
+            handles.listbox1.Value = 1;         % highlight listbox item number one
+            handles.curves = curves;            % write curves struct to handles
+            handles.current_curve = 1;          % set the current curve to first
+            handles.load_status = 1;            % set load status tag to 1
+            handles.save_status = 0;            % set save status tag to 0
+            handles.save_status_led.BackgroundColor = [1 0 0];
+            delete(wb)                          % delete loading waitbar
         if length(fieldnames(curves)) == num_files
-            handles.num_files = num_files;  % provide max curve number in handles
-        else
+                handles.num_files = num_files;  % provide max curve number in handles
+            else
             num_files = length(fieldnames(curves))-1;                % number of fully loaded curves
             handles.num_files = length(fieldnames(curves))-1;        % provide max curve number in handles                    
+            end
+
+            % provide file information in the info panel
+            handles = info_panel_helpf(handles);        
+
+            % write progress values
+            % needed variables
+            handles.progress = struct('num_unprocessed',num_files,...
+                                      'num_processed',0,...
+                                      'num_discarded',0);
+            % write process
+            [hObject,handles] = update_progress_info(hObject,handles);
+
+            % create struct for processed data
+            handles.proc_curves = curves;
+
+            %% Curve processing function V
+            % function for the processing of current curve depending on user
+            % options.
+            try
+            [hObject,handles] = process_options(hObject,handles);
+            catch % ME
+                % if you can
+            end
+            %%
+
+            % create main plot window for displaying processed curves
+            if ~isempty(handles.figures.main_fig)
+                delete(handles.figures.main_fig);
+                handles.figures.main_fig = [];
+            end
+
+            handles.figures.main_fig = figure('NumberTitle','off','Name','Main plot window');
+            figure(handles.figures.main_fig);
+            handles.figures.main_fig.CloseRequestFcn = {@main_plot_CloseRequest,handles};
+            handles.figures.main_ax = axes;
+            handles.figures.main_ax.FontSize = 16;
+            hold(handles.figures.main_ax,'on');
+            handles.figures.main_plot = plot(nan,nan);
+            handles.figures.patch_handle = patch(nan,nan,nan);
+            hold(handles.figures.main_ax,'off');
+            xlabel('Vertical tip position [µm]');
+            ylabel({'Force [nN]';''});
+            guidata(hObject,handles);
+            %Plot the data with chosen model
+            switch handles.options.model
+                case 'bihertz'
+                    [handles] = plot_bihertz(handles);
+                    guidata(hObject,handles);
+                case 'hertz'
+                    [hObject,handles] = plot_hertz(hObject,handles);
+                    guidata(hObject,handles);
+            end
+
+            % fit data to processed curve and display fitresult
+            [hObject,handles] = curve_fit_functions(hObject,handles);
+            guidata(hObject,handles);
+
+            % preallocate result table
+            switch handles.options.model
+                case 'bihertz'
+                    if handles.options.bihertz_variant == 1
+                        varTypes =  {'string','uint64','double','double','double',...
+                                     'double','double','double','double'};
+                        varNames = {'File_name','Index','initial_E_s_Pa','initial_E_h_Pa',...
+                                    'initial_d_h_m','fit_E_s_Pa','fit_E_h_Pa','fit_d_h_m','rsquare_fit'};
+                        handles.T_result = table('size',[handles.num_files 9],'VariableTypes',varTypes,'VariableNames',varNames);
+                    elseif handles.options.bihertz_variant == 2
+                        varTypes =  {'string','uint64','double','double','double','double',...
+                                     'double','double','double','double','double'};
+                        varNames = {'File_name','Index','initial_E_s_Pa','initial_E_h_Pa',...
+                                    'initial_d_h_m','initial_s_p_m','fit_E_s_Pa','fit_E_h_Pa','fit_d_h_m','fit_s_p_m','rsquare_fit'};
+                        handles.T_result = table('size',[handles.num_files 11],'VariableTypes',varTypes,'VariableNames',varNames);
+                    end
+
+                case 'hertz'
+                    varTypes =  {'string','uint64','double','double'};
+                    varNames = {'File_name','Index','EModul','rsquare_fit'};
+                    handles.T_result = table('size',[num_files 4],'VariableTypes',varTypes,'VariableNames',varNames);
+            end
+
+
+            % update gui fit results
+            [hObject,handles] = update_fit_results(hObject,handles);
+
+            % activate the gui buttons
+            handles.button_keep.Enable = 'on';
+            handles.button_discard.Enable = 'on';
+            handles.button_keep_all.Enable = 'on';
+            handles.fit_model_popup.Enable = 'on';
+
         end
-        
-        % provide file information in the info panel
-        handles = info_panel_helpf(handles);        
-        
-        % write progress values
-        % needed variables
-        handles.progress = struct('num_unprocessed',num_files,...
-                                  'num_processed',0,...
-                                  'num_discarded',0);
-        % write process
-        [hObject,handles] = update_progress_info(hObject,handles);
-        
-        % create struct for processed data
-        handles.proc_curves = curves;
-        
-        %% Curve processing function V
-        % function for the processing of current curve depending on user
-        % options.
-        try
-        [hObject,handles] = process_options(hObject,handles);
-        catch % ME
-            % if you can
-        end
-        %%
-        
-        % create main plot window for displaying processed curves
-        if ~isempty(handles.figures.main_fig)
-            delete(handles.figures.main_fig);
-            handles.figures.main_fig = [];
-        end
-
-        handles.figures.main_fig = figure('NumberTitle','off','Name','Main plot window');
-        figure(handles.figures.main_fig);
-        handles.figures.main_fig.CloseRequestFcn = {@main_plot_CloseRequest,handles};
-        handles.figures.main_ax = axes;
-        handles.figures.main_ax.FontSize = 16;
-        hold(handles.figures.main_ax,'on');
-        handles.figures.main_plot = plot(nan,nan);
-        handles.figures.patch_handle = patch(nan,nan,nan);
-        hold(handles.figures.main_ax,'off');
-        xlabel('Vertical tip position [µm]');
-        ylabel({'Force [nN]';''});
-        guidata(hObject,handles);
-        %Plot the data with chosen model
-        switch handles.options.model
-            case 'bihertz'
-                [handles] = plot_bihertz(handles);
-                guidata(hObject,handles);
-            case 'hertz'
-                [hObject,handles] = plot_hertz(hObject,handles);
-                guidata(hObject,handles);
-        end
-
-        % fit data to processed curve and display fitresult
-        [hObject,handles] = curve_fit_functions(hObject,handles);
-        guidata(hObject,handles);
-
-        % preallocate result table
-        switch handles.options.model
-            case 'bihertz'
-                if handles.options.bihertz_variant == 1
-                    varTypes =  {'string','uint64','double','double','double',...
-                                 'double','double','double','double'};
-                    varNames = {'File_name','Index','initial_E_s_Pa','initial_E_h_Pa',...
-                                'initial_d_h_m','fit_E_s_Pa','fit_E_h_Pa','fit_d_h_m','rsquare_fit'};
-                    handles.T_result = table('size',[handles.num_files 9],'VariableTypes',varTypes,'VariableNames',varNames);
-                elseif handles.options.bihertz_variant == 2
-                    varTypes =  {'string','uint64','double','double','double','double',...
-                                 'double','double','double','double','double'};
-                    varNames = {'File_name','Index','initial_E_s_Pa','initial_E_h_Pa',...
-                                'initial_d_h_m','initial_s_p_m','fit_E_s_Pa','fit_E_h_Pa','fit_d_h_m','fit_s_p_m','rsquare_fit'};
-                    handles.T_result = table('size',[handles.num_files 11],'VariableTypes',varTypes,'VariableNames',varNames);
-                end
-                    
-            case 'hertz'
-                varTypes =  {'string','uint64','double','double'};
-                varNames = {'File_name','Index','EModul','rsquare_fit'};
-                handles.T_result = table('size',[num_files 4],'VariableTypes',varTypes,'VariableNames',varNames);
-        end
-
-
-        % update gui fit results
-        [hObject,handles] = update_fit_results(hObject,handles);
-
-        % activate the gui buttons
-        handles.button_keep.Enable = 'on';
-        handles.button_discard.Enable = 'on';
-        handles.button_keep_all.Enable = 'on';
-        handles.fit_model_popup.Enable = 'on';
-        
     end
 end
+
 guidata(hObject,handles);
 
 
@@ -3087,11 +3107,11 @@ function handles = info_panel_helpf(handles)
     if strcmp(handles.loaded_file_type,'jpk-force-map')         
         handles.info_table.Data = handles.map_info_array;                
     % Check if ibw files were loaded
-    elseif handles.ibw        
+    elseif strcmp(handles.loaded_file_type,'ibw') 
         handles.info_table.Data = handles.mfpmapdata{1};        
     % Check if txt files were loaded
-%     elseif 
-            
+    elseif strcmp(handles.loaded_file_type,'txt')
+        handles.info_table.Data = handles.text_file_info;
     end
     
     
