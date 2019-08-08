@@ -2,8 +2,8 @@ function varargout = bihertz_gui(varargin)
 %% LICENSE
 % 
 % 
-% CANTER_Auswertetool: A tool for the data processing of force-indentation curves and more ...
-%     Copyright (C) 2018-2019  Bastian Hartmann and Lutz Fleischhauer
+% CANTER Processing Tool: A tool for the data processing of force-indentation curves and more ...
+%     Copyright (C) 2018-present  Bastian Hartmann and Lutz Fleischhauer
 % 
 %     This program is free software: you can redistribute it and/or modify
 %     it under the terms of the GNU General Public License as published by
@@ -19,8 +19,8 @@ function varargout = bihertz_gui(varargin)
 %     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 %     
 %   
-    
-    
+% 
+%    
 %%    
 % BIHERTZ_GUI MATLAB code for bihertz_gui.fig
 %      BIHERTZ_GUI, by itself, creates a new BIHERTZ_GUI or raises the existing
@@ -45,7 +45,7 @@ function varargout = bihertz_gui(varargin)
 
 % Edit the above text to modify the response to help bihertz_gui
 
-% Last Modified by GUIDE v2.5 29-Apr-2019 14:46:51
+% Last Modified by GUIDE v2.5 25-Jun-2019 17:33:42
     warning off
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -65,6 +65,8 @@ else
     gui_mainfcn(gui_State, varargin{:});
 
 end
+
+    warning on
 % End initialization code - DO NOT EDIT
 
 
@@ -93,6 +95,7 @@ handles.options = varargin{1};
 handles.curves = struct();
 handles.figures = struct('main_fig',[]);
 handles.load_status = 0;
+handles.loaded_file_type = 'none';
 handles.save_status = [];
 handles.interpolation_type = 'bicubic';
 handles.ibw = false;
@@ -121,6 +124,7 @@ end
 
 handles = grid_creation_function(handles);
 
+warning on
 guidata(hObject,handles);
 
 
@@ -247,7 +251,7 @@ if strcmp(figure_hand.SelectionType,'open')
     
     
 else
-    % the following code weill be executed after single-click
+    % the following code will be executed after single-click
     selection_num = hObject.Value;
 
     if selection_num == handles.current_curve
@@ -369,6 +373,9 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
         handles.poisson = handles.options.poisson;
         handles.tip_shape = handles.options.tip_shape;
         
+        % reset invalid_data_type controle parameter
+        handles.invalid_data_type = false;
+        
 
 
         % provide processing infos
@@ -386,7 +393,8 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
         switch handles.loadtype
             case 'file'
                 if handles.filefilter == 1
-                   [x_data,y_data, ~, ~, Forcecurve_label,~,~,name_of_file,map_images] = ReadJPKMaps(handles.edit_filepath.String);
+                   handles.loaded_file_type = 'jpk-force-map';
+                   [x_data,y_data, ~, ~, Forcecurve_label,~,~,name_of_file,map_images,~,handles.map_info_array] = ReadJPKMaps(handles.edit_filepath.String);
                    % create filename array
                    Forcecurve_label = Forcecurve_label';
                    curves_in_map = strcat(name_of_file,'.',Forcecurve_label);
@@ -420,7 +428,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                            handles.map_info.processing_grid(grid_index,2) = i;
                        end
                    end                           
-                       
+                   
                    % write image channels in popup
                    handles.image_channels_popup.Enable = 'on';
                    for i=1:length(handles.channel_names)
@@ -432,6 +440,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                            hline = findall(gca,'Type','image');
                            set(hline(1),'uicontextmenu',handles.map_axes_context);
                            set_afm_gold;
+                           handles = colorbar_helpf(handles.map_axes,handles);
                            break
                        elseif i==length(handles.channel_names) && ~strcmp(handles.channel_names{i},'height')
                            handles.image_channels_popup.Value = 1;
@@ -442,6 +451,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                            hline = findall(gca,'Type','image');
                            set(hline(1),'uicontextmenu',handles.map_axes_context);
                            set_afm_gold;
+                           handles = colorbar_helpf(handles.map_axes,handles);
                        end
                    end
                    
@@ -460,7 +470,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                         'UNDER CONSTRUCTION!');
                 end
                 num_files = length(Forcecurve_label);
-                % preinitialise curve struct
+                % preallocate curve struct
                 for i=1:num_files
                     c_string = sprintf('curve%u',i);
                     curves.(c_string) = struct('x_values',[],'y_values',[]);                    
@@ -471,7 +481,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                 wb = waitbar(0,sprintf('Loading progress: %.g%%',wb_num*100),'Name',...
                     'Loading ...','CreateCancelBtn','setappdata(gcbf,''canceling'',1)');
                 setappdata(wb,'canceling',0);
-                % prelocate listbox cell
+                % preallocate listbox cell
                 it(1:num_files,1) = {''};
                 handles.listbox1.String = it;
                 guidata(hObject,handles);
@@ -497,17 +507,19 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                 
             case 'folder'
                 folderpath = get(handles.edit_filepath,'String');       % get folder location
-                listing = dir(folderpath);                              % information of files in folder
-                filetype = strsplit(listing(3).name, '.');
+                listing = [dir(fullfile(folderpath,'*.ibw'));dir(fullfile(folderpath,'*.txt'))];    % information of files in folder
+                [~,~,filetype] = fileparts(listing(1).name);
                 
                 % Check if the folder contains .ibw files from the MFP-3D
-                if strcmp(filetype(1,2), 'ibw') == 1
+                if strcmp(filetype, '.ibw')
+                    handles.loaded_file_type = 'ibw';
                     handles.ibw = true;
                     [x_data,y_data,~,~, Forcecurve_label, name_of_file, mfpmapdata] = ReadMFPMaps(folderpath);
                     Forcecurve_label = Forcecurve_label';
                     curves_in_map = strcat(name_of_file,'.',Forcecurve_label);
                     handles.file_names = curves_in_map;
                     num_files = length(Forcecurve_label);
+                    handles.mfpmapdata = mfpmapdata;
                     % preinitialise curve struct
                     for i=1:num_files
                         c_string = sprintf('curve%u',i);
@@ -519,16 +531,15 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                     wb = waitbar(0,sprintf('Loading progress: %.g%%',wb_num*100),'Name',...
                         'Loading ...','CreateCancelBtn','setappdata(gcbf,''canceling'',1)');
                     setappdata(wb,'canceling',0);
-                    % prelocate listbox cell
+                    % preallocate listbox cell
                     it(1:num_files,1) = {''};
                     handles.listbox1.String = it;
                     guidata(hObject,handles);
                     
                     % Get the size of the forcemap
-                    scanpt_loc = strfind(mfpmapdata, 'FMapScanPoints');
-                    scanpt = str2double(mfpmapdata((scanpt_loc)+16:(scanpt_loc)+17));
-                    scanl_loc = strfind(mfpmapdata, 'FMapScanLines');
-                    scanl = str2double(mfpmapdata((scanl_loc)+15:(scanl_loc)+17));
+                    map_parameters = mfpmapdata{2};
+                    scanpt = map_parameters.FMapScanPoints;
+                    scanl = map_parameters.FMapScanLines;
                     handles.MFP_height_matrix = zeros(scanl,scanpt);
                     handles.MFP_mslope_matrix = zeros(scanl,scanpt);
                     handles.MFP_fmap_num_line = scanl;    %Number of lines in the forcemap
@@ -549,7 +560,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                             line_count = scanl;
                         end
                         %Get the height value of each curve
-                        handles.MFP_height_matrix(line_count,pt_count) = max(y_data.(Forcecurve_label{i})*-1); %The MFP-3D Software uses the negative max value
+                        handles.MFP_height_matrix(line_count,pt_count) = min(x_data.(Forcecurve_label{i}));
                         
                         %Get the measured slope value of each curve
                         y_data_singlecurve = y_data.(Forcecurve_label{i});
@@ -557,7 +568,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                         y_data_fit = y_data_singlecurve((length(y_data_singlecurve)-round(0.02*length(y_data_singlecurve))):end);
                         x_data_fit = x_data_singlecurve((length(x_data_singlecurve)-round(0.02*length(x_data_singlecurve))):end);
                         [p] = polyfit(x_data_fit, y_data_fit, 1);
-                        handles.MFP_mslope_matrix(line_count,pt_count) = p(1)*-1e-6;
+                        handles.MFP_mslope_matrix(line_count,pt_count) = p(1);
                         
                         if pt_count == scanpt
                             pt_count = 0;
@@ -572,15 +583,20 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                         wb_num = i/num_files;
                         waitbar(wb_num,wb,sprintf('Loading progress: %.f%%',wb_num*100))
                     end
+                    %Subtract the minimum value of the height matrix to get
+                    %the real height
+                    lowest_point = min(min(handles.MFP_height_matrix));
+                    handles.MFP_height_matrix = handles.MFP_height_matrix-lowest_point;
+                    
                     %Replace all the left zeros by the minimal/maximal value to get
                     %still a good image
                     mslope_matrix = handles.MFP_mslope_matrix;
                     mslope_matrix(mslope_matrix==0) = [];
-                    handles.MFP_mslope_matrix(handles.MFP_mslope_matrix==0) = (min(min(mslope_matrix))); %Calling min twice is a trick to get the minimum value of an array
+                    handles.MFP_mslope_matrix(handles.MFP_mslope_matrix==0) = (min(min(mslope_matrix))); %Calling min twice is a trick to get the minimum value of a whole matrix
                  
                     height_matrix = handles.MFP_height_matrix;
                     height_matrix(height_matrix==0) = [];
-                    handles.MFP_height_matrix(handles.MFP_height_matrix ==0) = (max(max(height_matrix))); %Calling max twice is a trick to get the maximum value of an array
+                    handles.MFP_height_matrix(handles.MFP_height_matrix ==0) = (min(min(height_matrix))); %Calling min twice is a trick to get the minimum value of a whole matrix                
                     
                     % Get the color gradient for each matrix
                     handles.colorgrad_height = flipud(linspace(min(min(handles.MFP_height_matrix)), max(max(handles.MFP_height_matrix)), 100))';
@@ -596,22 +612,41 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                     handles.image_channels_popup.Value = 1;
                     axes(handles.map_axes);
                     imshow(handles.MFP_height_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
-                    axes(handles.colorgradient);
-                    imshow(handles.colorgrad_height, 'InitialMagnification', 'fit', 'XData', [1 3], 'YData', [1 100], 'DisplayRange', []);
-                    set(handles.colorgradient_max, 'String', sprintf('%.2f',max(max(handles.MFP_height_matrix))));
-                    set(handles.colorgradient_min, 'String', sprintf('%.2f',min(min(handles.MFP_height_matrix))));
-                    set(handles.colorgradient,'Ydir','normal'); %Set the maximum value as top
-                    set(handles.colorgradient_unit, 'String', '[µm]');
                     set_afm_gold();
+                    handles = colorbar_helpf(handles.map_axes,handles);
+                    
+                    % create processing grid for visual curve feedback
+                    handles.map_info = struct('x_pixel',0,'y_pixel',0,'processing_grid',[0,0]);
+                    handles.map_info.x_pixel = map_parameters.FMapScanPoints;
+                    handles.map_info.y_pixel = map_parameters.FMapScanLines;
+                    handles.map_info.processing_grid = zeros(handles.map_info.x_pixel*handles.map_info.y_pixel,2);
+                    grid_index = 0;
+                    for i=1:(handles.map_info.y_pixel)
+                        for j = 1:(handles.map_info.x_pixel)
+                            grid_index = grid_index + 1;
+                            handles.map_info.processing_grid(grid_index,1) = j;
+                            handles.map_info.processing_grid(grid_index,2) = i;
+                        end
+                    end
+                    handles.map_info.processing_grid(:,2) = flip(handles.map_info.processing_grid(:,2));
+ 
+                    % display first processing grid point and text
+                    axes(handles.map_axes);
+                    hold(handles.map_axes,'on');
+                    handles.figures.proc_point = plot(1,map_parameters.FMapScanLines,'.w','MarkerSize',15);
+                    handles.figures.proc_text = text(1.5,map_parameters.FMapScanLines-0.5,'1','Color','w','FontWeight','bold');
+                    hold(handles.map_axes,'off');
+                    guidata(hObject,handles);
 
-                else
+               elseif strcmp(filetype, '.txt')
+			
+                    handles.loaded_file_type = 'txt';
                     T_files_in_folder = struct2table(listing);
-                    files_in_folder = table2array(T_files_in_folder(:,1));
-                    files_in_folder(1:2) = [];                              % cell array with all file names
+                    files_in_folder = table2array(T_files_in_folder(:,1));  % cell array with all file names
                     handles.file_names = files_in_folder;                   % save the filenames
                     num_files = length(files_in_folder);                    % number of files in folder
 
-                    % preinitialise curve struct
+                    % preallocate curve struct
                     for i=1:num_files
                         c_string = sprintf('curve%u',i);
                         curves.(c_string) = struct('x_values',[],'y_values',[]);                    
@@ -622,7 +657,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                     wb = waitbar(0,sprintf('Loading progress: %.g%%',wb_num*100),'Name',...
                         'Loading ...','CreateCancelBtn','setappdata(gcbf,''canceling'',1)');
                     setappdata(wb,'canceling',0);
-                    % prelocate listbox cell
+                    % preallocate listbox cell
                     it(1:num_files,1) = {''};
                     handles.listbox1.String = it;
                     guidata(hObject,handles);
@@ -638,6 +673,12 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                         % get first line with number
                         testid = fopen(filepath);
                         line = fgetl(testid);
+                        
+                        if i == 1
+                            % preallocate info_cell_array
+                            info_cell_array = {};
+                        end
+                        
                         count = 1;
                         while ischar(line)
                             line = fgetl(testid);
@@ -645,10 +686,14 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                             if ~strcmp(line_sep{1},'#') && ~isempty(line_sep{1})
                                 break
                             end
+                            if i == 1
+                                info_cell_array(end+1,1) = {line};
+                            end
                             count = count + 1;
                         end       
                         count = count + 1;
-                        fclose(testid);         
+                        fclose(testid); 
+                        handles.text_file_info = read_JPK_text_header(info_cell_array);
                         coordinates = import_force_curve_txt_file_fast(filepath,count);
                         c_string = sprintf('curve%u',i);
                         curves.(c_string).x_values = coordinates.x_values;
@@ -665,110 +710,121 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                     % plot an channel image dummy
                     axes(handles.map_axes);
                     imshow('no_image_dummy.jpg');
-                end    
+                else
+                    warndlg('No readable datatype is contained in the choosen folder!');
+                    handles.invalid_data_type = true;
+                end  
         end
         
-        handles.listbox1.Value = 1;         % highlight listbox item number one
-        handles.curves = curves;            % write curves struct to handles
-        handles.current_curve = 1;          % set the current curve to first
-        handles.load_status = 1;            % set load status tag to 1
-        handles.save_status = 0;            % set save status tag to 0
-        handles.save_status_led.BackgroundColor = [1 0 0];
-        delete(wb)                          % delete loading waitbar
-        if i == num_files
-            handles.num_files = num_files;  % provide max curve number in handles
-        else
-            num_files = i-1;                % number of fully loaded curves
-            handles.num_files = i-1;        % provide max curve number in handles                    
-        end
-                
-        % write progress values
-        % needed variables
-        handles.progress = struct('num_unprocessed',num_files,...
-                                  'num_processed',0,...
-                                  'num_discarded',0);
-        % write process
-        [hObject,handles] = update_progress_info(hObject,handles);
+        if ~handles.invalid_data_type
         
-        % create struct for processed data
-        handles.proc_curves = curves;
-        
-        %% Curve processing function V
-        % function for the processing of current curve depending on user
-        % options.
-        try
-        [hObject,handles] = process_options(hObject,handles);
-        catch
+            handles.listbox1.Value = 1;         % highlight listbox item number one
+            handles.curves = curves;            % write curves struct to handles
+            handles.current_curve = 1;          % set the current curve to first
+            handles.load_status = 1;            % set load status tag to 1
+            handles.save_status = 0;            % set save status tag to 0
+            handles.save_status_led.BackgroundColor = [1 0 0];
+            delete(wb)                          % delete loading waitbar
+        if length(fieldnames(curves)) == num_files
+                handles.num_files = num_files;  % provide max curve number in handles
+            else
+            num_files = length(fieldnames(curves))-1;                % number of fully loaded curves
+            handles.num_files = length(fieldnames(curves))-1;        % provide max curve number in handles                    
+            end
+
+            % provide file information in the info panel
+            handles = info_panel_helpf(handles);        
+
+            % write progress values
+            % needed variables
+            handles.progress = struct('num_unprocessed',num_files,...
+                                      'num_processed',0,...
+                                      'num_discarded',0);
+            % write process
+            [hObject,handles] = update_progress_info(hObject,handles);
+
+            % create struct for processed data
+            handles.proc_curves = curves;
+
+            %% Curve processing function V
+            % function for the processing of current curve depending on user
+            % options.
+            try
+            [hObject,handles] = process_options(hObject,handles);
+            catch % ME
+                % if you can
+            end
+            %%
+
+            % create main plot window for displaying processed curves
+            if ~isempty(handles.figures.main_fig)
+                delete(handles.figures.main_fig);
+                handles.figures.main_fig = [];
+            end
+
+            handles.figures.main_fig = figure('NumberTitle','off','Name','Main plot window');
+            figure(handles.figures.main_fig);
+            handles.figures.main_fig.CloseRequestFcn = {@main_plot_CloseRequest,handles};
+            handles.figures.main_ax = axes;
+            handles.figures.main_ax.FontSize = 16;
+            hold(handles.figures.main_ax,'on');
+            handles.figures.main_plot = plot(nan,nan);
+            handles.figures.patch_handle = patch(nan,nan,nan);
+            hold(handles.figures.main_ax,'off');
+            xlabel('Vertical tip position [µm]');
+            ylabel({'Force [nN]';''});
+            guidata(hObject,handles);
+            %Plot the data with chosen model
+            switch handles.options.model
+                case 'bihertz'
+                    [handles] = plot_bihertz(handles);
+                    guidata(hObject,handles);
+                case 'hertz'
+                    [hObject,handles] = plot_hertz(hObject,handles);
+                    guidata(hObject,handles);
+            end
+
+            % fit data to processed curve and display fitresult
+            [hObject,handles] = curve_fit_functions(hObject,handles);
+            guidata(hObject,handles);
+
+            % preallocate result table
+            switch handles.options.model
+                case 'bihertz'
+                    if handles.options.bihertz_variant == 1
+                        varTypes =  {'string','uint64','double','double','double',...
+                                     'double','double','double','double'};
+                        varNames = {'File_name','Index','initial_E_s_Pa','initial_E_h_Pa',...
+                                    'initial_d_h_m','fit_E_s_Pa','fit_E_h_Pa','fit_d_h_m','rsquare_fit'};
+                        handles.T_result = table('size',[handles.num_files 9],'VariableTypes',varTypes,'VariableNames',varNames);
+                    elseif handles.options.bihertz_variant == 2
+                        varTypes =  {'string','uint64','double','double','double','double',...
+                                     'double','double','double','double','double'};
+                        varNames = {'File_name','Index','initial_E_s_Pa','initial_E_h_Pa',...
+                                    'initial_d_h_m','initial_s_p_m','fit_E_s_Pa','fit_E_h_Pa','fit_d_h_m','fit_s_p_m','rsquare_fit'};
+                        handles.T_result = table('size',[handles.num_files 11],'VariableTypes',varTypes,'VariableNames',varNames);
+                    end
+
+                case 'hertz'
+                    varTypes =  {'string','uint64','double','double'};
+                    varNames = {'File_name','Index','EModul','rsquare_fit'};
+                    handles.T_result = table('size',[num_files 4],'VariableTypes',varTypes,'VariableNames',varNames);
+            end
+
+
+            % update gui fit results
+            [hObject,handles] = update_fit_results(hObject,handles);
+
+            % activate the gui buttons
+            handles.button_keep.Enable = 'on';
+            handles.button_discard.Enable = 'on';
+            handles.button_keep_all.Enable = 'on';
+            handles.fit_model_popup.Enable = 'on';
+
         end
-        %%
-        
-        % create main plot window for displaying processed curves
-        if ~isempty(handles.figures.main_fig)
-            delete(handles.figures.main_fig);
-            handles.figures.main_fig = [];
-        end
-
-        handles.figures.main_fig = figure('NumberTitle','off','Name','Main plot window');
-        figure(handles.figures.main_fig);
-        handles.figures.main_fig.CloseRequestFcn = {@main_plot_CloseRequest,handles};
-        handles.figures.main_ax = axes;
-        handles.figures.main_ax.FontSize = 16;
-        hold(handles.figures.main_ax,'on');
-        handles.figures.main_plot = plot(nan,nan);
-        handles.figures.patch_handle = patch(nan,nan,nan);
-        hold(handles.figures.main_ax,'off');
-        xlabel('Vertical tip position [µm]');
-        ylabel({'Force [nN]';''});
-        guidata(hObject,handles);
-        %Plot the data with chosen model
-        switch handles.options.model
-            case 'bihertz'
-                [handles] = plot_bihertz(handles);
-                guidata(hObject,handles);
-            case 'hertz'
-                [hObject,handles] = plot_hertz(hObject,handles);
-                guidata(hObject,handles);
-        end
-
-        % fit data to processed curve and display fitresult
-        [hObject,handles] = curve_fit_functions(hObject,handles);
-        guidata(hObject,handles);
-
-        % prelocate result table
-        switch handles.options.model
-            case 'bihertz'
-                if handles.options.bihertz_variant == 1
-                    varTypes =  {'string','uint64','double','double','double',...
-                                 'double','double','double','double'};
-                    varNames = {'File_name','Index','initial_E_s_Pa','initial_E_h_Pa',...
-                                'initial_d_h_m','fit_E_s_Pa','fit_E_h_Pa','fit_d_h_m','rsquare_fit'};
-                    handles.T_result = table('size',[handles.num_files 9],'VariableTypes',varTypes,'VariableNames',varNames);
-                elseif handles.options.bihertz_variant == 2
-                    varTypes =  {'string','uint64','double','double','double','double',...
-                                 'double','double','double','double','double'};
-                    varNames = {'File_name','Index','initial_E_s_Pa','initial_E_h_Pa',...
-                                'initial_d_h_m','initial_s_p_m','fit_E_s_Pa','fit_E_h_Pa','fit_d_h_m','fit_s_p_m','rsquare_fit'};
-                    handles.T_result = table('size',[handles.num_files 11],'VariableTypes',varTypes,'VariableNames',varNames);
-                end
-                    
-            case 'hertz'
-                varTypes =  {'string','uint64','double','double'};
-                varNames = {'File_name','Index','EModul','rsquare_fit'};
-                handles.T_result = table('size',[num_files 4],'VariableTypes',varTypes,'VariableNames',varNames);
-        end
-
-
-        % update gui fit results
-        [hObject,handles] = update_fit_results(hObject,handles);
-
-        % activate the gui buttons
-        handles.button_keep.Enable = 'on';
-        handles.button_discard.Enable = 'on';
-        handles.button_keep_all.Enable = 'on';
-        handles.fit_model_popup.Enable = 'on';
-        
     end
 end
+
 guidata(hObject,handles);
 
 
@@ -947,6 +1003,7 @@ function button_keep_highlighted_Callback(hObject, ~, handles)
 % hObject    handle to button_keep_highlighted (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+curve_index_old = handles.current_curve;
 selection_num = handles.listbox1.Value;
 selection_diff = selection_num - handles.current_curve;
 for i=1:selection_diff
@@ -957,6 +1014,24 @@ end
 handles.button_keep_highlighted.Enable = 'off';
 handles.button_undo_highlighted.Enable = 'off';
 handles.button_discard_highlighted.Enable = 'off';
+
+% activate buttons when called from first curve
+if curve_index_old == 1
+    handles.button_undo.Enable = 'on';
+    handles.btn_histogram.Enable = 'on';
+    handles.btn_gof.Enable = 'on';
+    handles.channel_names = [handles.channel_names(:,1);{'Youngs Modulus'}];
+    handles.image_channels_popup.String = handles.channel_names;
+end
+
+% when last curve is reached
+if selection_num == handles.num_files
+    handles.button_keep.Enable = 'off';
+    handles.button_discard.Enable = 'off';
+    handles.button_keep_all.Enable = 'off';
+    handles.button_undo.Enable = 'on';
+    handles.fit_model_popup.Enable = 'off';
+end
 guidata(hObject,handles)
 
 % --- Executes on button press in button_undo_highlighted.
@@ -1088,6 +1163,8 @@ for i=1:selection_diff
 end
 
 if handles.ibw == true
+    % update current curve marker on map axes
+    handles = update_curve_marker(handles);
 elseif strcmp(handles.loadtype,'file') && handles.ibw == false
     % update current curve marker on map axes
     handles = update_curve_marker(handles);
@@ -1122,8 +1199,13 @@ guidata(hObject,handles);
 if new_curve_index == 1
     handles.button_undo.Enable = 'off';
     handles.fit_model_popup.Enable = 'on';
-    handles.channel_names = {'height', 'slope'}';
-    handles.image_channels_popup.String = handles.channel_names;
+    handles.btn_histogram.Enable = 'off';
+    handles.btn_gof.Enable = 'off';
+    channel_find = cellfun(@(x)strcmp(x,'Youngs Modulus'),handles.channel_names);
+    if any(channel_find)
+        handles.channel_names = handles.channel_names(~channel_find);
+        handles.image_channels_popup.String = handles.channel_names;
+    end
 end
 
 guidata(hObject,handles);
@@ -1159,6 +1241,8 @@ for i=1:selection_diff
     handles.listbox1.String = it;
 
     if handles.ibw == true
+        % update current curve marker on map axes
+        handles = update_curve_marker(handles);
     elseif strcmp(handles.loadtype,'file') && handles.ibw == false
         % update current curve marker on map axes
         handles = update_curve_marker(handles);
@@ -1341,7 +1425,8 @@ new_curve_index = curve_index + 1;
 guidata(hObject,handles);
 
 if handles.ibw == true
-    
+    % update current curve marker on map axes
+    handles = update_curve_marker(handles);
 elseif strcmp(handles.loadtype,'file') && handles.ibw == false
     % update current curve marker on map axes
     handles = update_curve_marker(handles);
@@ -1442,7 +1527,7 @@ else
         handles.button_undo.Enable = 'on';
         handles.btn_histogram.Enable = 'on';
         handles.btn_gof.Enable = 'on';
-        handles.channel_names = {'height', 'slope', 'Youngs Modulus'}';
+        handles.channel_names = [handles.channel_names(:,1);{'Youngs Modulus'}];
         handles.image_channels_popup.String = handles.channel_names;
     end
     
@@ -1703,6 +1788,8 @@ new_curve_index = curve_index;
 guidata(hObject,handles);
 
 if handles.ibw == true
+    % update current curve marker on map axes
+    handles = update_curve_marker(handles);
 elseif strcmp(handles.loadtype,'file') && handles.ibw == false
     % update current curve marker on map axes
     handles = update_curve_marker(handles);
@@ -1751,8 +1838,13 @@ guidata(hObject,handles);
 if new_curve_index == 1
     handles.button_undo.Enable = 'off';
     handles.fit_model_popup.Enable = 'on';
-    handles.channel_names = {'height', 'slope'}';
-    handles.image_channels_popup.String = handles.channel_names;
+    handles.btn_histogram.Enable = 'off';
+    handles.btn_gof.Enable = 'off';
+    channel_find = cellfun(@(x)strcmp(x,'Youngs Modulus'),handles.channel_names);
+    if any(channel_find)
+        handles.channel_names = handles.channel_names(~channel_find);
+        handles.image_channels_popup.String = handles.channel_names;
+    end
 end
 
 
@@ -1778,9 +1870,9 @@ handles.button_discard.Enable = 'off';
 handles.button_keep_all.Enable = 'off';
 handles.button_undo.Enable = 'off';
 
-%Enable histogram buttons
-handles.btn_histogram.Enable = 'on';
-handles.btn_gof.Enable = 'on';
+% disable histogram buttons
+handles.btn_histogram.Enable = 'off';
+handles.btn_gof.Enable = 'off';
 
 % Enable Youngs Modulus image
 handles.channel_names = {'height', 'slope', 'Youngs Modulus', 'Contactpoint'}';
@@ -1912,6 +2004,8 @@ handles.button_keep.Enable = 'on';
 handles.button_discard.Enable = 'on';
 handles.button_keep_all.Enable = 'on';
 handles.button_undo.Enable = 'on';
+handles.btn_histogram.Enable = 'on';
+handles.btn_gof.Enable = 'on';
 
 if ~getappdata(wb,'canceling')
     
@@ -2351,7 +2445,17 @@ x_led = (window_width*handles.def_led_x)/handles.def_wind_width;
 y_led = (window_height*handles.def_led_y)/handles.def_wind_height;
 handles.save_status_led.Position(1) = x_led;
 handles.save_status_led.Position(2) = y_led;
+
+% change info panel column width
+handles.info_table.Units = 'pixel';
+table_width = handles.info_table.Position(3);
+handles.info_table.ColumnWidth = {table_width/2-1,table_width/2-1};
+handles.info_table.Units = 'normalized';
+
+
 guidata(hObject,handles);
+
+
 
 
 % --- Executes on selection change in image_channels_popup.
@@ -2369,25 +2473,13 @@ if (handles.ibw == true)
         axes(handles.map_axes);
         imshow(handles.MFP_height_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
         set_afm_gold();
-        axes(handles.colorgradient);
-        imshow(handles.colorgrad_height, 'InitialMagnification', 'fit', 'XData', [1 3], 'YData', [1 100], 'DisplayRange', []);
-        set(handles.colorgradient_max, 'String', sprintf('%.2f',max(max(handles.MFP_height_matrix))));
-        set(handles.colorgradient_min, 'String', sprintf('%.2f',min(min(handles.MFP_height_matrix))));
-        set(handles.colorgradient_unit, 'String', '[µm]');
-        set(handles.colorgradient,'Ydir','normal'); %Set the maximum value as top
-        set_afm_gold();
+        handles = colorbar_helpf(handles.map_axes,handles);
         
     elseif strcmp(channel_string, 'slope')
         axes(handles.map_axes);
         imshow(handles.MFP_mslope_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
         set_afm_gold();
-        axes(handles.colorgradient);
-        imshow(handles.colorgrad_slope, 'InitialMagnification', 'fit', 'XData', [1 3], 'YData', [1 100], 'DisplayRange', []);
-        set(handles.colorgradient_max, 'String', sprintf('%.2f',max(max(handles.MFP_mslope_matrix))));
-        set(handles.colorgradient_min, 'String', sprintf('%.2f',min(min(handles.MFP_mslope_matrix))));
-        set(handles.colorgradient_unit, 'String', '[V/µm]');
-        set(handles.colorgradient,'Ydir','normal'); %Set the maximum value as top
-        set_afm_gold();
+        handles = colorbar_helpf(handles.map_axes,handles);
         
     elseif strcmp(channel_string, 'Youngs Modulus')
         
@@ -2418,15 +2510,9 @@ if (handles.ibw == true)
         handles.colorgrad_Ymodulus = flipud(linspace(min(min(handles.MFP_Ymodulus_matrix)), max(max(handles.MFP_Ymodulus_matrix)), 100))';
         %Display the Youngs Modulus matrix
         axes(handles.map_axes);
-        imshow(handles.MFP_Ymodulus_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', [min(min(Ymodulus_matrix)) max(max(Ymodulus_matrix))]);
+        imshow(handles.MFP_Ymodulus_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
         set_afm_gold();
-        axes(handles.colorgradient);
-        imshow(handles.colorgrad_Ymodulus, 'InitialMagnification', 'fit', 'XData', [1 3], 'YData', [1 100], 'DisplayRange', []);
-        set(handles.colorgradient_max, 'String', sprintf('%.2f',(max(max(handles.MFP_Ymodulus_matrix)))/1000));
-        set(handles.colorgradient_min, 'String', sprintf('%.2f',(min(min(handles.MFP_Ymodulus_matrix)))/1000));
-        set(handles.colorgradient_unit, 'String', '[kPa]');
-        set(handles.colorgradient,'Ydir','normal'); %Set the maximum value as top
-        set_afm_gold();
+        handles = colorbar_helpf(handles.map_axes,handles);
         
     elseif strcmp(channel_string, 'Contactpoint')
         
@@ -2448,19 +2534,12 @@ if (handles.ibw == true)
             end
         end
         
-        cpoint_matrix = cpoint_matrix/1e-6;
-        cpoint_matrix(cpoint_matrix == 0) = min(cpoint)/1e-6;
+        cpoint_matrix(cpoint_matrix == 0) = min(cpoint);
         cpoint_matrix = flip(cpoint_matrix);
         axes(handles.map_axes);
         imshow(cpoint_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
-        colorgrad = flipud(linspace(min(min(cpoint_matrix)), max(max(cpoint_matrix)), 100))';
-        axes(handles.colorgradient);
-        imshow(colorgrad, 'InitialMagnification', 'fit', 'XData', [1 3], 'YData', [1 100], 'DisplayRange', []);
-        set(handles.colorgradient_max, 'String', sprintf('%.2f',max(max(cpoint_matrix))));
-        set(handles.colorgradient_min, 'String', sprintf('%.2f',min(min(cpoint_matrix))));
-        set(handles.colorgradient,'Ydir','normal'); %Set the maximum value as top
-        set(handles.colorgradient_unit, 'String', '[µm]');
         set_afm_gold();
+        handles = colorbar_helpf(handles.map_axes,handles);
 
     end
 else
@@ -2475,18 +2554,25 @@ else
     if strcmp(channel_string,'height')
         channel_image = handles.map_images.height.(sprintf('absolute_%s_data%s',...
         channel_string,interpolation_string));
-    else
+    elseif isfield(handles.map_images,channel_string)  
         channel_image = handles.map_images.(channel_string).(sprintf('%s_data%s',...
-            channel_string,interpolation_string));
+        channel_string,interpolation_string));
     end
-    axes(handles.map_axes);
-    imshow(flip(channel_image,1),[],'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel]);
-    handles.map_axes.YDir = 'normal';
-    handles = update_curve_marker(handles);
-    hline = findall(gca,'Type','image');
-    set(hline(1),'uicontextmenu',handles.map_axes_context);
-    set_afm_gold;
+    if isfield(handles.map_images,channel_string)
+        axes(handles.map_axes);
+        imshow(flip(channel_image,1),[],'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel]);
+        handles.map_axes.YDir = 'normal';
+        handles = update_curve_marker(handles);
+        hline = findall(gca,'Type','image');
+        set(hline(1),'uicontextmenu',handles.map_axes_context);
+        set_afm_gold;
+        handles = colorbar_helpf(handles.map_axes,handles);
+    end
 end
+
+% update current curve marker on map axes
+handles = update_curve_marker(handles);
+
 guidata(hObject,handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -2540,6 +2626,7 @@ handles = update_curve_marker(handles);
 hline = findall(gca,'Type','image');
 set(hline(1),'uicontextmenu',handles.map_axes_context);
 set_afm_gold;
+handles = colorbar_helpf(handles.map_axes,handles);
 guidata(hObject,handles);
 
 
@@ -2572,6 +2659,7 @@ handles = update_curve_marker(handles);
 hline = findall(gca,'Type','image');
 set(hline(1),'uicontextmenu',handles.map_axes_context);
 set_afm_gold;
+handles = colorbar_helpf(handles.map_axes,handles);
 guidata(hObject,handles);
 
 
@@ -2604,6 +2692,7 @@ handles = update_curve_marker(handles);
 hline = findall(gca,'Type','image');
 set(hline(1),'uicontextmenu',handles.map_axes_context);
 set_afm_gold;
+handles = colorbar_helpf(handles.map_axes,handles);
 guidata(hObject,handles);
 
 
@@ -2674,7 +2763,7 @@ if handles.load_status ~=0
             [hObject,handles] = plot_hertz(hObject,handles);
             guidata(hObject,handles);
     end
-
+    
     % fit data to processed curve and display fitresult
     [hObject,handles] = curve_fit_functions(hObject,handles);
     guidata(hObject,handles);
@@ -2695,36 +2784,41 @@ function btn_histogram_Callback(hObject, ~, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 try
-    close(handles.fig3)
-    handles = rmfield(handles, 'fig3');
+    close(handles.EModulFig)
+    handles = rmfield(handles, 'EModulFig');
 catch
 end
 if isempty(findobj('Name', 'Histogram: Goodness of Fit'))
     try
-        handles = rmfield(handles, 'fig4');
+        handles = rmfield(handles, 'GoFFig');
     catch
     end
 end
-handles.fig3 = figure('Name','Histogram: Youngs Modulus','Units', 'normalized', 'NumberTitle','off', 'Color', 'white');
 EModul = handles.T_result.EModul;
-EModul(EModul == 0)=[];
-EModul = EModul/1000;
-[h,~] = histogram_fits(EModul, 'gauss', floor(max(EModul)/25));
-h.Histogram_handle.FaceColor = [1 0.72 0.73];
-h.Histogram_handle.EdgeColor = [0.77 0.32 0.34];
-title('Youngs Modulus');
-xlabel('Youngs Modulus [kPa]');
-ylabel('Frequency');
+if any(EModul)
+    handles.EModulFig = figure('Name','Histogram: Youngs Modulus','Units', 'normalized', 'NumberTitle','off', 'Color', 'white');
+    EModul(EModul == 0)=[];
+    EModul(isnan(EModul)) = [];
+    EModul = EModul/1000;
+    [h,~] = histogram_fits(EModul, 'gauss', 100);
+    h.Histogram_handle.FaceColor = [1 0.72 0.73];
+    h.Histogram_handle.EdgeColor = [0.77 0.32 0.34];
+    title('Youngs Modulus');
+    xlabel('Youngs Modulus [kPa]');
+    ylabel('Frequency');
 
-%Present both histograms in a good way if both are opened
-if isfield(handles, 'fig4') == 1
-    handles.fig3.Position = [0.1 0.3 0.4 0.5];
-    handles.fig4.Position = [0.5 0.3 0.4 0.5];
-    figure(handles.fig3);
-    figure(handles.fig4);
+    %Present both histograms in a good way if both are opened
+    if isfield(handles, 'GoFFig') == 1
+        handles.EModulFig.Position = [0.1 0.3 0.4 0.5];
+        handles.GoFFig.Position = [0.5 0.3 0.4 0.5];
+        figure(handles.EModulFig);
+        figure(handles.GoFFig);
+    else
+        handles.EModulFig.Position = [0.1 0.3 0.4 0.5];
+        figure(handles.EModulFig);
+    end
 else
-    handles.fig3.Position = [0.1 0.3 0.4 0.5];
-    figure(handles.fig3);
+    warning('No results are available at the moment!')
 end
 
 guidata(hObject,handles);
@@ -2736,40 +2830,44 @@ function btn_gof_Callback(hObject, ~, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 try
-    close(handles.fig4)
-    handles = rmfield(handles, 'fig4');
+    close(handles.GoFFig)
+    handles = rmfield(handles, 'GoFFig');
 catch
 end
 if isempty(findobj('Name', 'Histogram: Youngs Modulus'))
     try
-        handles = rmfield(handles, 'fig3');
+        handles = rmfield(handles, 'EModulFig');
     catch
     end
 end
-handles.fig4 = figure('Name','Histogram: Goodness of Fit','Units', 'normalized', 'NumberTitle','off', 'Color', 'white');
 rsquare = handles.T_result.rsquare_fit;
-rsquare(rsquare <= 0)=[];
-[h] = histogram_fits(rsquare, 'none', 100);
-h.Histogram_handle.FaceColor = [1 0.72 0.73];
-h.Histogram_handle.EdgeColor = [0.77 0.32 0.34];
-xlim([0 1])
-xticks([0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1])
-xticklabels({0, [], 0.1, [], 0.2, [], 0.3, [], 0.4, [], 0.5, [], 0.6, [], 0.7, [], 0.8, [], 0.9, [], 1})
-title('Goodness of Fit')
-xlabel('Goodness of Fit[rsquare]')
-ylabel('Frequency')
+if any(rsquare)
+    handles.GoFFig = figure('Name','Histogram: Goodness of Fit','Units', 'normalized', 'NumberTitle','off', 'Color', 'white');
+    rsquare(rsquare <= 0)=[];
+    rsquare(isnan(rsquare)) = [];
+    [h] = histogram_fits(rsquare, 'none', 50);
+    h.Histogram_handle.FaceColor = [1 0.72 0.73];
+    h.Histogram_handle.EdgeColor = [0.77 0.32 0.34];
+    xlim([0 1])
+    xticks([0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1])
+    xticklabels({0, [], 0.1, [], 0.2, [], 0.3, [], 0.4, [], 0.5, [], 0.6, [], 0.7, [], 0.8, [], 0.9, [], 1})
+    title('Goodness of Fit')
+    xlabel('Goodness of Fit[rsquare]')
+    ylabel('Frequency')
 
-%Present both histograms in a good way if both are opened
-if isfield(handles, 'fig3') == 1
-    handles.fig3.Position = [0.1 0.3 0.4 0.5];
-    handles.fig4.Position = [0.5 0.3 0.4 0.5];
-    figure(handles.fig3);
-    figure(handles.fig4);
+    %Present both histograms in a good way if both are opened
+    if isfield(handles, 'EModulFig') == 1
+        handles.EModulFig.Position = [0.1 0.3 0.4 0.5];
+        handles.GoFFig.Position = [0.5 0.3 0.4 0.5];
+        figure(handles.EModulFig);
+        figure(handles.GoFFig);
+    else
+        handles.GoFFig.Position = [0.1 0.3 0.4 0.5];
+        figure(handles.GoFFig);
+    end
 else
-    handles.fig4.Position = [0.1 0.3 0.4 0.5];
-    figure(handles.fig4);
+    warning('No results are available at the moment!')
 end
-
 guidata(hObject,handles);
 
 
@@ -2840,3 +2938,254 @@ function result_switch_point_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Colorbar helper function to display the colorbar properly.
+function handles = colorbar_helpf(ax_handle,handles)
+    axes(ax_handle);
+    cbar = colorbar(ax_handle);
+    cbar.Ruler.Exponent = 0;
+    image_handle = findobj(ax_handle,'Type','image');
+    if isempty(image_handle)
+        warning('No image object was found in the given axes object');
+        return;
+    end
+    map_type = handles.loaded_file_type;
+    channels = handles.image_channels_popup.String;
+    channel_indx = handles.image_channels_popup.Value;
+    channel = channels{channel_indx};
+    
+    if strcmp(map_type,'jpk-force-map') || strcmp(map_type,'ibw')
+        % the following is the colorbar correction for jpk-force-maps
+        switch channel
+            case 'height' 
+                % find min and max of CData
+                c_min = min(min(image_handle.CData));
+                c_max = max(max(image_handle.CData));
+                % determine if the maximum dimension is nm or µm and
+                % correct the tick lables of the colorbar
+                check = abs(c_max) < 1e-6 && abs(c_min) < 1e-6;
+                labels = cbar.TickLabels;
+                for i = 1:length(labels)
+                   lable_char = labels{i};
+                   label_num = str2double(lable_char);
+                   if check
+                       label_num = label_num*1e9;
+                       labels(i) = {sprintf('%.0f nm',label_num)};
+                       max_label = sprintf('max: %.2g nm',c_max*1e9);
+                       min_label = sprintf('min: %.2g nm',c_min*1e9);                           
+                   else
+                       label_num = label_num*1e6;
+                       labels(i) = {sprintf('%.2f µm',label_num)};
+                       max_label = sprintf('max: %.2g µm',c_max*1e6);
+                       min_label = sprintf('min: %.2g µm',c_min*1e6);  
+                   end
+                end
+                cbar.TickLabels = labels;
+                % provide min and max information of shown data
+                title(ax_handle,{'Full data range:';max_label;min_label},'FontSize',9);
+            case 'slope'
+                % find min and max of CData
+                c_min = min(min(image_handle.CData));
+                c_max = max(max(image_handle.CData));
+                % determine if the maximum dimension is nm or µm and
+                % correct the tick lables of the colorbar
+                check = abs(c_max) < 1e6 && abs(c_min) < 1e6;
+                labels = cbar.TickLabels;
+                for i = 1:length(labels)
+                   label_char = labels{i};
+                   label_num = str2double(label_char);
+                   if isnan(label_num)
+                       split_cell = strsplit(label_char,'\\times10^{');
+                       new_string = sprintf('%se%s',split_cell{1},split_cell{2}(1:end-1));
+                       label_num = str2double(new_string);
+                   end
+                   if check
+                       label_num = label_num*1e-3;
+                       labels(i) = {sprintf('%3.0f mV/µm',label_num)};
+                       max_label = sprintf('max: %.2g mV/µm',c_max*1e-3);
+                       min_label = sprintf('min: %.2g mV/µm',c_min*1e-3);
+                   else
+                       label_num = label_num*1e-6;
+                       labels(i) = {sprintf('%.1f V/µm',label_num)};
+                       max_label = sprintf('max: %.2g V/µm',c_max*1e-6);
+                       min_label = sprintf('min: %.2g V/µm',c_min*1e-6);
+                   end
+                end
+                cbar.TickLabels = labels;
+                % provide min and max information of shown data
+                title(ax_handle,{'Full data range:';max_label;min_label},'FontSize',9);
+            case 'adhesion'
+                % find min and max of CData
+                c_min = min(min(image_handle.CData));
+                c_max = max(max(image_handle.CData));
+                % determine if the maximum dimension is nm or µm and
+                % correct the tick lables of the colorbar
+                check = abs(c_max) < 1 && abs(c_min) < 1;
+                labels = cbar.TickLabels;
+                for i = 1:length(labels)
+                   lable_char = labels{i};
+                   label_num = str2double(lable_char);
+                   if check
+                       label_num = label_num*1e3;
+                       labels(i) = {sprintf('%3.0f mV',label_num)};
+                       max_label = sprintf('max: %.2g mV',c_max*1e3);
+                       min_label = sprintf('min: %.2g mV',c_min*1e3);
+                   else
+                       labels(i) = {sprintf('%1.1f V',label_num)};
+                       max_label = sprintf('max: %.2g V',c_max);
+                       min_label = sprintf('min: %.2g V',c_min);
+                   end
+                end
+                cbar.TickLabels = labels;
+                % provide min and max information of shown data
+                title(ax_handle,{'Full data range:';max_label;min_label},'FontSize',9);
+            case 'vDeflection'
+                % find min and max of CData
+                c_min = min(min(image_handle.CData));
+                c_max = max(max(image_handle.CData));
+                % determine if the maximum dimension is nm or µm and
+                % correct the tick lables of the colorbar
+                check = abs(c_max) < 1 && abs(c_min) < 1;
+                labels = cbar.TickLabels;
+                for i = 1:length(labels)
+                   lable_char = labels{i};
+                   label_num = str2double(lable_char);
+                   if check
+                       label_num = label_num*1e3;
+                       labels(i) = {sprintf('%3.0f mV',label_num)};
+                       max_label = sprintf('max: %.2g mV',c_max*1e3);
+                       min_label = sprintf('min: %.2g mV',c_min*1e3);
+                   else
+                       labels(i) = {sprintf('%1.1f V',label_num)};
+                       max_label = sprintf('max: %.2g V',c_max);
+                       min_label = sprintf('min: %.2g V',c_min);
+                   end
+                end
+                cbar.TickLabels = labels;
+                % provide min and max information of shown data
+                title(ax_handle,{'Full data range:';max_label;min_label},'FontSize',9);
+            case 'hDeflection'
+                % find min and max of CData
+                c_min = min(min(image_handle.CData));
+                c_max = max(max(image_handle.CData));
+                % determine if the maximum dimension is nm or µm and
+                % correct the tick lables of the colorbar
+                check = abs(c_max) < 1 && abs(c_min) < 1;
+                labels = cbar.TickLabels;
+                for i = 1:length(labels)
+                   lable_char = labels{i};
+                   label_num = str2double(lable_char);
+                   if check
+                       label_num = label_num*1e3;
+                       labels(i) = {sprintf('%3.0f mV',label_num)};
+                       max_label = sprintf('max: %.2g mV',c_max*1e3);
+                       min_label = sprintf('min: %.2g mV',c_min*1e3);
+                   else
+                       labels(i) = {sprintf('%1.1f V',label_num)};
+                       max_label = sprintf('max: %.2g V',c_max);
+                       min_label = sprintf('min: %.2g V',c_min);
+                   end
+                end
+                cbar.TickLabels = labels;
+                % provide min and max information of shown data
+                title(ax_handle,{'Full data range:';max_label;min_label},'FontSize',9);
+            case 'Youngs Modulus'
+                % find min and max of CData
+                c_min = min(min(image_handle.CData));
+                c_max = max(max(image_handle.CData));
+                % determine the order of magnetude and
+                % correct the tick lables of the colorbar
+                order_max = floor(log(abs(c_max))./log(10));
+                order_min = floor(log(abs(c_min))./log(10));
+                max_order = max([order_max order_min]);
+                labels = cbar.TickLabels;
+                for i = 1:length(labels)
+                   lable_char = labels{i};
+                   label_num = str2double(lable_char);
+                   if max_order < 3
+                       labels(i) = {sprintf('%3.0f Pa',label_num)};
+                       max_label = sprintf('max: %.2g Pa',c_max);
+                       min_label = sprintf('min: %.2g Pa',c_min);
+                   elseif max_order >= 3 && max_order < 6
+                       label_num = label_num*1e-3;
+                       labels(i) = {sprintf('%.2f kPa',label_num)};
+                       max_label = sprintf('max: %.2g kPa',c_max*1e-3);
+                       min_label = sprintf('min: %.2g kPa',c_min*1e-3);
+                   else
+                       label_num = label_num*1e-6;
+                       labels(i) = {sprintf('%.2f MPa',label_num)};
+                       max_label = sprintf('max: %.2g MPa',c_max*1e-6);
+                       min_label = sprintf('min: %.2g MPa',c_min*1e-6);
+                   end
+                end
+                cbar.TickLabels = labels;
+                % provide min and max information of shown data
+                title(ax_handle,{'Full data range:';max_label;min_label},'FontSize',9);
+            case 'Contactpoint'
+                % find min and max of CData
+                c_min = min(min(image_handle.CData));
+                c_max = max(max(image_handle.CData));
+                % determine the order of magnetude and
+                % correct the tick lables of the colorbar
+                order_max = floor(log(abs(c_max))./log(10));
+                order_min = floor(log(abs(c_min))./log(10));
+                max_order = max([order_max order_min]);
+                labels = cbar.TickLabels;
+                for i = 1:length(labels)
+                   lable_char = labels{i};
+                   label_num = str2double(lable_char);
+                   if max_order <= -9
+                       label_num = label_num*1e9;
+                       labels(i) = {sprintf('%3.0f nm',label_num)};
+                       max_label = sprintf('max: %.2g nm',c_max*1e9);
+                       min_label = sprintf('min: %.2g nm',c_min*1e9);
+                   else
+                       label_num = label_num*1e6;
+                       labels(i) = {sprintf('%.2f µm',label_num)};
+                       max_label = sprintf('max: %.2g µm',c_max*1e6);
+                       min_label = sprintf('min: %.2g µm',c_min*1e6);
+                   end
+                end
+                cbar.TickLabels = labels;
+                % provide min and max information of shown data
+                title(ax_handle,{'Full data range:';max_label;min_label},'FontSize',9);
+            otherwise
+                warning('No colorbar processing is availlible for the choosen map channel');
+        end
+    else
+        warning('No matching filetype for the color bar processing is loaded!')
+        return;
+    end
+    
+% --- Colorbar helper function to display the colorbar properly.
+function handles = info_panel_helpf(handles)
+    %     Function to read file information and display them in the info panel
+    
+    % Check if a jpk-force-map was loaded
+    if strcmp(handles.loaded_file_type,'jpk-force-map')         
+        handles.info_table.Data = handles.map_info_array;                
+    % Check if ibw files were loaded
+    elseif strcmp(handles.loaded_file_type,'ibw') 
+        handles.info_table.Data = handles.mfpmapdata{1};        
+    % Check if txt files were loaded
+    elseif strcmp(handles.loaded_file_type,'txt')
+        handles.info_table.Data = handles.text_file_info;
+    end
+    
+    
+% --------------------------------------------------------------------
+function help_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to help_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function help_wiki_Callback(hObject, eventdata, handles)
+% hObject    handle to help_wiki (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% if clicked, open the help wiki on our github site
+web('https://github.com/CANTERhm/Canter_Matlab_Library/wiki/2a.-Force-indentation-processing','-browser');
