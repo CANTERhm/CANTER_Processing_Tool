@@ -2534,8 +2534,7 @@ if (handles.ibw == true)
             end
         end
         
-        cpoint_matrix = cpoint_matrix/1e-6;
-        cpoint_matrix(cpoint_matrix == 0) = min(cpoint)/1e-6;
+        cpoint_matrix(cpoint_matrix == 0) = min(cpoint);
         cpoint_matrix = flip(cpoint_matrix);
         axes(handles.map_axes);
         imshow(cpoint_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
@@ -3086,6 +3085,66 @@ function handles = colorbar_helpf(ax_handle,handles)
                        labels(i) = {sprintf('%1.1f V',label_num)};
                        max_label = sprintf('max: %.2g V',c_max);
                        min_label = sprintf('min: %.2g V',c_min);
+                   end
+                end
+                cbar.TickLabels = labels;
+                % provide min and max information of shown data
+                title(ax_handle,{'Full data range:';max_label;min_label},'FontSize',9);
+            case 'Youngs Modulus'
+                % find min and max of CData
+                c_min = min(min(image_handle.CData));
+                c_max = max(max(image_handle.CData));
+                % determine the order of magnetude and
+                % correct the tick lables of the colorbar
+                order_max = floor(log(abs(c_max))./log(10));
+                order_min = floor(log(abs(c_min))./log(10));
+                max_order = max([order_max order_min]);
+                labels = cbar.TickLabels;
+                for i = 1:length(labels)
+                   lable_char = labels{i};
+                   label_num = str2double(lable_char);
+                   if max_order < 3
+                       labels(i) = {sprintf('%3.0f Pa',label_num)};
+                       max_label = sprintf('max: %.2g Pa',c_max);
+                       min_label = sprintf('min: %.2g Pa',c_min);
+                   elseif max_order >= 3 && max_order < 6
+                       label_num = label_num*1e-3;
+                       labels(i) = {sprintf('%.2f kPa',label_num)};
+                       max_label = sprintf('max: %.2g kPa',c_max*1e-3);
+                       min_label = sprintf('min: %.2g kPa',c_min*1e-3);
+                   else
+                       label_num = label_num*1e-6;
+                       labels(i) = {sprintf('%.2f MPa',label_num)};
+                       max_label = sprintf('max: %.2g MPa',c_max*1e-6);
+                       min_label = sprintf('min: %.2g MPa',c_min*1e-6);
+                   end
+                end
+                cbar.TickLabels = labels;
+                % provide min and max information of shown data
+                title(ax_handle,{'Full data range:';max_label;min_label},'FontSize',9);
+            case 'Contactpoint'
+                % find min and max of CData
+                c_min = min(min(image_handle.CData));
+                c_max = max(max(image_handle.CData));
+                % determine the order of magnetude and
+                % correct the tick lables of the colorbar
+                order_max = floor(log(abs(c_max))./log(10));
+                order_min = floor(log(abs(c_min))./log(10));
+                max_order = max([order_max order_min]);
+                labels = cbar.TickLabels;
+                for i = 1:length(labels)
+                   lable_char = labels{i};
+                   label_num = str2double(lable_char);
+                   if max_order <= -9
+                       label_num = label_num*1e9;
+                       labels(i) = {sprintf('%3.0f nm',label_num)};
+                       max_label = sprintf('max: %.2g nm',c_max*1e9);
+                       min_label = sprintf('min: %.2g nm',c_min*1e9);
+                   else
+                       label_num = label_num*1e6;
+                       labels(i) = {sprintf('%.2f µm',label_num)};
+                       max_label = sprintf('max: %.2g µm',c_max*1e6);
+                       min_label = sprintf('min: %.2g µm',c_min*1e6);
                    end
                 end
                 cbar.TickLabels = labels;
