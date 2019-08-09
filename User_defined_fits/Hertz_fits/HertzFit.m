@@ -1,4 +1,4 @@
-function [EModul,varargout] = HertzFit(x,y,d_int, angle, poisson, handles)
+function [EModul,varargout] = HertzFit(x,y,d_int,tip_shape,indenter_value, poisson)
 % HertzFit Fits the Hertz Model on a given graph
 % 
 % Syntax: [EModul,varargout] = HertzFit(x,y,baseline_edges, varargin)
@@ -7,15 +7,20 @@ function [EModul,varargout] = HertzFit(x,y,d_int, angle, poisson, handles)
 % varargout{3} = fittedcurve_y; Y data of the fitted curve
 %   
 
-%% Fit: initial guess.
+%% Code
+
+% Fit: initial guess.
 [xData, yData] = prepareCurveData(x,y);
 
-%func_string = sprintf('(tan(%f.*pi/180)/(2*(1-%f.^2)).*(x-%f).^2)',angle,poisson, xData(handles.baselineedges(1,2)));
-func_string = sprintf('(tan(%f.*pi/180)/(2*(1-%f.^2)).*x.^2)',angle,poisson);
-
-% Set all the values into um so the calculation is easier
-d_int = d_int*1e6;
-xData = xData*1e6;
+switch tip_shape
+    case 'four_sided_pyramid'
+        angle = indenter_value;
+        func_string = sprintf('(tan(%f.*pi/180)/(2*(1-%f.^2)).*x.^2)',angle,poisson);
+    case 'flat_cylinder'
+        radius = indenter_value;
+        magnitude = floor(log(radius)/log(10));
+        func_string = sprintf('(2*%fe%d./(1-%f.^2)).*x',radius/10^magnitude,magnitude,poisson);
+end
 
 
 ft = fittype( {func_string}, 'independent', 'x', 'dependent', 'y', 'coefficients', {'EModul'} );
@@ -31,22 +36,21 @@ opts = fitoptions( 'Method', 'LinearLeastSquares' );
 opts.Exclude = excludedPoints;
 
 % Fit model to data.
-%Values need to be in m and N for the formula
-xData = xData*1e-6;
 [fitresult, gof] = fit( xData, yData, ft, opts );
 
 EModul = fitresult.EModul;
 
 baseline_mask = xData<0;
 fittedcurve_y = zeros(length(xData),1);
-fittedcurve_y(baseline_mask) = EModul*((tan(angle.*pi/180)/(2*(1-poisson.^2)).*(xData(baseline_mask).^2)));
+switch tip_shape
+    case 'four_sided_pyramid'
+        fittedcurve_y(baseline_mask) = EModul*((tan(angle.*pi/180)/(2*(1-poisson.^2)).*(xData(baseline_mask).^2)));
+    case 'flat_cylinder'
+        fittedcurve_y(baseline_mask) = EModul*(2*radius./(1-poisson.^2)).*(xData(baseline_mask));
+end
 
-
-
-% Reconvert the Data into µm or nN to show them
-fittedcurve_x = (xData.*1e6)';
-fittedcurve_y = (fittedcurve_y.*1e9)';
+EModul = abs(EModul);
 varargout{1} = gof;
-varargout{2} = fittedcurve_x;
+varargout{2} = xData;
 varargout{3} = fittedcurve_y;
 end

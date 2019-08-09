@@ -368,11 +368,11 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
         
         handles.options = canti_sample_gui(handles.options);
         guidata(hObject,handles);
-
-        handles.tip_angle = handles.options.tip_angle;
-        handles.poisson = handles.options.poisson;
-        handles.tip_shape = handles.options.tip_shape;
         
+        % get indenter options and poisson ration in dependency of the choosen
+        % indenter shape
+        handles = get_indenter_parameter(handles);
+                
         % reset invalid_data_type controle parameter
         handles.invalid_data_type = false;
         
@@ -1874,9 +1874,12 @@ handles.button_undo.Enable = 'off';
 handles.btn_histogram.Enable = 'off';
 handles.btn_gof.Enable = 'off';
 
-% Enable Youngs Modulus image
-handles.channel_names = {'height', 'slope', 'Youngs Modulus', 'Contactpoint'}';
-handles.image_channels_popup.String = handles.channel_names;
+if handles.current_curve == 1
+    % Enable Youngs Modulus image
+    channels = handles.image_channels_popup.String;
+    handles.channel_names = [channels;{'Youngs Modulus'};{'Contactpoint'}];
+    handles.image_channels_popup.String = handles.channel_names;
+end
 
 curve_index = handles.current_curve;
 
@@ -1950,6 +1953,7 @@ for a = 1:loop_it
     guidata(hObject,handles);
     
     if handles.ibw == true
+        
     elseif strcmp(handles.loadtype,'file') && handles.ibw == false
         % update current curve marker on map axes
         handles = update_curve_marker(handles);
@@ -3189,3 +3193,11 @@ function help_wiki_Callback(hObject, eventdata, handles)
 
 % if clicked, open the help wiki on our github site
 web('https://github.com/CANTERhm/Canter_Matlab_Library/wiki/2a.-Force-indentation-processing','-browser');
+
+function handles = get_indenter_parameter(handles)
+handles.tip_angle = handles.options.tip_angle;
+handles.poisson = handles.options.poisson;
+handles.tip_shape = handles.options.tip_shape;
+handles.cylinder_radius = handles.options.cylinder_radius;
+
+   

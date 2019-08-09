@@ -58,8 +58,8 @@ depth_right = 0;
 x = handles.proc_curves.(c_string).x_values*1e6;
 y = handles.proc_curves.(c_string).y_values*1e9;
 
-    %Smooth the data as it is done in the BaselineFinder
-    y = smoothdata(y, 'gaussian', 100);
+%Smooth the data as it is done in the BaselineFinder
+y = smoothdata(y, 'gaussian', 100);
 
 A = [x(handles.baselineedges(1,1)) y(handles.baselineedges(1,1))];
 B = [x(handles.baselineedges(1,2)) y(handles.baselineedges(1,2))];
@@ -77,7 +77,7 @@ try
     delete(handles.figures.baseline);
     delete(handles.figures.baselineedges);
     delete(handles.figures.baselineedges_2);
-    delete(handles.figures.fittedcurve);
+    deletel(handles.figures.fittedcurve);
     delete(handles.figures.contactpoint_line);
 catch
     %nix%

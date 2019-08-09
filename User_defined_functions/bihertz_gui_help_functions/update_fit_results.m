@@ -34,8 +34,9 @@ switch handles.options.model
         end
          
     case 'hertz'
-        set(handles.hertz_EModul,'String', (sprintf('%.2f',(handles.fit_results.EModul/1000))));
-        set(handles.hertz_gof,'String', (sprintf('%.2f', handles.fit_results.gof_rsquare)));
+            set(handles.hertz_EModul,'String', (sprintf('%.2f',(handles.fit_results.EModul/1000))));
+            set(handles.hertz_gof,'String', (sprintf('%.2f', handles.fit_results.gof_rsquare)));
+                
 end
 
  
