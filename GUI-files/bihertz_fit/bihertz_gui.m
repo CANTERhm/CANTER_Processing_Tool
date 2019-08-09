@@ -1565,6 +1565,8 @@ new_curve_index = curve_index + 1;
 guidata(hObject,handles);
 
 if handles.ibw == true
+    % update current curve marker on map axes
+    handles = update_curve_marker(handles);
 elseif strcmp(handles.loadtype,'file') && handles.ibw == false
     % update current curve marker on map axes
     handles = update_curve_marker(handles);
@@ -1950,6 +1952,8 @@ for a = 1:loop_it
     guidata(hObject,handles);
     
     if handles.ibw == true
+        % update current curve marker on map axes
+        handles = update_curve_marker(handles);
     elseif strcmp(handles.loadtype,'file') && handles.ibw == false
         % update current curve marker on map axes
         handles = update_curve_marker(handles);
