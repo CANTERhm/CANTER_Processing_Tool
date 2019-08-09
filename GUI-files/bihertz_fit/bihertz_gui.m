@@ -598,6 +598,10 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                     height_matrix(height_matrix==0) = [];
                     handles.MFP_height_matrix(handles.MFP_height_matrix ==0) = (min(min(height_matrix))); %Calling min twice is a trick to get the minimum value of a whole matrix                
                     
+                    %Create interpolation images of height and slope matrix
+                    [handles.MFP_mslope_matrix_linear_interpolation, handles.MFP_mslope_matrix_cubic_interpolation] = ImageInterpolationMFP(map_parameters.FMapScanPoints,map_parameters.FMapScanLines,handles.MFP_mslope_matrix);
+                    [handles.MFP_height_matrix_linear_interpolation, handles.MFP_height_matrix_cubic_interpolation] = ImageInterpolationMFP(map_parameters.FMapScanPoints,map_parameters.FMapScanLines,handles.MFP_height_matrix);
+                    
                     % Get the color gradient for each matrix
                     handles.colorgrad_height = flipud(linspace(min(min(handles.MFP_height_matrix)), max(max(handles.MFP_height_matrix)), 100))';
                     handles.colorgrad_slope = flipud(linspace(min(min(handles.MFP_mslope_matrix)), max(max(handles.MFP_mslope_matrix)), 100))';
