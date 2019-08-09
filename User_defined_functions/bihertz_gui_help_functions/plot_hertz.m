@@ -77,7 +77,7 @@ try
     delete(handles.figures.baseline);
     delete(handles.figures.baselineedges);
     delete(handles.figures.baselineedges_2);
-    deletel(handles.figures.fittedcurve);
+    delete(handles.figures.fittedcurve);
     delete(handles.figures.contactpoint_line);
 catch
     %nix%
