@@ -11,9 +11,10 @@ function [hObject,handles] = plot_hertz(hObject,handles)
 %% variables
 curve_ind = handles.current_curve;
 c_string = sprintf('curve%u',curve_ind);
-fit_depth_s = get(handles.hertz_fit_depth,'String');
+fit_depth_s = handles.hertz_fit_depth.String;
 fit_depth = str2double(fit_depth_s);
 fit_depth = (-1)*fit_depth;
+fit_start = str2double(handles.hertz_fit_start.String)*(-1);
 
 clearvars fit_depth_s
 
@@ -52,7 +53,7 @@ end
 %% add patches for fit depth
 % define borders
 depth_left = fit_depth;
-depth_right = 0;
+depth_right = fit_start;
 
 %% Display Contact Point and Baseline
 x = handles.proc_curves.(c_string).x_values*1e6;
@@ -89,7 +90,12 @@ x_p = [depth_left; depth_left; depth_right; depth_right];
 y_p = [y_bottom; y_top; y_top; y_bottom];
 handles.figures.patch_handle = patch(x_p,y_p,grey,'FaceAlpha',.3,'LineStyle','none');
 handles.figures.baseline = line([xlim(1), xlim(2)], [0, 0], 'Color','black','LineStyle','--');
-handles.figures.contactpoint_line = line([0, 0], [ylim(1), ylim(2)],'Color','black','LineStyle','--');
+if ~isfield(handles.fit_results,'hertz_contact_point') || isempty(handles.fit_results.hertz_contact_point)
+    handles.figures.contactpoint_line = line([0, 0], [ylim(1), ylim(2)],'Color','black','LineStyle','--');
+else
+    c_point = handles.fit_results.hertz_contact_point;
+    handles.figures.contactpoint_line = line([c_point, c_point], [ylim(1), ylim(2)],'Color','black','LineStyle','--');
+end
 handles.figures.baselineedges = scatter([A(1), B(1), C(1)], [A(2), B(2), C(2)]);
 handles.figures.baselineedges_2 = scatter(C(1), C(2), 'filled');
 drawnow;

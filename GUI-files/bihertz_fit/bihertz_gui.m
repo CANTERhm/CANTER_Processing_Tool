@@ -45,7 +45,7 @@ function varargout = bihertz_gui(varargin)
 
 % Edit the above text to modify the response to help bihertz_gui
 
-% Last Modified by GUIDE v2.5 25-Jun-2019 17:33:42
+% Last Modified by GUIDE v2.5 14-Aug-2019 13:19:53
     warning off
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -326,15 +326,15 @@ function button_file_Callback(hObject, ~, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-[file,path,indx] = uigetfile({'*.jpk-force-map','JPK-Force-map (*.jpk-force-map)';...
-    '*.tsv','Single tsv-file (*.tsv)'},'Select a File',handles.last_load_path);
+[file,path,ext] = uigetfile({'*.jpk-force-map','JPK-Force-map (*.jpk-force-map)';...
+    '*.txt','Mach-1 text-file (*.txt)'},'Select a File',handles.last_load_path);
 
 if ~isequal(file,0)
     % save last load path for next invoke of uigetfile
     handles.last_load_path = path;
     
     set(handles.edit_filepath,'String',fullfile(path,file))
-    handles.filefilter = indx;
+    handles.filefilter = ext;
     handles.loadtype = 'file';
     guidata(hObject,handles)
 end
@@ -463,48 +463,125 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                    hold(handles.map_axes,'off');
                    guidata(hObject,handles);
                    
-                elseif handles.filefilter == 2
-                    % look for filefilter in handles and choose right load function
-                    % UNDER CONSTRUCTION
-                    warndlg('The option to load a single txt or tsv file is not yet implemented!',...
-                        'UNDER CONSTRUCTION!');
-                end
-                num_files = length(Forcecurve_label);
-                % preallocate curve struct
-                for i=1:num_files
-                    c_string = sprintf('curve%u',i);
-                    curves.(c_string) = struct('x_values',[],'y_values',[]);                    
-                end
-                
-                % create waitbar for load process with cancel button
-                wb_num = 0;
-                wb = waitbar(0,sprintf('Loading progress: %.g%%',wb_num*100),'Name',...
-                    'Loading ...','CreateCancelBtn','setappdata(gcbf,''canceling'',1)');
-                setappdata(wb,'canceling',0);
-                % preallocate listbox cell
-                it(1:num_files,1) = {''};
-                handles.listbox1.String = it;
-                guidata(hObject,handles);
-                
-                % load x and y values from file in struct elements
-                for i=1:num_files
-                    % Check for clicked cancel button
-                    if getappdata(wb,'canceling')
-                        break
+                   num_files = length(Forcecurve_label);
+                    % preallocate curve struct
+                    for i=1:num_files
+                        c_string = sprintf('curve%u',i);
+                        curves.(c_string) = struct('x_values',[],'y_values',[]);                    
                     end
-                    % load x and y values of each force curve
-                    c_string = sprintf('curve%u',i);
-                    curves.(c_string).x_values = x_data.(Forcecurve_label{i}).*1e-6; %Save data as meter[m]
-                    curves.(c_string).y_values = y_data.(Forcecurve_label{i}); %Save data as Volt[V]
-                    % add listbox element                  
-                    it = handles.listbox1.String;
-                    it{i,1} = sprintf('curve %3u  ->  unprocessed',i);
+                   
+                   % create waitbar for load process with cancel button
+                    wb_num = 0;
+                    wb = waitbar(0,sprintf('Loading progress: %.g%%',wb_num*100),'Name',...
+                        'Loading ...','CreateCancelBtn','setappdata(gcbf,''canceling'',1)');
+                    setappdata(wb,'canceling',0);
+                    % preallocate listbox cell
+                    it(1:num_files,1) = {''};
                     handles.listbox1.String = it;
-                    % update waitbar
-                    wb_num = i/num_files;
-                    waitbar(wb_num,wb,sprintf('Loading progress: %.f%%',wb_num*100))
+                    guidata(hObject,handles);
+
+                    % load x and y values from file in struct elements
+                    for i=1:num_files
+                        % Check for clicked cancel button
+                        if getappdata(wb,'canceling')
+                            break
+                        end
+                        % load x and y values of each force curve
+                        c_string = sprintf('curve%u',i);
+                        curves.(c_string).x_values = x_data.(Forcecurve_label{i}).*1e-6; %Save data as meter[m]
+                        curves.(c_string).y_values = y_data.(Forcecurve_label{i}); %Save data as Volt[V]
+                        % add listbox element                  
+                        it = handles.listbox1.String;
+                        it{i,1} = sprintf('curve %3u  ->  unprocessed',i);
+                        handles.listbox1.String = it;
+                        % update waitbar
+                        wb_num = i/num_files;
+                        waitbar(wb_num,wb,sprintf('Loading progress: %.f%%',wb_num*100))
+                    end
+                   
+                   
+                elseif handles.filefilter == 2
+                    [mach_data,mach_info] = ReadMachTextFile(handles.edit_filepath.String);
+                    handles.mach_info_struct = mach_info;
+                    % if loading of file was successful, set the loaded
+                    % file type to mach-txt and set fit-depth to  500 µm
+                    handles.loaded_file_type = 'mach-txt';
+                    handles.hertz_fit_depth.String = '500';
+                    
+                    % set channel_names empty
+                    handles.channel_names = 'no loaded channels';
+                    
+                    % create segment_labels and determine number of
+                    % segments
+                    segment_labels = fieldnames(mach_data);
+                    handles.file_names = segment_labels;
+                    seg_num = length(segment_labels);
+                    
+                    % preallocate listbox cell
+                    it(1:seg_num,1) = {''};
+                    handles.listbox1.String = it;
+                    guidata(hObject,handles);
+                    
+                    % create watibar
+                    wb_num = 0;
+                    wb = waitbar(0,sprintf('Loading progress: %.g%%',wb_num*100),'Name',...
+                        'Loading ...','CreateCancelBtn','setappdata(gcbf,''canceling'',1)');
+                    setappdata(wb,'canceling',0);
+                    
+                    % create main data struct with x and y values and write
+                    % strings in listbox
+                    for i = 1:seg_num
+                        % Check for clicked cancel button
+                        if getappdata(wb,'canceling')
+                            break
+                        end
+                        % load x and y values of each force curve
+                        c_string = sprintf('curve%u',i);
+                        current_label = segment_labels{i};
+                        % load x values in dependency of unit
+                        % (The multiplication by (-1) is due to the different sign convention of the positive distance direction of the MACH-1 sytem)
+                        switch mach_data.(current_label).Position_z.Unit
+                            case 'm'
+                                curves.(c_string).x_values = mach_data.(current_label).Position_z.Values.*(-1);   % get x values in meter
+                            case 'cm'
+                                curves.(c_string).x_values = mach_data.(current_label).Position_z.Values.*(-1).*1e-2;   % get x values in meter
+                            case 'mm'
+                                curves.(c_string).x_values = mach_data.(current_label).Position_z.Values.*(-1).*1e-3;   % get x values in meter
+                            case 'µm'
+                                curves.(c_string).x_values = mach_data.(current_label).Position_z.Values.*(-1).*1e-6;   % get x values in meter
+                            otherwise
+                                curves.(c_string).x_values = mach_data.(current_label).Position_z.Values.*(-1);   % get x values in any unit
+                                warning on
+                                warning('Unknown unit for Position_z\nValues may be laoded in a different unit than meter!%s\n',' ');
+                        end
+                        % load y values in dependency of unit
+                        % (The multiplication by (-1) is due to the different sign convention of the positive force direction of the MACH-1 sytem)
+                        switch mach_data.(current_label).Fz.Unit
+                            case 'N'
+                                curves.(c_string).y_values = mach_data.(current_label).Fz.Values.*(-1);   % get y values in newton
+                            case 'mN'
+                                curves.(c_string).y_values = mach_data.(current_label).Fz.Values.*(-1).*1e-3;   % get y values in newton
+                            case 'µN'
+                                curves.(c_string).y_values = mach_data.(current_label).Fz.Values.*(-1).*1e-6;   % get y values in newton
+                            case 'nN'
+                                curves.(c_string).y_values = mach_data.(current_label).Fz.Values.*(-1).*1e-9;   % get y values in newton
+                            otherwise
+                                curves.(c_string).y_values = mach_data.(current_label).Fz.Values.*(-1);   % get y values in any unit
+                                warning on
+                                warning('Unknown unit for Fz\nValues may be laoded in a different unit than newton!%s\n',' ');
+                        end
+                            
+                        % add listbox element                  
+                        it = handles.listbox1.String;
+                        it{i,1} = sprintf('curve %3u  ->  unprocessed',i);
+                        handles.listbox1.String = it;
+                        % update waitbar
+                        wb_num = i/seg_num;
+                        waitbar(wb_num,wb,sprintf('Loading progress: %.f%%',wb_num*100))
+                    end
+                      
                 end
-                
+                                                
             case 'folder'
                 folderpath = get(handles.edit_filepath,'String');       % get folder location
                 listing = [dir(fullfile(folderpath,'*.ibw'));dir(fullfile(folderpath,'*.txt'))];    % information of files in folder
@@ -725,7 +802,10 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
             handles.save_status = 0;            % set save status tag to 0
             handles.save_status_led.BackgroundColor = [1 0 0];
             delete(wb)                          % delete loading waitbar
-        if length(fieldnames(curves)) == num_files
+            if strcmp(handles.loaded_file_type,'mach-txt')
+                num_files = seg_num;
+            end
+            if length(fieldnames(curves)) == num_files
                 handles.num_files = num_files;  % provide max curve number in handles
             else
             num_files = length(fieldnames(curves))-1;                % number of fully loaded curves
@@ -1165,7 +1245,7 @@ end
 if handles.ibw == true
     % update current curve marker on map axes
     handles = update_curve_marker(handles);
-elseif strcmp(handles.loadtype,'file') && handles.ibw == false
+elseif strcmp(handles.loadtype,'file') && handles.ibw == false && ~strcmp(handles.loaded_file_type,'mach-txt')
     % update current curve marker on map axes
     handles = update_curve_marker(handles);
 end
@@ -1243,7 +1323,7 @@ for i=1:selection_diff
     if handles.ibw == true
         % update current curve marker on map axes
         handles = update_curve_marker(handles);
-    elseif strcmp(handles.loadtype,'file') && handles.ibw == false
+elseif strcmp(handles.loadtype,'file') && handles.ibw == false && ~strcmp(handles.loaded_file_type,'mach-txt')
         % update current curve marker on map axes
         handles = update_curve_marker(handles);
     end
@@ -1427,7 +1507,7 @@ guidata(hObject,handles);
 if handles.ibw == true
     % update current curve marker on map axes
     handles = update_curve_marker(handles);
-elseif strcmp(handles.loadtype,'file') && handles.ibw == false
+elseif strcmp(handles.loadtype,'file') && handles.ibw == false && ~strcmp(handles.loaded_file_type,'mach-txt')
     % update current curve marker on map axes
     handles = update_curve_marker(handles);
 end
@@ -1565,7 +1645,7 @@ new_curve_index = curve_index + 1;
 guidata(hObject,handles);
 
 if handles.ibw == true
-elseif strcmp(handles.loadtype,'file') && handles.ibw == false
+elseif strcmp(handles.loadtype,'file') && handles.ibw == false && ~strcmp(handles.loaded_file_type,'mach-txt')
     % update current curve marker on map axes
     handles = update_curve_marker(handles);
 end
@@ -1790,7 +1870,7 @@ guidata(hObject,handles);
 if handles.ibw == true
     % update current curve marker on map axes
     handles = update_curve_marker(handles);
-elseif strcmp(handles.loadtype,'file') && handles.ibw == false
+elseif strcmp(handles.loadtype,'file') && handles.ibw == false && ~strcmp(handles.loaded_file_type,'mach-txt')
     % update current curve marker on map axes
     handles = update_curve_marker(handles);
 end
@@ -1954,7 +2034,7 @@ for a = 1:loop_it
     
     if handles.ibw == true
         
-    elseif strcmp(handles.loadtype,'file') && handles.ibw == false
+elseif strcmp(handles.loadtype,'file') && handles.ibw == false && ~strcmp(handles.loaded_file_type,'mach-txt')
         % update current curve marker on map axes
         handles = update_curve_marker(handles);
     end
@@ -3165,16 +3245,21 @@ function handles = colorbar_helpf(ax_handle,handles)
 % --- Colorbar helper function to display the colorbar properly.
 function handles = info_panel_helpf(handles)
     %     Function to read file information and display them in the info panel
+    loaded_file = handles.loaded_file_type;
     
     % Check if a jpk-force-map was loaded
-    if strcmp(handles.loaded_file_type,'jpk-force-map')         
+    if strcmp(loaded_file,'jpk-force-map')         
         handles.info_table.Data = handles.map_info_array;                
     % Check if ibw files were loaded
-    elseif strcmp(handles.loaded_file_type,'ibw') 
+    elseif strcmp(loaded_file,'ibw') 
         handles.info_table.Data = handles.mfpmapdata{1};        
     % Check if txt files were loaded
-    elseif strcmp(handles.loaded_file_type,'txt')
+    elseif strcmp(loaded_file,'txt')
         handles.info_table.Data = handles.text_file_info;
+    elseif strcmp(loaded_file,'mach-txt')
+        seg_num = handles.current_curve;
+        seg = sprintf('segment%d',seg_num);
+        handles.info_table.Data = handles.mach_info_struct.(seg);
     end
     
     
@@ -3194,10 +3279,39 @@ function help_wiki_Callback(hObject, eventdata, handles)
 % if clicked, open the help wiki on our github site
 web('https://github.com/CANTERhm/Canter_Matlab_Library/wiki/2a.-Force-indentation-processing','-browser');
 
+%--------------------------------------------------------------------
 function handles = get_indenter_parameter(handles)
+% help function to get the indetner geometry parameter and the poisson ration from the options struct    
 handles.tip_angle = handles.options.tip_angle;
 handles.poisson = handles.options.poisson;
 handles.tip_shape = handles.options.tip_shape;
 handles.cylinder_radius = handles.options.cylinder_radius;
 
    
+
+
+
+function hertz_fit_start_Callback(hObject, eventdata, handles)
+% hObject    handle to hertz_fit_start (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of hertz_fit_start as text
+%        str2double(get(hObject,'String')) returns contents of hertz_fit_start as a double
+[hObject,handles] = update_patches_hertzfit(hObject,handles);
+[hObject,handles] = curve_fit_functions(hObject,handles);
+[hObject,handles] = update_fit_results(hObject,handles);
+guidata(hObject,handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function hertz_fit_start_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to hertz_fit_start (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

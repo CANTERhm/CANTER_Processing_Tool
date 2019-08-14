@@ -141,6 +141,7 @@ switch item
         x_fit = handles.proc_curves.(c_string).x_values;
         y_fit = handles.proc_curves.(c_string).y_values;
         d_ind = str2double(handles.hertz_fit_depth.String)*(-1)*1e-6;
+        fit_start = str2double(handles.hertz_fit_start.String)*(-1)*1e-6;
         switch handles.tip_shape
             case 'four_sided_pyramid'
                 indenter_value = handles.tip_angle;
@@ -150,7 +151,7 @@ switch item
         poisson = handles.poisson;
 
         % Hertz fit
-        [EModul,gof,x_fit, y_plot] = HertzFit(x_fit,y_fit,d_ind,handles.tip_shape,indenter_value,poisson);
+        [EModul,gof,x_fit, y_plot,handles.fit_results.hertz_contact_point] = HertzFit(x_fit,y_fit,fit_start,d_ind,handles.tip_shape,indenter_value,poisson);
         
         %Save fitresults in handles
         handles.fit_results.EModul = EModul;
