@@ -43,7 +43,7 @@ function varargout = canti_sample_gui(varargin)
 
 % Edit the above text to modify the response to help canti_sample_gui
 
-% Last Modified by GUIDE v2.5 27-Jul-2018 10:53:09
+% Last Modified by GUIDE v2.5 09-Aug-2019 13:35:20
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -124,6 +124,32 @@ function popupmenu1_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns popupmenu1 contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from popupmenu1
+content_cell = hObject.String;
+content_str = content_cell{hObject.Value};
+
+switch content_str
+    case 'Four sided pyramid'
+        handles.diameter_panel.Visible = false;
+        % display suitable image
+        axes(handles.axes_cantilever)
+        canti_ima = imread('cantilever_tip.png');
+        canti_ima(:,:,2) = canti_ima(:,:,1);
+        canti_ima(:,:,3) = canti_ima(:,:,1);
+        image(canti_ima);
+        axis off
+        axis image
+    case 'Flat cylinder'
+        handles.diameter_panel.Visible = true;
+        % display suitable image
+        axes(handles.axes_cantilever)
+        canti_ima = imread('flat_cylinder.png');
+        canti_ima(:,:,2) = canti_ima(:,:,1);
+        canti_ima(:,:,3) = canti_ima(:,:,1);
+        image(canti_ima);
+        axis off
+        axis image
+        
+end
 
 
 % --- Executes during object creation, after setting all properties.
@@ -182,26 +208,45 @@ function pushbutton1_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-switch handles.uibuttongroup1.SelectedObject.Tag 
-    case 'angle_edge'
-        angle = handles.edit1.String;
-        angle = str2double(angle);
-    case 'angle_face'
-        angle = handles.edit1.String;
-        angle = str2double(angle)*sqrt(2);
-end
+pois_str = handles.edit5.String;
+pois = str2double(pois_str);
 
-pois = handles.edit5.String;
-pois = str2double(pois);
-
-handles.options.tip_angle = angle;
-handles.options.poisson = pois;
 switch handles.popupmenu1.Value
     case 1
         handles.options.tip_shape = 'four_sided_pyramid';
+        switch handles.uibuttongroup1.SelectedObject.Tag 
+            case 'angle_edge'
+                angle = handles.edit1.String;
+                angle = str2double(angle);
+            case 'angle_face'
+                angle = handles.edit1.String;
+                angle = str2double(angle)*sqrt(2);
+        end
+        handles.options.tip_angle = angle;
+        handles.options.cylinder_radius = NaN;
     case 2
-        % noch nix
+        handles.options.tip_shape = 'flat_cylinder';
+        radius_str = handles.diameter_flat_value.String;
+        radius = str2double(radius_str);
+        radius_cell = handles.diameter_flat_unit.String;
+        radius_unit = radius_cell{handles.diameter_flat_unit.Value};
+        switch radius_unit
+            case 'm'
+                handles.options.cylinder_radius = radius;
+            case 'cm'
+                handles.options.cylinder_radius = radius*1e-2;
+            case 'mm'
+                handles.options.cylinder_radius = radius*1e-3;
+            case 'µm'
+                handles.options.cylinder_radius = radius*1e-6;
+            case 'nm'
+                handles.options.cylinder_radius = radius*1e-9;
+        end
+        handles.options.tip_angle = NaN;
 end
+
+
+handles.options.poisson = pois;
 
 guidata(hObject,handles);
 uiresume(handles.figure1);
@@ -260,6 +305,60 @@ function edit5_CreateFcn(hObject, eventdata, handles)
 % handles    empty - handles not created until after all CreateFcns called
 
 % Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function diameter_flat_value_Callback(hObject, eventdata, handles)
+% hObject    handle to diameter_flat_value (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of diameter_flat_value as text
+%        str2double(get(hObject,'String')) returns contents of diameter_flat_value as a double
+
+value_string = hObject.String;
+value_string = strrep(value_string,',','.');
+hObject.String = value_string;
+value = str2double(value_string);
+if isnan(value)
+    hObject.String = '1.0';
+end
+
+
+% --- Executes during object creation, after setting all properties.
+function diameter_flat_value_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to diameter_flat_value (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on selection change in diameter_flat_unit.
+function diameter_flat_unit_Callback(hObject, eventdata, handles)
+% hObject    handle to diameter_flat_unit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns diameter_flat_unit contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from diameter_flat_unit
+
+
+% --- Executes during object creation, after setting all properties.
+function diameter_flat_unit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to diameter_flat_unit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');

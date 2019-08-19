@@ -61,8 +61,10 @@ parse(p,varargin{:});
 %   par(1) = E_s
 %   par(2) = E_h
 %   par(3) = d_h
+
 func = @(par,d)tan(angle.*pi/180)/(2*(1-poisson.^2))*par(1).*d.^2+tan(angle.*pi/180)/(2.*(1-poisson^2)).*((heaviside(d-par(3)*1e-6)-1)*(-1)).*par(2).*(d-par(3)*1e-6).^2;
-par0(3) = par0(3)*1e6;
+par0(3) = par0(3)*1e6;    
+
 
 % data masking
 mask = x < 0;
