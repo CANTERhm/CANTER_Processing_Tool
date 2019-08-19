@@ -174,6 +174,7 @@ switch item
                 %nix%
             end
             handles.figures.fit_plot = plot(x_fit*1e6,y_plot*1e9,'r-');
+            [hObject,handles] = plot_hertz(hObject,handles);
             drawnow;
             hold(handles.figures.main_ax,'off');
         else

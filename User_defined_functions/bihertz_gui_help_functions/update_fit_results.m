@@ -14,7 +14,7 @@ switch handles.options.model
              handles.result_Es.String = sprintf('%3.2f',E_s);
              handles.result_Eh.String = sprintf('%3.2f',E_h);
              handles.result_dh.String = sprintf('%3.2f',d_h);
-             handles.result_rsquare.String = sprintf('%1.4f',r_s);
+             handles.result_rsquare.String = sprintf('%.4f',r_s);
              
         elseif handles.options.bihertz_variant == 2
              % variables
@@ -29,13 +29,13 @@ switch handles.options.model
              handles.result_Eh.String = sprintf('%3.2f',E_h);
              handles.result_dh.String = sprintf('%3.2f',d_h);
              handles.result_switch_point.String = sprintf('%3.2f',s_p);
-             handles.result_rsquare.String = sprintf('%1.4f',r_s);
+             handles.result_rsquare.String = sprintf('%.4f',r_s);
              
         end
          
     case 'hertz'
             set(handles.hertz_EModul,'String', (sprintf('%.2f',(handles.fit_results.EModul/1000))));
-            set(handles.hertz_gof,'String', (sprintf('%.2f', handles.fit_results.gof_rsquare)));
+            set(handles.hertz_gof,'String', (sprintf('%.4f', handles.fit_results.gof_rsquare)));
                 
 end
 

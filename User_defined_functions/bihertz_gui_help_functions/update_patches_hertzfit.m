@@ -44,6 +44,7 @@ function [hObject,handles] = update_patches_hertzfit(hObject,handles)
     figure(handles.figures.main_fig);
     handles.figures.patch_handle = patch(x_p,y_p,grey,'FaceAlpha',.3,'LineStyle','none');
     drawnow;
+        
     %% update gui data
     guidata(hObject,handles)
 end

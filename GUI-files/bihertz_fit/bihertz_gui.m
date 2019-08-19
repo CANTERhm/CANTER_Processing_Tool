@@ -854,6 +854,11 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
             xlabel('Vertical tip position [µm]');
             ylabel({'Force [nN]';''});
             guidata(hObject,handles);
+            
+            % fit data to processed curve and display fitresult
+            [hObject,handles] = curve_fit_functions(hObject,handles);
+            guidata(hObject,handles);
+            
             %Plot the data with chosen model
             switch handles.options.model
                 case 'bihertz'
@@ -863,10 +868,6 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                     [hObject,handles] = plot_hertz(hObject,handles);
                     guidata(hObject,handles);
             end
-
-            % fit data to processed curve and display fitresult
-            [hObject,handles] = curve_fit_functions(hObject,handles);
-            guidata(hObject,handles);
 
             % preallocate result table
             switch handles.options.model
@@ -1238,7 +1239,12 @@ for i=1:selection_diff
     
     % write process info
     [hObject,handles] = update_progress_info(hObject,handles);
-    guidata(hObject,handles);  
+    guidata(hObject,handles);
+    
+    % if a MACH-1 text file is laoded update the info panel
+    if strcmp(handles.loaded_file_type,'mach-txt')
+        handles = info_panel_helpf(handles);
+    end
     
 end
 
@@ -1438,6 +1444,11 @@ guidata(hObject,handles);
 [hObject,handles] = update_fit_results(hObject,handles);
 guidata(hObject,handles);
 
+% if a MACH-1 text file is laoded update the info panel
+if strcmp(handles.loaded_file_type,'mach-txt')
+    handles = info_panel_helpf(handles);
+end
+
 
 % switch all buttons to off after processing
 handles.button_keep_highlighted.Enable = 'off';
@@ -1596,7 +1607,12 @@ else
     
     % update progress values
     handles.progress.num_unprocessed = handles.progress.num_unprocessed -1;
-    handles.progress.num_processed = handles.progress.num_processed +1; 
+    handles.progress.num_processed = handles.progress.num_processed +1;
+    
+    % if a MACH-1 text file is laoded update the info panel
+    if strcmp(handles.loaded_file_type,'mach-txt')
+        handles = info_panel_helpf(handles);
+    end
     
     % write process info
     [hObject,handles] = update_progress_info(hObject,handles);
@@ -1741,6 +1757,11 @@ else
     % write process info
     [hObject,handles] = update_progress_info(hObject,handles);
     guidata(hObject,handles);
+    
+    % if a MACH-1 text file is laoded update the info panel
+    if strcmp(handles.loaded_file_type,'mach-txt')
+        handles = info_panel_helpf(handles);
+    end
     
     % activate undo button when first time pushed
     if curve_index == 1
@@ -1913,6 +1934,11 @@ guidata(hObject,handles);
 % write process info
 [hObject,handles] = update_progress_info(hObject,handles);
 guidata(hObject,handles);
+
+% if a MACH-1 text file is laoded update the info panel
+if strcmp(handles.loaded_file_type,'mach-txt')
+    handles = info_panel_helpf(handles);
+end
 
 % when first curve reached disable undo button and Youngs Modulus image
 if new_curve_index == 1
@@ -2145,7 +2171,12 @@ if ~getappdata(wb,'canceling')
     
     % update progress values
     handles.progress.num_unprocessed = handles.progress.num_unprocessed -1;
-    handles.progress.num_processed = handles.progress.num_processed +1; 
+    handles.progress.num_processed = handles.progress.num_processed +1;
+    
+    % if a MACH-1 text file is laoded update the info panel
+    if strcmp(handles.loaded_file_type,'mach-txt')
+        handles = info_panel_helpf(handles);
+    end
 
     % write process info
     [hObject,handles] = update_progress_info(hObject,handles);
@@ -2404,8 +2435,8 @@ function hertz_fit_depth_Callback(hObject, ~, handles)
 % hObject    handle to hertz_fit_depth (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-[hObject,handles] = update_patches_hertzfit(hObject,handles);
 [hObject,handles] = curve_fit_functions(hObject,handles);
+[hObject,handles] = update_patches_hertzfit(hObject,handles);
 [hObject,handles] = update_fit_results(hObject,handles);
 guidata(hObject,handles);
 
@@ -3298,8 +3329,8 @@ function hertz_fit_start_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of hertz_fit_start as text
 %        str2double(get(hObject,'String')) returns contents of hertz_fit_start as a double
-[hObject,handles] = update_patches_hertzfit(hObject,handles);
 [hObject,handles] = curve_fit_functions(hObject,handles);
+[hObject,handles] = update_patches_hertzfit(hObject,handles);
 [hObject,handles] = update_fit_results(hObject,handles);
 guidata(hObject,handles);
 
