@@ -15,10 +15,13 @@ y_fit = y(baseline_edges(1,1):baseline_edges(1,2));
 [p, ~] = polyfit(x_fit,y_fit,1);
 y_linfit = polyval(p, x);
 
+% save absolut maximum of baseline variations
+variation_max = max(abs(y_fit)-mean(y_linfit));
+
 % Get the intersection point of the baseline and the graph
-contactpoint = find(y-y_linfit <= 0, 1, 'last');
-real_contactpoint = x(contactpoint);
+contactpoint = find(y-y_linfit <= variation_max, 1, 'last');
+real_contactpoint = x(contactpoint-1);
 % Set the contactpoint as 0/0
-x_corrected = x-(x(contactpoint));
+x_corrected = x-(x(contactpoint-1));
 
 end
