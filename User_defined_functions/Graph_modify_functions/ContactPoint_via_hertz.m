@@ -32,10 +32,20 @@ function [x_corrected]=ContactPoint_via_hertz(x, y, baseline_edges, handles,vara
     else
         perc_steps = varargin{1};
     end
-
-    % approximation and calculation of contact point via liniarized
-    % hertz model
-    [~,d_h,~] = initial_guess_hard(x_corrected,y,perc_steps,handles.tip_angle,handles.poisson,'plot','off');
+    
+    switch handles.tip_shape
+        case 'four_sided_pyramid'
+            % approximation and calculation of contact point via liniarized
+            % hertz model
+            [~,d_h,~] = initial_guess_hard(x_corrected,y,perc_steps,handles.tip_angle,handles.poisson,'plot','off');
+        case 'flat_cylinder'
+            % get contact point via polyfit on part of the negative curve
+            % section
+            x_min = min(x_corrected);
+            poly_mask = x_corrected < (x_min - perc_steps/100*x_min);
+            p = polyfit(x_corrected(poly_mask),y(poly_mask),1);
+            d_h = roots(p);
+    end
 
     % Set the new contactpoint as 0/0
     x_corrected = x_corrected-d_h;
