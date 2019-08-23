@@ -79,6 +79,9 @@ handles.output = hObject;
 % get options as input parameter
 handles.options = varargin{1};
 
+% set angle to edge as default selection in uibuttongroup1
+handles.uibuttongroup1.SelectedObject = handles.angle_edge;
+
 % Update handles structure
 guidata(hObject, handles);
 
