@@ -166,14 +166,13 @@ switch item
         
         if strcmp(answer_display, 'Yes')
             % add fit to main plot window
-            figure(handles.figures.main_fig)
             hold(handles.figures.main_ax,'on');
             try
                 delete(handles.figures.fit_plot)
             catch 
                 %nix%
             end
-            handles.figures.fit_plot = plot(x_fit*1e6,y_plot*1e9,'r-');
+            handles.figures.fit_plot = plot(handles.figures.main_ax,x_fit*1e6,y_plot*1e9,'r-');
             [hObject,handles] = plot_hertz(hObject,handles);
             drawnow;
             hold(handles.figures.main_ax,'off');

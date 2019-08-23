@@ -2072,10 +2072,7 @@ for a = 1:loop_it
     new_curve_index = curve_index + 1;
     guidata(hObject,handles);
     
-    if handles.ibw == true
-        % update current curve marker on map axes
-        handles = update_curve_marker(handles);
-elseif strcmp(handles.loadtype,'file') && handles.ibw == false && ~strcmp(handles.loaded_file_type,'mach-txt')
+    if strcmp(handles.loaded_file_type,'ibw') || strcmp(handles.loaded_file_type,'jpk-force-map')
         % update current curve marker on map axes
         handles = update_curve_marker(handles);
     end
@@ -2087,11 +2084,11 @@ elseif strcmp(handles.loadtype,'file') && handles.ibw == false && ~strcmp(handle
     % update waitbar and message
     waitbar(a/loop_it,wb,sprintf('curve %3u of %3u',new_curve_index,handles.num_files));
 
-    %Process new curve
+    % Process new curve
     [hObject,handles] = process_options(hObject,handles);
     
-    %Only show the curve when the user want to see it
-    if strcmp(answer_display, 'Yes') || isempty(answer_display)
+    % Only show the curve when the user want to see it
+    if isempty(answer_display) || strcmp(answer_display, 'Yes')
         % draw new curve
         switch handles.options.model
             case 'bihertz'
@@ -2101,12 +2098,12 @@ elseif strcmp(handles.loadtype,'file') && handles.ibw == false && ~strcmp(handle
                 [hObject,handles] = plot_hertz(hObject,handles);
                 guidata(hObject,handles);
         end
-    else
     end
-
+    
     % fit data to processed curve and display fitresult
     [hObject,handles] = curve_fit_functions(hObject,handles, answer_display);
     guidata(hObject,handles);
+
 
     % update gui fit results
     [hObject,handles] = update_fit_results(hObject,handles);
@@ -2189,7 +2186,7 @@ if ~getappdata(wb,'canceling')
     handles.progress.num_processed = handles.progress.num_processed +1;
     
     % if a MACH-1 text file is laoded update the info panel
-    if strcmp(handles.loaded_file_type,'mach-txt')
+    if strcmp(handles.loaded_file_type,'mach-txt') && handles.current_curve <= handles.num_files
         handles = info_panel_helpf(handles);
     end
 
