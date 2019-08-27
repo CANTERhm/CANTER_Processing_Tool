@@ -10,8 +10,6 @@ function handles = update_curve_marker(handles)
 
 %%
 %   Code starts here
-% make map axes active
-axes(handles.map_axes);
 % draw new marker on the position of the current curve
 curve_num = handles.current_curve;
 
@@ -23,7 +21,7 @@ delete(handles.figures.proc_text);
 hold(handles.map_axes,'on');
 
 
-handles.figures.proc_point = plot(handles.map_info.processing_grid(curve_num,1),...
+handles.figures.proc_point = plot(handles.map_axes,handles.map_info.processing_grid(curve_num,1),...
     handles.map_info.processing_grid(curve_num,2),'.w','MarkerSize',15);
 
 % x position for the text
@@ -42,7 +40,7 @@ else
     y_pos = handles.map_info.processing_grid(curve_num,2)-0.5;
 end
     
-handles.figures.proc_text = text(x_pos,y_pos,...
+handles.figures.proc_text = text(handles.map_axes,x_pos,y_pos,...
     sprintf('%g',curve_num),'Color','w','FontWeight','bold',...
     'HorizontalAlignment',alignment);
 % switch hold satus to off

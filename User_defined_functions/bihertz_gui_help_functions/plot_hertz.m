@@ -92,7 +92,6 @@ else
 end
 handles.figures.baselineedges = scatter(handles.figures.main_ax,[A(1), B(1), C(1)], [A(2), B(2), C(2)]);
 handles.figures.baselineedges_2 = scatter(handles.figures.main_ax,C(1), C(2), 'filled');
-drawnow;
 hold(handles.figures.main_ax,'off');
 
 

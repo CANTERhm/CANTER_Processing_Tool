@@ -77,8 +77,9 @@ info_array = get_map_info(unzipfolder);
 Indexfolder = fullfile(unzipfolder,'index');
 folder = dir(Indexfolder); % get the information of all files in the chosen folder
 files = {folder.name}; % get names(amount of curves) of all files
-files = files(3:length(files)); % get rid of the first two lines with no suitable information
-for i=1:length(files)
+files = files(3:end); % get rid of the first two lines with no suitable information
+num_files = length(files); % get the number of containing force curves
+for i=1:num_files
     filenumber(i)= str2double(files{i});
 end
 filenumber = filenumber';
@@ -100,8 +101,11 @@ y_data_raw = struct; %vDeflection Extend
 x_data_raw_retract = struct; %Height Retract
 y_data_raw_retract = struct; %vDeflection Retract
 
+% devide the Waitbar to speed up code
+dividerWaitbar = 10^(floor(log10(num_files))-1);
+
 % Read all extend curves and save them as x and y values (Height & vDeflection)
-    for i = 1:length(files)
+    for i = 1:num_files
     n = i-1;
     n_s = num2str(n);
     movedir = [Indexfolder '/' n_s];
@@ -113,12 +117,14 @@ y_data_raw_retract = struct; %vDeflection Retract
     y_data_raw.(Forcecurve_count{i}) = fread(fileDeflection,inf, 'short','s');
     fclose('all');
     
-    waitbar(i/length(files)); % Update the waitbar
-    
+    if round(i/dividerWaitbar) == i/dividerWaitbar
+        waitbar(i/num_files,wbar); % Update the waitbar
+    end
+        
     end
     
 % Read all retract curves and save them as x and y values (Height & vDeflection)
-    for i = 1:length(files)
+    for i = 1:num_files
     n = i-1;
     n_s = num2str(n);
     movedir = [Indexfolder '/' n_s];
@@ -130,7 +136,9 @@ y_data_raw_retract = struct; %vDeflection Retract
     y_data_raw_retract.(Forcecurve_count{i}) = fread(fileDeflection,inf, 'short','s');
     fclose('all');
     
-    waitbar(i/length(files)); % Update the waitbar
+    if round(i/dividerWaitbar) == i/dividerWaitbar
+        waitbar(i/num_files,wbar); % Update the waitbar
+    end
     
     end
 close(wbar);    
@@ -243,7 +251,7 @@ y_data_retract = struct; % vDeflection Extend
 wbar = waitbar(0,'Decoding all channels');
 % Decode measuredHeight
 %Decode the height for the extend part
-for i=1:length(files)
+for i=1:num_files
     x_data.(Forcecurve_count{i})=x_data_raw.(Forcecurve_count{i}).*encoder(6)+encoder(5);
     x_data.(Forcecurve_count{i})=x_data.(Forcecurve_count{i}).*encoder(2)+encoder(1);
     % x_data.(Forcecurve_count{i})=(x_data.(Forcecurve_count{i})*multiplier_cali_height)+offset_cali_height;
@@ -253,7 +261,7 @@ for i=1:length(files)
 end
 waitbar(0.25,wbar);
 %Decode the height for the retract part
-for i=1:length(files)
+for i=1:num_files
     x_data_retract.(Forcecurve_count{i})=(x_data_raw_retract.(Forcecurve_count{i})*encoder(6))+encoder(5);
     x_data_retract.(Forcecurve_count{i})=(x_data_retract.(Forcecurve_count{i})*encoder(2))+encoder(1);
     % x_data.(Forcecurve_count{i})=(x_data.(Forcecurve_count{i})*multiplier_cali_height)+offset_cali_height;
@@ -264,12 +272,12 @@ end
 waitbar(0.5,wbar);
 % Decode vDeflection
 % Decode the vDeflection for the extend part
-for i=1:length(files)
+for i=1:num_files
     y_data.(Forcecurve_count{i})=(y_data_raw.(Forcecurve_count{i})*encoder(8))+encoder(7);
 end
 waitbar(0.75,wbar);
 % Decode the vDeflection for the retract part
-for i=1:length(files)
+for i=1:num_files
     y_data_retract.(Forcecurve_count{i})=(y_data_raw_retract.(Forcecurve_count{i})*encoder(8))+encoder(7);
 end
 waitbar(1,wbar);

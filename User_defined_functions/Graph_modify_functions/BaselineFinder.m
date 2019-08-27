@@ -47,13 +47,17 @@ interval_min = uint64(1);
 slope = zeros([3 (100-windowlength)]);
 % Shift the window in 1% steps over the curve to find the lowest slope 
 for window=1:100-windowlength
-    x_fit = x(interval_min:interval_max);
-    y_fit = y(interval_min:interval_max);
+    x_fit = x(interval_min:interval_max,1);
+    y_fit = y(interval_min:interval_max,1);
+    % X_fit matrix
+    X_fit = [ones(length(x_fit),1) x_fit];
 
     %Fit the Linear fit to the given window and save the slope of the
     %linear fit
-    [p, ~] = polyfit(x_fit,y_fit,1);
-    slope(1,window) = p(1);
+    % instead of polyfit(x,y,1) we use here the matrix operation X\y to
+    % improve code performance
+    p = X_fit\y_fit;
+    slope(1,window) = p(2);
     slope(2,window) = interval_min;
     slope(3,window) = interval_max;
 
