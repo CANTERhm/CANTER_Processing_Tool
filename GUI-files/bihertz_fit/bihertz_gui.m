@@ -2017,6 +2017,9 @@ setappdata(wb,'canceling',0);
 answer_display = questdlg('Do you want every graph/fit to be displayed?',...
     'Graphical Presentation','Yes','No','Yes');
 
+% Devider for the waitbar to speed up the code performance of
+% keep_all_callback
+
 for a = 1:loop_it
     
     % check for clicked cancel button
@@ -2084,6 +2087,7 @@ for a = 1:loop_it
     % update waitbar and message
     waitbar(a/loop_it,wb,sprintf('curve %3u of %3u',new_curve_index,handles.num_files));
 
+
     % Process new curve
     [hObject,handles] = process_options(hObject,handles);
     
@@ -2116,7 +2120,10 @@ for a = 1:loop_it
     % write process info
     [hObject,handles] = update_progress_info(hObject,handles);
     guidata(hObject,handles);
-
+    
+    % update the changed GUI elements
+    drawnow limitrate nocallbacks
+    
 end
 % reset user aswer for displaying curves
 handles.answer_display = [];
