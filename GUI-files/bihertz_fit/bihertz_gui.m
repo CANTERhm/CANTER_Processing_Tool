@@ -298,13 +298,16 @@ function listbox1_ButtonDownFcn(~, ~, ~)
 
 
 
-function edit_filepath_Callback(~, ~, ~)
+function edit_filepath_Callback(hObject, ~, ~)
 % hObject    handle to edit_filepath (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hints: get(hObject,'String') returns contents of edit_filepath as text
 %        str2double(get(hObject,'String')) returns contents of edit_filepath as a double
+
+tooltip_string = hObject.Tooltip;
+hObject.String = tooltip_string;
 
 
 % --- Executes during object creation, after setting all properties.
@@ -332,8 +335,11 @@ function button_file_Callback(hObject, ~, handles)
 if ~isequal(file,0)
     % save last load path for next invoke of uigetfile
     handles.last_load_path = path;
-    
-    set(handles.edit_filepath,'String',fullfile(path,file))
+    fullpathtofile = fullfile(path,file);
+    handles.edit_filepath.HorizontalAlignment = 'right';
+    handles.edit_filepath.Enable = 'on';
+    handles.edit_filepath.String = fullpathtofile;
+    handles.edit_filepath.Tooltip = fullpathtofile;
     handles.filefilter = ext;
     handles.loadtype = 'file';
     guidata(hObject,handles)
@@ -2407,7 +2413,10 @@ if ~isequal(path,0)
     path_short = fullfile(parts{1:end-1});
     handles.last_load_path = path_short;
     
-    set(handles.edit_filepath,'String',path);
+    handles.edit_filepath.String = path;
+    handles.edit_filepath.Enable = 'on';
+    handles.edit_filepath.HorizontalAlignment = 'right';
+    handles.edit_filepath.Tooltip = path;
     handles.loadtype = 'folder';
     guidata(hObject,handles)
 end
