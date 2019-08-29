@@ -516,7 +516,11 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                     % if loading of file was successful, set the loaded
                     % file type to mach-txt and set fit-depth to  500 µm
                     handles.loaded_file_type = 'mach-txt';
-                    handles.hertz_fit_depth.String = '500';
+                    % set fit-depth to 500 µm just in case the value is 1 µm
+                    % which is the AFM default value for the fit-depth
+                    if strcmp(handles.hertz_fit_depth.String,'1')
+                        handles.hertz_fit_depth.String = '500';
+                    end
                     
                     % set channel_names empty
                     handles.channel_names = 'no loaded channels';
