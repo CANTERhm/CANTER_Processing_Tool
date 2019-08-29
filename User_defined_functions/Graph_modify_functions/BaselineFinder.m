@@ -45,7 +45,17 @@ interval_max = uint64(onepercent_length*windowlength);
 interval_min = uint64(1);
 
 slope = zeros([3 (100-windowlength)]);
-% Shift the window in 1% steps over the curve to find the lowest slope 
+% Shift the window in 1% steps over the curve to find the lowest slope
+
+% x and y have to be column vectors for the fit operation p = X_fit\y_fit;
+if isrow(x)
+    x = x';
+end
+if isrow(y)
+    y = y';
+end
+
+
 for window=1:100-windowlength
     x_fit = x(interval_min:interval_max,1);
     y_fit = y(interval_min:interval_max,1);
