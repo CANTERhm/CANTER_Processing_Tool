@@ -1111,6 +1111,7 @@ selection_num = handles.listbox1.Value;
 selection_diff = selection_num - handles.current_curve;
 for i=1:selection_diff
     button_keep_Callback(handles.button_keep,[],handles)
+    drawnow limitrate nocallbacks;
     handles = guidata(handles.button_keep);
 end
 % switch all buttons to off after processing
