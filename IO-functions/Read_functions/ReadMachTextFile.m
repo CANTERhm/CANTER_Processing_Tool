@@ -12,7 +12,11 @@ function [mach_data,segment_headers] = ReadMachTextFile(varargin)
     %   [mach_data,segment_infos] = ReadMachTextFile(filepath);
     %   Optionally, you can also give the function the filepath of the text
     %   file you want to read as a string.
-    
+    %       
+    %   If an empty MACH-1 file is loaded, this function shows an error
+    %   dialog and the function returns -1 for both, mach_data and
+    %   segment_headers.
+    %     
     
     
     %% Code
@@ -56,6 +60,14 @@ function [mach_data,segment_headers] = ReadMachTextFile(varargin)
     file_cell = file_cell{:};
     % Close file ID
     fclose(file_id);
+    
+    % throw an error if the loaded MACH-1 file is empty
+    if isempty(file_cell)
+       errordlg(sprintf('You can not load an empty MACH-1 file!\nPlease select a MACH-1 file with content.%s',' '),'Empty file error');
+       mach_data = -1;
+       segment_headers = -1;
+       return;
+    end
     
     % Get indices of segment start (header + data)
     match_segment_start_cell = cellfun(@(x) strcmp(x,'<INFO>'),file_cell,'UniformOutput',false);
