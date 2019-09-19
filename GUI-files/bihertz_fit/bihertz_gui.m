@@ -512,6 +512,13 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                    
                 elseif handles.filefilter == 2
                     [mach_data,mach_info] = ReadMachTextFile(handles.edit_filepath.String);
+                    
+                    % interrupt callback when an empty MACH-1 file is
+                    % loaded
+                    if (isnumeric(mach_data) && mach_data == -1) || (isnumeric(mach_info) && mach_info == -1)
+                       return; 
+                    end
+                    
                     handles.mach_info_struct = mach_info;
                     % if loading of file was successful, set the loaded
                     % file type to mach-txt and set fit-depth to  500 µm
