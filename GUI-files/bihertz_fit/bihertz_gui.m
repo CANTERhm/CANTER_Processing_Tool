@@ -45,7 +45,7 @@ function varargout = bihertz_gui(varargin)
 
 % Edit the above text to modify the response to help bihertz_gui
 
-% Last Modified by GUIDE v2.5 14-Aug-2019 13:19:53
+% Last Modified by GUIDE v2.5 19-Sep-2019 13:20:15
     warning off
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -2845,7 +2845,7 @@ else
         axes(handles.map_axes);
         imshow(handles.MFP_cpoint_matrix,'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel], 'DisplayRange', []);
         
-    else strcmp(channel_string, 'Youngs Modulus')
+    elseif strcmp(channel_string, 'Youngs Modulus')
         axes(handles.map_axes);
         imshow(handles.MFP_Ymodulus_matrix,'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel], 'DisplayRange', []);
     end
@@ -3140,7 +3140,7 @@ guidata(hObject,handles);
 
 
 
-function contact_percentage_hertz_Callback(hObject, eventdata, handles)
+function contact_percentage_hertz_Callback(hObject, ~, handles)
 % hObject    handle to contact_percentage_hertz (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -3166,7 +3166,7 @@ btngroup_contact_SelectionChangedFcn(handles.btngroup_contact,[], handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function contact_percentage_hertz_CreateFcn(hObject, eventdata, handles)
+function contact_percentage_hertz_CreateFcn(hObject, ~, ~)
 % hObject    handle to contact_percentage_hertz (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -3179,14 +3179,14 @@ end
 
 
 % --- Executes during object creation, after setting all properties.
-function uipanel10_CreateFcn(hObject, eventdata, handles)
+function uipanel10_CreateFcn(~, ~, ~)
 % hObject    handle to uipanel10 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
 
 
-function result_switch_point_Callback(hObject, eventdata, handles)
+function result_switch_point_Callback(~, ~, ~)
 % hObject    handle to result_switch_point (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -3196,7 +3196,7 @@ function result_switch_point_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function result_switch_point_CreateFcn(hObject, eventdata, handles)
+function result_switch_point_CreateFcn(hObject, ~, ~)
 % hObject    handle to result_switch_point (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -3448,14 +3448,14 @@ function handles = info_panel_helpf(handles)
     
     
 % --------------------------------------------------------------------
-function help_menu_Callback(hObject, eventdata, handles)
+function help_menu_Callback(~, ~, ~)
 % hObject    handle to help_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 
 % --------------------------------------------------------------------
-function help_wiki_Callback(hObject, eventdata, handles)
+function help_wiki_Callback(~, ~, ~)
 % hObject    handle to help_wiki (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -3475,7 +3475,7 @@ handles.cylinder_radius = handles.options.cylinder_radius;
 
 
 
-function hertz_fit_start_Callback(hObject, eventdata, handles)
+function hertz_fit_start_Callback(hObject, ~, handles)
 % hObject    handle to hertz_fit_start (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -3489,7 +3489,7 @@ guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function hertz_fit_start_CreateFcn(hObject, eventdata, handles)
+function hertz_fit_start_CreateFcn(hObject, ~, ~)
 % hObject    handle to hertz_fit_start (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -3498,4 +3498,36 @@ function hertz_fit_start_CreateFcn(hObject, eventdata, handles)
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
+end
+
+
+% --------------------------------------------------------------------
+function save_image_Callback(~, ~, handles)
+% hObject    handle to save_image (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+path = get(handles.edit_filepath,'String');
+[filepath,filename,~] = fileparts(path);
+
+if ~exist(filepath, 'dir')
+  mkdir(filepath);
+end
+
+channels = handles.image_channels_popup.String;
+channel_indx = handles.image_channels_popup.Value;
+channel = channels{channel_indx};
+
+baseFileName =  sprintf('%s_%s_%s.jpg',filename,channel, handles.interpolation_type);
+fullFileName = fullfile(filepath, baseFileName); 
+image = getframe(gca);
+if exist(fullFileName, 'file')
+    answer = questdlg({'File already exists!',...
+            'Do you want to overwrite the existing file?'},...
+            'Warning!','Yes','No','Yes');
+        if strcmp(answer,'Yes')
+            imwrite(image.cdata, fullFileName); % img respresents input image.
+        else
+        end
+else
+    imwrite(image.cdata, fullFileName); % img respresents input image.
 end
