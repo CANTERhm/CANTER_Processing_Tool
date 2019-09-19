@@ -1143,7 +1143,11 @@ if curve_index_old == 1
     handles.button_undo.Enable = 'on';
     handles.btn_histogram.Enable = 'on';
     handles.btn_gof.Enable = 'on';
-    handles.channel_names = [handles.channel_names(:,1);{'Youngs Modulus'}];
+    if handles.ibw == true
+        handles.channel_names = [handles.channel_names(:,1);{'Youngs Modulus'}; {'Contactpoint'}];
+    else
+        handles.channel_names = [handles.channel_names(:,1);{'Youngs Modulus'}];
+    end
     handles.image_channels_popup.String = handles.channel_names;
 end
 
@@ -1332,7 +1336,16 @@ if new_curve_index == 1
     channel_find = cellfun(@(x)strcmp(x,'Youngs Modulus'),handles.channel_names);
     if any(channel_find)
         handles.channel_names = handles.channel_names(~channel_find);
+        handles.image_channels_popup.Value = length(handles.channel_names);
         handles.image_channels_popup.String = handles.channel_names;
+    end
+    if handles.ibw == true
+        channel_find_contact = cellfun(@(x)strcmp(x,'Contactpoint'),handles.channel_names);
+        if any(channel_find_contact)
+            handles.channel_names = handles.channel_names(~channel_find_contact);
+            handles.image_channels_popup.Value = length(handles.channel_names);
+            handles.image_channels_popup.String = handles.channel_names;
+        end
     end
 end
 
@@ -1665,7 +1678,12 @@ else
         handles.button_undo.Enable = 'on';
         handles.btn_histogram.Enable = 'on';
         handles.btn_gof.Enable = 'on';
-        handles.channel_names = [handles.channel_names(:,1);{'Youngs Modulus', 'Contactpoint'}];
+    elseif (curve_index == 1 || handles.progress.num_processed == 1)
+        if handles.ibw == true
+            handles.channel_names = [handles.channel_names(:,1);{'Youngs Modulus'};{'Contactpoint'}];
+        else 
+            handles.channel_names = [handles.channel_names(:,1);{'Youngs Modulus'}];
+        end
         handles.image_channels_popup.String = handles.channel_names;
     end
     
@@ -1984,7 +2002,7 @@ if strcmp(handles.loaded_file_type,'mach-txt')
     handles = info_panel_helpf(handles);
 end
 
-% when first curve reached disable undo button and Youngs Modulus image
+% when first curve reached disable undo button, Youngs Modulus and Contactpoint image
 if new_curve_index == 1
     handles.button_undo.Enable = 'off';
     handles.fit_model_popup.Enable = 'on';
@@ -1993,7 +2011,16 @@ if new_curve_index == 1
     channel_find = cellfun(@(x)strcmp(x,'Youngs Modulus'),handles.channel_names);
     if any(channel_find)
         handles.channel_names = handles.channel_names(~channel_find);
+        handles.image_channels_popup.Value = length(handles.channel_names);
         handles.image_channels_popup.String = handles.channel_names;
+    end
+    if handles.ibw == true
+        channel_find_contact = cellfun(@(x)strcmp(x,'Contactpoint'),handles.channel_names);
+        if any(channel_find)
+            handles.channel_names = handles.channel_names(~channel_find_contact);
+            handles.image_channels_popup.Value = length(handles.channel_names);
+            handles.image_channels_popup.String = handles.channel_names;
+        end
     end
 end
 
@@ -2024,10 +2051,14 @@ handles.button_undo.Enable = 'off';
 handles.btn_histogram.Enable = 'off';
 handles.btn_gof.Enable = 'off';
 
-if handles.current_curve == 1
-    % Enable Youngs Modulus image
+% Enable Youngs Modulus/Contactpoint image
+if (handles.current_curve == 1 || handles.progress.num_processed == 0)
     channels = handles.image_channels_popup.String;
-    handles.channel_names = [channels;{'Youngs Modulus'};{'Contactpoint'}];
+    if handles.ibw == true
+        handles.channel_names = [channels;{'Youngs Modulus'};{'Contactpoint'}];
+    else
+        handles.channel_names = [channels;{'Youngs Modulus'}];
+    end
     handles.image_channels_popup.String = handles.channel_names;
 end
 
@@ -2155,7 +2186,7 @@ for a = 1:loop_it
     drawnow limitrate nocallbacks
     
 end
-% reset user aswer for displaying curves
+% reset user answer for displaying curves
 handles.answer_display = [];
 
 % reable buttons after processing
