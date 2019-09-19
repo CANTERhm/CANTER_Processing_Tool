@@ -927,18 +927,13 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
             handles.button_keep_all.Enable = 'on';
             handles.fit_model_popup.Enable = 'on';
             
-
+            % If button is pressed again without closing the app
+            % interpolation check marks have to be updated
+            [hObject,handles] = checker_helpf(hObject,handles);
 
         end
     end
 end
-
-%If button is pressed again without reopening app, update interpolation
-handles.interpolation_type = 'bicubic';
-handles.none.Checked = 'off';
-handles.linear.Checked  = 'off';
-handles.bicubic.Checked = 'on';
-
 
 guidata(hObject,handles);
 
