@@ -45,7 +45,7 @@ function varargout = bihertz_gui(varargin)
 
 % Edit the above text to modify the response to help bihertz_gui
 
-% Last Modified by GUIDE v2.5 14-Aug-2019 13:19:53
+% Last Modified by GUIDE v2.5 19-Sep-2019 13:20:15
     warning off
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -717,9 +717,12 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                     handles.map_axes.Visible = 'on';
                     handles.image_channels_popup.Value = 1;
                     axes(handles.map_axes);
-                    imshow(handles.MFP_height_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
+                    %Bicubic interpolation is set as default
+                    imshow(handles.MFP_height_matrix_cubic_interpolation, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
                     set_afm_gold();
                     handles = colorbar_helpf(handles.map_axes,handles);
+                    hline = findall(gca,'Type','image');
+                    set(hline(1),'uicontextmenu',handles.map_axes_context);
                     
                     % create processing grid for visual curve feedback
                     handles.map_info = struct('x_pixel',0,'y_pixel',0,'processing_grid',[0,0]);
@@ -930,10 +933,19 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
             handles.button_discard.Enable = 'on';
             handles.button_keep_all.Enable = 'on';
             handles.fit_model_popup.Enable = 'on';
+            
+
 
         end
     end
 end
+
+%If button is pressed again without reopening app, update interpolation
+handles.interpolation_type = 'bicubic';
+handles.none.Checked = 'off';
+handles.linear.Checked  = 'off';
+handles.bicubic.Checked = 'on';
+
 
 guidata(hObject,handles);
 
@@ -1131,7 +1143,11 @@ if curve_index_old == 1
     handles.button_undo.Enable = 'on';
     handles.btn_histogram.Enable = 'on';
     handles.btn_gof.Enable = 'on';
-    handles.channel_names = [handles.channel_names(:,1);{'Youngs Modulus'}];
+    if handles.ibw == true
+        handles.channel_names = [handles.channel_names(:,1);{'Youngs Modulus'}; {'Contactpoint'}];
+    else
+        handles.channel_names = [handles.channel_names(:,1);{'Youngs Modulus'}];
+    end
     handles.image_channels_popup.String = handles.channel_names;
 end
 
@@ -1320,7 +1336,16 @@ if new_curve_index == 1
     channel_find = cellfun(@(x)strcmp(x,'Youngs Modulus'),handles.channel_names);
     if any(channel_find)
         handles.channel_names = handles.channel_names(~channel_find);
+        handles.image_channels_popup.Value = length(handles.channel_names);
         handles.image_channels_popup.String = handles.channel_names;
+    end
+    if handles.ibw == true
+        channel_find_contact = cellfun(@(x)strcmp(x,'Contactpoint'),handles.channel_names);
+        if any(channel_find_contact)
+            handles.channel_names = handles.channel_names(~channel_find_contact);
+            handles.image_channels_popup.Value = length(handles.channel_names);
+            handles.image_channels_popup.String = handles.channel_names;
+        end
     end
 end
 
@@ -1653,7 +1678,12 @@ else
         handles.button_undo.Enable = 'on';
         handles.btn_histogram.Enable = 'on';
         handles.btn_gof.Enable = 'on';
-        handles.channel_names = [handles.channel_names(:,1);{'Youngs Modulus'}];
+    elseif (curve_index == 1 || handles.progress.num_processed == 1)
+        if handles.ibw == true
+            handles.channel_names = [handles.channel_names(:,1);{'Youngs Modulus'};{'Contactpoint'}];
+        else 
+            handles.channel_names = [handles.channel_names(:,1);{'Youngs Modulus'}];
+        end
         handles.image_channels_popup.String = handles.channel_names;
     end
     
@@ -1972,7 +2002,7 @@ if strcmp(handles.loaded_file_type,'mach-txt')
     handles = info_panel_helpf(handles);
 end
 
-% when first curve reached disable undo button and Youngs Modulus image
+% when first curve reached disable undo button, Youngs Modulus and Contactpoint image
 if new_curve_index == 1
     handles.button_undo.Enable = 'off';
     handles.fit_model_popup.Enable = 'on';
@@ -1981,7 +2011,16 @@ if new_curve_index == 1
     channel_find = cellfun(@(x)strcmp(x,'Youngs Modulus'),handles.channel_names);
     if any(channel_find)
         handles.channel_names = handles.channel_names(~channel_find);
+        handles.image_channels_popup.Value = length(handles.channel_names);
         handles.image_channels_popup.String = handles.channel_names;
+    end
+    if handles.ibw == true
+        channel_find_contact = cellfun(@(x)strcmp(x,'Contactpoint'),handles.channel_names);
+        if any(channel_find)
+            handles.channel_names = handles.channel_names(~channel_find_contact);
+            handles.image_channels_popup.Value = length(handles.channel_names);
+            handles.image_channels_popup.String = handles.channel_names;
+        end
     end
 end
 
@@ -2012,10 +2051,14 @@ handles.button_undo.Enable = 'off';
 handles.btn_histogram.Enable = 'off';
 handles.btn_gof.Enable = 'off';
 
-if handles.current_curve == 1
-    % Enable Youngs Modulus image
+% Enable Youngs Modulus/Contactpoint image
+if (handles.current_curve == 1 || handles.progress.num_processed == 0)
     channels = handles.image_channels_popup.String;
-    handles.channel_names = [channels;{'Youngs Modulus'};{'Contactpoint'}];
+    if handles.ibw == true
+        handles.channel_names = [channels;{'Youngs Modulus'};{'Contactpoint'}];
+    else
+        handles.channel_names = [channels;{'Youngs Modulus'}];
+    end
     handles.image_channels_popup.String = handles.channel_names;
 end
 
@@ -2143,7 +2186,7 @@ for a = 1:loop_it
     drawnow limitrate nocallbacks
     
 end
-% reset user aswer for displaying curves
+% reset user answer for displaying curves
 handles.answer_display = [];
 
 % reable buttons after processing
@@ -2352,7 +2395,7 @@ guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function fit_model_popup_CreateFcn(hObject, ~, handles)
+function fit_model_popup_CreateFcn(hObject, ~, ~)
 % hObject    handle to fit_model_popup (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -2623,18 +2666,35 @@ function image_channels_popup_Callback(hObject, ~, handles)
 %        contents{get(hObject,'Value')} returns selected item from image_channels_popup
 [hObject,handles] = checker_helpf(hObject,handles);
 if (handles.ibw == true)
+    channel_interpolation = handles.interpolation_type;
     channel_string = hObject.String(hObject.Value);
     if strcmp(channel_string,'height')
         axes(handles.map_axes);
-        imshow(handles.MFP_height_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
+        if strcmp (channel_interpolation, 'linear')
+            imshow(handles.MFP_height_matrix_linear_interpolation,'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel], 'DisplayRange', []);
+        elseif strcmp (channel_interpolation, 'bicubic')
+            imshow(handles.MFP_height_matrix_cubic_interpolation,'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel], 'DisplayRange', []);
+        else
+            imshow(handles.MFP_height_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
+        end
         set_afm_gold();
         handles = colorbar_helpf(handles.map_axes,handles);
+        hline = findall(gca,'Type','image');
+        set(hline(1),'uicontextmenu',handles.map_axes_context);
         
     elseif strcmp(channel_string, 'slope')
         axes(handles.map_axes);
-        imshow(handles.MFP_mslope_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
+        if strcmp (channel_interpolation, 'linear')
+            imshow(handles.MFP_mslope_matrix_linear_interpolation,'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel], 'DisplayRange', []);
+        elseif strcmp(channel_interpolation, 'bicubic')
+            imshow(handles.MFP_mslope_matrix_cubic_interpolation,'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel], 'DisplayRange', []);
+        else
+            imshow(handles.MFP_mslope_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
+        end
         set_afm_gold();
         handles = colorbar_helpf(handles.map_axes,handles);
+        hline = findall(gca,'Type','image');
+        set(hline(1),'uicontextmenu',handles.map_axes_context);
         
     elseif strcmp(channel_string, 'Youngs Modulus')
         
@@ -2663,11 +2723,23 @@ if (handles.ibw == true)
         Ymodulus_matrix(Ymodulus_matrix == 0 | Ymodulus_matrix == pi) = [];
         handles.MFP_Ymodulus_matrix(handles.MFP_Ymodulus_matrix == 0 | handles.MFP_Ymodulus_matrix == pi) = min(min(Ymodulus_matrix));
         handles.colorgrad_Ymodulus = flipud(linspace(min(min(handles.MFP_Ymodulus_matrix)), max(max(handles.MFP_Ymodulus_matrix)), 100))';
+        
+        % Get interpolation maps
+        [handles.MFP_Ymodulus_matrix_linear_interpolation, handles.MFP_Ymodulus_matrix_cubic_interpolation] = ImageInterpolationMFP(handles.MFP_fmap_num_points,handles.MFP_fmap_num_line,handles.MFP_Ymodulus_matrix);
+        
         %Display the Youngs Modulus matrix
         axes(handles.map_axes);
-        imshow(handles.MFP_Ymodulus_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
+        if strcmp (channel_interpolation, 'linear')
+            imshow(handles.MFP_Ymodulus_matrix_linear_interpolation,'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel], 'DisplayRange', []);
+        elseif strcmp(channel_interpolation, 'bicubic')
+            imshow(handles.MFP_Ymodulus_matrix_cubic_interpolation,'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel], 'DisplayRange', []);
+        else
+            imshow(handles.MFP_Ymodulus_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
+        end
         set_afm_gold();
         handles = colorbar_helpf(handles.map_axes,handles);
+        hline = findall(gca,'Type','image');
+        set(hline(1),'uicontextmenu',handles.map_axes_context);
         
     elseif strcmp(channel_string, 'Contactpoint')
         
@@ -2691,10 +2763,23 @@ if (handles.ibw == true)
         
         cpoint_matrix(cpoint_matrix == 0) = min(cpoint);
         cpoint_matrix = flip(cpoint_matrix);
+        handles.MFP_cpoint_matrix = cpoint_matrix;
+        
+        % Get interpolation maps
+        [handles.MFP_cpoint_matrix_linear_interpolation, handles.MFP_cpoint_matrix_cubic_interpolation] = ImageInterpolationMFP(handles.MFP_fmap_num_points,handles.MFP_fmap_num_line,handles.MFP_cpoint_matrix);
+        
         axes(handles.map_axes);
-        imshow(cpoint_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
+        if strcmp (channel_interpolation, 'linear')
+            imshow(handles.MFP_cpoint_matrix_linear_interpolation, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
+        elseif strcmp(channel_interpolation, 'bicubic')
+            imshow(handles.MFP_cpoint_matrix_cubic_interpolation, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
+        else
+            imshow(cpoint_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.MFP_fmap_num_points], 'YData', [1 handles.MFP_fmap_num_line], 'DisplayRange', []);
+        end
         set_afm_gold();
         handles = colorbar_helpf(handles.map_axes,handles);
+        hline = findall(gca,'Type','image');
+        set(hline(1),'uicontextmenu',handles.map_axes_context);
 
     end
 else
@@ -2760,23 +2845,43 @@ handles.interpolation_type = 'none';
 channel_num = handles.image_channels_popup.Value;
 channel_string = handles.channel_names{channel_num};
 channel_interpolation = handles.interpolation_type;
-if ~strcmp(channel_interpolation,'none')
-    interpolation_string = sprintf('_%s_interpolation',channel_interpolation);
-else
-    interpolation_string = '';
-end
+if handles.ibw == false
+    if ~strcmp(channel_interpolation,'none')
+        interpolation_string = sprintf('_%s_interpolation',channel_interpolation);
+    else
+        interpolation_string = '';
+    end
 
-if strcmp(channel_string,'height')
-    channel_image = handles.map_images.height.(sprintf('absolute_%s_data%s',...
-    channel_string,interpolation_string));
-else
-    channel_image = handles.map_images.(channel_string).(sprintf('%s_data%s',...
+    if strcmp(channel_string,'height')
+        channel_image = handles.map_images.height.(sprintf('absolute_%s_data%s',...
         channel_string,interpolation_string));
-end
+    else
+        channel_image = handles.map_images.(channel_string).(sprintf('%s_data%s',...
+            channel_string,interpolation_string));
+    end
 
-axes(handles.map_axes);
-imshow(flip(channel_image,1),[],'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel]);
-handles.map_axes.YDir = 'normal';
+    axes(handles.map_axes);
+    imshow(flip(channel_image,1),[],'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel]);
+    handles.map_axes.YDir = 'normal';
+else
+    if strcmp(channel_string,'height')
+        axes(handles.map_axes);
+        imshow(handles.MFP_height_matrix,'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel], 'DisplayRange', []);
+        
+    elseif strcmp(channel_string, 'slope')
+        axes(handles.map_axes);
+        imshow(handles.MFP_mslope_matrix,'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel], 'DisplayRange', []);
+        
+    elseif strcmp(channel_string, 'Contactpoint')
+        axes(handles.map_axes);
+        imshow(handles.MFP_cpoint_matrix,'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel], 'DisplayRange', []);
+        
+    elseif strcmp(channel_string, 'Youngs Modulus')
+        axes(handles.map_axes);
+        imshow(handles.MFP_Ymodulus_matrix,'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel], 'DisplayRange', []);
+    end
+end
+    
 handles = update_curve_marker(handles);
 hline = findall(gca,'Type','image');
 set(hline(1),'uicontextmenu',handles.map_axes_context);
@@ -2795,21 +2900,41 @@ handles.interpolation_type = 'linear';
 channel_num = handles.image_channels_popup.Value;
 channel_string = handles.channel_names{channel_num};
 channel_interpolation = handles.interpolation_type;
-if ~strcmp(channel_interpolation,'none')
-    interpolation_string = sprintf('_%s_interpolation',channel_interpolation);
-else
-    interpolation_string = '';
-end
-if strcmp(channel_string,'height')
-    channel_image = handles.map_images.height.(sprintf('absolute_%s_data%s',...
-    channel_string,interpolation_string));
-else
-    channel_image = handles.map_images.(channel_string).(sprintf('%s_data%s',...
+if handles.ibw == false
+    if ~strcmp(channel_interpolation,'none')
+        interpolation_string = sprintf('_%s_interpolation',channel_interpolation);
+    else
+        interpolation_string = '';
+    end
+    if strcmp(channel_string,'height')
+        channel_image = handles.map_images.height.(sprintf('absolute_%s_data%s',...
         channel_string,interpolation_string));
+    else
+        channel_image = handles.map_images.(channel_string).(sprintf('%s_data%s',...
+            channel_string,interpolation_string));
+    end
+    axes(handles.map_axes);
+    imshow(flip(channel_image,1),[],'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel]);
+    handles.map_axes.YDir = 'normal';
+    
+else
+    if strcmp(channel_string,'height')
+        axes(handles.map_axes);
+        imshow(handles.MFP_height_matrix_linear_interpolation,'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel], 'DisplayRange', []);
+        
+    elseif strcmp(channel_string, 'slope')
+        axes(handles.map_axes);
+        imshow(handles.MFP_mslope_matrix_linear_interpolation,'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel], 'DisplayRange', []);
+        
+    elseif strcmp(channel_string, 'Contactpoint')
+        axes(handles.map_axes);
+        imshow(handles.MFP_cpoint_matrix_linear_interpolation,'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel], 'DisplayRange', []);
+        
+    else strcmp(channel_string, 'Youngs Modulus')
+        axes(handles.map_axes);
+        imshow(handles.MFP_Ymodulus_matrix_linear_interpolation,'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel], 'DisplayRange', []);
+    end
 end
-axes(handles.map_axes);
-imshow(flip(channel_image,1),[],'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel]);
-handles.map_axes.YDir = 'normal';
 handles = update_curve_marker(handles);
 hline = findall(gca,'Type','image');
 set(hline(1),'uicontextmenu',handles.map_axes_context);
@@ -2828,21 +2953,40 @@ handles.interpolation_type = 'bicubic';
 channel_num = handles.image_channels_popup.Value;
 channel_string = handles.channel_names{channel_num};
 channel_interpolation = handles.interpolation_type;
-if ~strcmp(channel_interpolation,'none')
-    interpolation_string = sprintf('_%s_interpolation',channel_interpolation);
-else
-    interpolation_string = '';
-end
-if strcmp(channel_string,'height')
-    channel_image = handles.map_images.height.(sprintf('absolute_%s_data%s',...
-    channel_string,interpolation_string));
-else
-    channel_image = handles.map_images.(channel_string).(sprintf('%s_data%s',...
+if handles.ibw == false
+    if ~strcmp(channel_interpolation,'none')
+        interpolation_string = sprintf('_%s_interpolation',channel_interpolation);
+    else
+        interpolation_string = '';
+    end
+    if strcmp(channel_string,'height')
+        channel_image = handles.map_images.height.(sprintf('absolute_%s_data%s',...
         channel_string,interpolation_string));
+    else
+        channel_image = handles.map_images.(channel_string).(sprintf('%s_data%s',...
+            channel_string,interpolation_string));
+    end
+    axes(handles.map_axes);
+    imshow(flip(channel_image,1),[],'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel]);
+    handles.map_axes.YDir = 'normal';
+else
+    if strcmp(channel_string,'height')
+        axes(handles.map_axes);
+        imshow(handles.MFP_height_matrix_cubic_interpolation,'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel], 'DisplayRange', []);
+        
+    elseif strcmp(channel_string, 'slope')
+        axes(handles.map_axes);
+        imshow(handles.MFP_mslope_matrix_cubic_interpolation,'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel], 'DisplayRange', []);
+        
+    elseif strcmp(channel_string, 'Contactpoint')
+        axes(handles.map_axes);
+        imshow(handles.MFP_cpoint_matrix_cubic_interpolation,'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel], 'DisplayRange', []);
+        
+    else strcmp(channel_string, 'Youngs Modulus')
+        axes(handles.map_axes);
+        imshow(handles.MFP_Ymodulus_matrix_cubic_interpolation,'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel], 'DisplayRange', []);
+    end
 end
-axes(handles.map_axes);
-imshow(flip(channel_image,1),[],'InitialMagnification','fit','XData',[1 handles.map_info.x_pixel],'YData',[1 handles.map_info.y_pixel]);
-handles.map_axes.YDir = 'normal';
 handles = update_curve_marker(handles);
 hline = findall(gca,'Type','image');
 set(hline(1),'uicontextmenu',handles.map_axes_context);
@@ -3027,7 +3171,7 @@ guidata(hObject,handles);
 
 
 
-function contact_percentage_hertz_Callback(hObject, eventdata, handles)
+function contact_percentage_hertz_Callback(hObject, ~, handles)
 % hObject    handle to contact_percentage_hertz (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -3053,7 +3197,7 @@ btngroup_contact_SelectionChangedFcn(handles.btngroup_contact,[], handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function contact_percentage_hertz_CreateFcn(hObject, eventdata, handles)
+function contact_percentage_hertz_CreateFcn(hObject, ~, ~)
 % hObject    handle to contact_percentage_hertz (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -3066,14 +3210,14 @@ end
 
 
 % --- Executes during object creation, after setting all properties.
-function uipanel10_CreateFcn(hObject, eventdata, handles)
+function uipanel10_CreateFcn(~, ~, ~)
 % hObject    handle to uipanel10 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
 
 
-function result_switch_point_Callback(hObject, eventdata, handles)
+function result_switch_point_Callback(~, ~, ~)
 % hObject    handle to result_switch_point (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -3083,7 +3227,7 @@ function result_switch_point_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function result_switch_point_CreateFcn(hObject, eventdata, handles)
+function result_switch_point_CreateFcn(hObject, ~, ~)
 % hObject    handle to result_switch_point (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -3335,14 +3479,14 @@ function handles = info_panel_helpf(handles)
     
     
 % --------------------------------------------------------------------
-function help_menu_Callback(hObject, eventdata, handles)
+function help_menu_Callback(~, ~, ~)
 % hObject    handle to help_menu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 
 % --------------------------------------------------------------------
-function help_wiki_Callback(hObject, eventdata, handles)
+function help_wiki_Callback(~, ~, ~)
 % hObject    handle to help_wiki (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -3362,7 +3506,7 @@ handles.cylinder_radius = handles.options.cylinder_radius;
 
 
 
-function hertz_fit_start_Callback(hObject, eventdata, handles)
+function hertz_fit_start_Callback(hObject, ~, handles)
 % hObject    handle to hertz_fit_start (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -3376,7 +3520,7 @@ guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function hertz_fit_start_CreateFcn(hObject, eventdata, handles)
+function hertz_fit_start_CreateFcn(hObject, ~, ~)
 % hObject    handle to hertz_fit_start (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -3385,4 +3529,36 @@ function hertz_fit_start_CreateFcn(hObject, eventdata, handles)
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
+end
+
+
+% --------------------------------------------------------------------
+function save_image_Callback(~, ~, handles)
+% hObject    handle to save_image (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+path = get(handles.edit_filepath,'String');
+[filepath,filename,~] = fileparts(path);
+
+if ~exist(filepath, 'dir')
+  mkdir(filepath);
+end
+
+channels = handles.image_channels_popup.String;
+channel_indx = handles.image_channels_popup.Value;
+channel = channels{channel_indx};
+
+baseFileName =  sprintf('%s_%s_%s.jpg',filename,channel, handles.interpolation_type);
+fullFileName = fullfile(filepath, baseFileName); 
+image = getframe(gca);
+if exist(fullFileName, 'file')
+    answer = questdlg({'File already exists!',...
+            'Do you want to overwrite the existing file?'},...
+            'Warning!','Yes','No','Yes');
+        if strcmp(answer,'Yes')
+            imwrite(image.cdata, fullFileName); % img respresents input image.
+        else
+        end
+else
+    imwrite(image.cdata, fullFileName); % img respresents input image.
 end
