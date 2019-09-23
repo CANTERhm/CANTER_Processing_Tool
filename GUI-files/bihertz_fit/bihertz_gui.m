@@ -1138,19 +1138,6 @@ handles.button_keep_highlighted.Enable = 'off';
 handles.button_undo_highlighted.Enable = 'off';
 handles.button_discard_highlighted.Enable = 'off';
 
-% activate buttons when called from first curve
-if curve_index_old == 1
-    handles.button_undo.Enable = 'on';
-    handles.btn_histogram.Enable = 'on';
-    handles.btn_gof.Enable = 'on';
-    if handles.ibw == true
-        handles.channel_names = [handles.channel_names(:,1);{'Youngs Modulus'}; {'Contactpoint'}];
-    else
-        handles.channel_names = [handles.channel_names(:,1);{'Youngs Modulus'}];
-    end
-    handles.image_channels_popup.String = handles.channel_names;
-end
-
 % when last curve is reached
 if selection_num == handles.num_files
     handles.button_keep.Enable = 'off';
@@ -1678,7 +1665,8 @@ else
         handles.button_undo.Enable = 'on';
         handles.btn_histogram.Enable = 'on';
         handles.btn_gof.Enable = 'on';
-    elseif (curve_index == 1 || handles.progress.num_processed == 1)
+    end
+    if (curve_index == 1 || handles.progress.num_processed == 1)
         if handles.ibw == true
             handles.channel_names = [handles.channel_names(:,1);{'Youngs Modulus'};{'Contactpoint'}];
         else 
