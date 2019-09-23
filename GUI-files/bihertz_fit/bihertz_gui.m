@@ -2736,8 +2736,10 @@ if (handles.ibw == true)
             cpoint(i) = handles.proc_curves.(string).cpoint;
         end
         
+        line = floor(size(cpoint, 2)/handles.MFP_fmap_num_points);
+        points = size(cpoint, 2)-line*handles.MFP_fmap_num_points;
         cpoint_matrix = zeros(handles.MFP_fmap_num_line, handles.MFP_fmap_num_points);
-        for i=1:handles.MFP_fmap_num_line
+        for i=1:line+1
             for j=1:handles.MFP_fmap_num_points
                 if (i-1)*handles.MFP_fmap_num_points+j >= size(cpoint, 2)
                     cpoint_matrix(i,j) = 0;
