@@ -3538,7 +3538,7 @@ channel = channels{channel_indx};
 
 baseFileName =  sprintf('%s_%s_%s.jpg',filename,channel, handles.interpolation_type);
 fullFileName = fullfile(filepath, baseFileName); 
-image = getframe(gca);
+image = getframe(handles.map_axes);
 if exist(fullFileName, 'file')
     answer = questdlg({'File already exists!',...
             'Do you want to overwrite the existing file?'},...
