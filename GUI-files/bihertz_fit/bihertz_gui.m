@@ -2506,10 +2506,24 @@ function hertz_fit_depth_Callback(hObject, ~, handles)
 % hObject    handle to hertz_fit_depth (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-[hObject,handles] = curve_fit_functions(hObject,handles);
-[hObject,handles] = update_patches_hertzfit(hObject,handles);
-[hObject,handles] = update_fit_results(hObject,handles);
-guidata(hObject,handles);
+fit_d_string = hObject.String;
+fit_d_string = strrep(fit_d_string,',','.');
+hObject.String = fit_d_string;
+
+fit_d_num_check = str2double(fit_d_string);
+
+if ~isnan(fit_d_num_check)
+    try
+        [hObject,handles] = curve_fit_functions(hObject,handles);
+        [hObject,handles] = update_patches_hertzfit(hObject,handles);
+        [hObject,handles] = update_fit_results(hObject,handles);
+        guidata(hObject,handles);
+    catch %ME
+        % if you can    
+    end
+else
+    hObject.String = '1.0';
+end
 
 function hertz_fit_depth_DeleteFcn(~, ~, ~)
 % hObject    handle to hertz_fit_depth (see GCBO)
@@ -3499,10 +3513,24 @@ function hertz_fit_start_Callback(hObject, ~, handles)
 
 % Hints: get(hObject,'String') returns contents of hertz_fit_start as text
 %        str2double(get(hObject,'String')) returns contents of hertz_fit_start as a double
-[hObject,handles] = curve_fit_functions(hObject,handles);
-[hObject,handles] = update_patches_hertzfit(hObject,handles);
-[hObject,handles] = update_fit_results(hObject,handles);
-guidata(hObject,handles);
+fit_s_string = hObject.String;
+fit_s_string = strrep(fit_s_string,',','.');
+hObject.String = fit_s_string;
+
+fit_s_num_check = str2double(fit_s_string);
+
+if ~isnan(fit_s_num_check)
+    try
+        [hObject,handles] = curve_fit_functions(hObject,handles);
+        [hObject,handles] = update_patches_hertzfit(hObject,handles);
+        [hObject,handles] = update_fit_results(hObject,handles);
+        guidata(hObject,handles);
+    catch %ME
+        % if you can    
+    end
+else
+    hObject.String = '0.0';
+end
 
 
 % --- Executes during object creation, after setting all properties.
