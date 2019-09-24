@@ -437,6 +437,15 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                            handles.map_info.processing_grid(grid_index,1) = j;
                            handles.map_info.processing_grid(grid_index,2) = i;
                        end
+                       % flip every second line of the processing_grid
+                       % because the jpk NanoWizard records a force map on
+                       % a snakelia line.
+                       if ~mod(i,2)
+                           run_ind = i*handles.map_info.x_pixel;
+                           last_vec = handles.map_info.processing_grid((run_ind)-handles.map_info.x_pixel+1:run_ind,1);
+                           flip_vec = flipud(last_vec);
+                           handles.map_info.processing_grid((run_ind)-handles.map_info.x_pixel+1:run_ind,1) = flip_vec;
+                       end
                    end                           
                    
                    % write image channels in popup
@@ -1371,7 +1380,7 @@ for i=1:selection_diff
     if handles.ibw == true
         % update current curve marker on map axes
         handles = update_curve_marker(handles);
-elseif strcmp(handles.loadtype,'file') && handles.ibw == false && ~strcmp(handles.loaded_file_type,'mach-txt')
+    elseif strcmp(handles.loadtype,'file') && handles.ibw == false && ~strcmp(handles.loaded_file_type,'mach-txt')
         % update current curve marker on map axes
         handles = update_curve_marker(handles);
     end
@@ -1476,6 +1485,14 @@ switch handles.options.model
     case 'hertz'
         [hObject,handles] = plot_hertz(hObject,handles);
         guidata(hObject,handles);
+end
+
+if handles.ibw == true
+    % update current curve marker on map axes
+    handles = update_curve_marker(handles);
+elseif strcmp(handles.loadtype,'file') && handles.ibw == false && ~strcmp(handles.loaded_file_type,'mach-txt')
+    % update current curve marker on map axes
+    handles = update_curve_marker(handles);
 end
 
 % fit data to processed curve and display fitresult
