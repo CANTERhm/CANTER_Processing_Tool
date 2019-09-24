@@ -79,6 +79,12 @@ handles.output = hObject;
 handles.options = varargin{1};
 handles.options.correction = [];
 
+% Remember last sens. and spring const. values if available
+if isfield(handles.options,'sensitivity') && isfield(handles.options,'spring_const')
+   handles.sensitivity_value.String = sprintf('%.2f',handles.options.sensitivity);
+   handles.spring_const_value.String = sprintf('%.4f',handles.options.spring_const);
+end
+
 % Update handles structure
 guidata(hObject, handles);
 
