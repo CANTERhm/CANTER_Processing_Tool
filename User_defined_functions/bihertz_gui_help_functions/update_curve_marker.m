@@ -10,8 +10,14 @@ function handles = update_curve_marker(handles)
 
 %%
 %   Code starts here
+
 % draw new marker on the position of the current curve
 curve_num = handles.current_curve;
+
+% check if last curve is reached
+if curve_num > handles.map_info.x_pixel*handles.map_info.y_pixel
+    return;
+end
 
 % delete existing marker
 delete(handles.figures.proc_point);
