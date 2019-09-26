@@ -3607,6 +3607,7 @@ function report_a_bug_submenu_Callback(hObject, eventdata, handles)
 % hObject    handle to report_a_bug_submenu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+web('https://github.com/CANTERhm/Canter_Matlab_Library/issues','-browser');
 
 
 % --------------------------------------------------------------------
@@ -3614,3 +3615,4 @@ function how_to_report_submenu_Callback(hObject, eventdata, handles)
 % hObject    handle to how_to_report_submenu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+web('https://github.com/CANTERhm/Canter_Matlab_Library/wiki/How-to-report-an-issue','-browser');
