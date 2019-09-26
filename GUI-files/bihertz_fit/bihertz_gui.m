@@ -45,7 +45,7 @@ function varargout = bihertz_gui(varargin)
 
 % Edit the above text to modify the response to help bihertz_gui
 
-% Last Modified by GUIDE v2.5 19-Sep-2019 13:20:15
+% Last Modified by GUIDE v2.5 26-Sep-2019 11:03:57
     warning off
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -3593,3 +3593,24 @@ if exist(fullFileName, 'file')
 else
     imwrite(image.cdata, fullFileName); % img respresents input image.
 end
+
+
+% --------------------------------------------------------------------
+function bug_report_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to bug_report_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function report_a_bug_submenu_Callback(hObject, eventdata, handles)
+% hObject    handle to report_a_bug_submenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function how_to_report_submenu_Callback(hObject, eventdata, handles)
+% hObject    handle to how_to_report_submenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
