@@ -3569,7 +3569,7 @@ function save_image_Callback(~, ~, handles)
 % hObject    handle to save_image (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-path = get(handles.edit_filepath,'String');
+path = handles.edit_filepath.String;
 [filepath,filename,~] = fileparts(path);
 
 if ~exist(filepath, 'dir')
