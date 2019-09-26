@@ -131,6 +131,7 @@ guidata(hObject,handles);
 
 
 % UIWAIT makes bihertz_gui wait for user response (see UIRESUME)
+% Not needed anymore!!!
 % uiwait(handles.figure1);
 
 
