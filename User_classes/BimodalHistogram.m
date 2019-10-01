@@ -31,7 +31,31 @@ classdef BimodalHistogram
             end
             
             if ~isvector(EModul)
-                error('Emodul must be a vector with a size of 1-by-N or N-by-1!')
+                error('EModul must be a vector with a size of 1-by-N or N-by-1!')
+            end
+            
+            if any(EModul<0)
+                error('EModul must be only positive numbers!');
+            end
+            
+            if ~isnumeric(x_range)
+                error('x_range must be numeric!');
+            end
+            
+            if ~isvector(x_range) && length(x_range) ~= 2
+                error('x_range must be two element vector with a size of 1-by-2 or 2-by-1!');
+            end
+            
+            if ~isnumeric(BinNum)
+                error('BinNum must be numeric!');
+            end
+            
+            if ~isscalar(BinNum)
+                error('Too many input arguments for BinNum!\nBinNum must be a scalar.\n%s',' ');
+            end
+            
+            if ~any(ismember({'yes','no'},plot_arg))
+                error('plot_arg must be either ''yes'' or ''no''!');
             end
             
             % calculate and assign property values
@@ -52,10 +76,10 @@ classdef BimodalHistogram
             obj.BinCounts = hist.BinCounts;
         end
         
-        function outputArg = method1(obj,inputArg)
-            %METHOD1 Summary of this method goes here
+        function doFit(StartPoints,plot_arg)
+            % doFit Summary of this method goes here
             %   Detailed explanation goes here
-            outputArg = obj.Property1 + inputArg;
+            
         end
     end
 end
