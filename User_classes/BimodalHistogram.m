@@ -23,7 +23,26 @@ classdef BimodalHistogram
     
     methods
         function obj = BimodalHistogram(EModul,x_range,BinNum,plot_arg)
-            %BimodalHistogram Construct an instance of this class
+            % obj = BimodalHistrogram(EModul,x_range,BinNum,plot_arg);
+            %
+            % BimodalHistogram constructs an instance of this class
+            %
+            % Input:
+            %       - EModul        -> Vector of the Young's modulus values
+            %                          you want an histogram of.
+            %       - x_range       -> Two element vector with the start
+            %                          and the end value of the histogram-
+            %                          binning range.
+            %       - BinNum        -> Number of bins the x_range will be
+            %                          devided in.
+            %       - plot_arg      -> 'yes' (default) if you want the 
+            %                          histogram to be plotted. Afterwards, 
+            %                          you can use the histogram object 
+            %                          saved in the property "hist".
+            %                          'no' if you don't want the histogram
+            %                          to be plotted. You can plot the
+            %                          histogram afterward by using the
+            %                          plotHist method.
             
             % input check of constructor
             if nargin < 3
@@ -92,27 +111,44 @@ classdef BimodalHistogram
                     
                     BinCenters = h_edges + BinWidth/2;
                     BinCenters(end) = [];
-                    obj.BinCenters = BinCenters;
+                    obj.BinCenters = BinCenters';
                     
-                    obj.BinCounts = h;                    
+                    obj.BinCounts = h';                    
             end
         end
         
         function obj = doFit(obj,StartPoints,plot_arg)
+            % obj = doFit(obj,StartPoints,plot_arg,varargin);
+            % 
             % doFit This method calculates the bimodal fit and draws the
             % fit together with the unimodal distributions
+            % input:
+            %       - obj           -> BimodalHistogram object.
+            %       - StartPoints   -> Start values for the fiting of the
+            %                          six parameters of the bimodal
+            %                          distribution [a1 E1 w1 a2 E2 w2].
+            %       - plot_arg      -> 'yes' (default) if you whant the
+            %                          fits to be plotted.
+            %                          'no' if you don't want the fits to
+            %                          be plotted. You can plot the fits
+            %                          anytime by using the plotFit method.
             
             % error handling for doFit method            
-            if nargin < 2
-               plot_arg = 'yes'; 
+            if ~exist('plot_arg','var')
+               plot_arg = 'yes';
             end
             
+            % prepare fit data
+            warning off
+            [x_fit,y_fit] = prepareCurveData(obj.BinCenters,obj.BinCounts);
+            warning on
+            
             % do bimodal fit
-            if nargin < 1
-                fitobj = fit(obj.BinCenters,obj.BinCounts,'gauss2');
-                obj.fit_obj = fitobj;
+            if exist('StartPoints','var')
+               fitobj = fit(x_fit,y_fit,'gauss2','StartPoint',StartPoints);
+               obj.fit_obj = fitobj;
             else
-               fitobj = fit(obj.BinCenters,obj.BinCounts,'gauss2','StartPoints',StartPoints);
+               fitobj = fit(x_fit,y_fit,'gauss2');
                obj.fit_obj = fitobj;
             end
             
@@ -121,30 +157,42 @@ classdef BimodalHistogram
             obj.parameters.E1 = fitobj.b1;
             obj.parameters.w1 = fitobj.c1;
             obj.parameters.a2 = fitobj.a2;
-            obj.parameters.E1 = fitobj.b2;
+            obj.parameters.E2 = fitobj.b2;
             obj.parameters.w2 = fitobj.c2;
                         
             % calculate bimodal distribution
-            obj.x_data_fit = linspace(min(obj.EModul)-obj.parameters.w1,max(obj.EModul)+obj.parameters.w2);
+            obj.x_data_fit = linspace(min(obj.EModul)-obj.BinWidth*2.,max(obj.EModul)+obj.BinWidth*2)';
             obj.y_data_fit = feval(obj.fit_obj,obj.x_data_fit);
-            
+                        
             % calculate gauss1
             param = obj.parameters;
             obj.y_gauss1 = feval(obj.gauss1,param.a1,param.E1,param.w1,obj.x_data_fit);
             
             % calculate guass2
-            
+            obj.y_gauss2 = feval(obj.gauss2,param.a2,param.E2,param.w2,obj.x_data_fit);
             
             % plot if desired
             if strcmp(plot_arg,'yes')
-                
+                hold on
+                    plot(obj.x_data_fit,obj.y_data_fit,'-k',obj.x_data_fit,obj.y_gauss1,'--k',obj.x_data_fit,obj.y_gauss2,'--k','LineWidth',2);
+                hold off
             end
             
             
         end
         
-        function plotHist(obj,hold_arg)
+        function obj = plotHist(obj)          
+            % obj = plotHist(obj)
+            %
+            % plotHist: Method to plot the Histogram of the Young's modulus
+            % values in the property "EModul".
+            % The binning is determined by the property "edges".
+            %
+            % Syntax:
+            % * obj = plotHist(obj);
+            % * obj = obj.plotHist();
             
+            obj.hist = histogram(obj.EModul,obj.edges);
         end
         
         function plotFit(obj,hold_arg)
