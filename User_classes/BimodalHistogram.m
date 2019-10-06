@@ -11,8 +11,10 @@ classdef BimodalHistogram
         BinCounts = [];
         gauss1 = @(a1,E1,w1,x)a1.*exp(-((x-E1)./w1).^2);
         gauss2 = @(a2,E2,w2,x)a2.*exp(-((x-E2)./w2).^2);
+        bimodal = @(a1,E1,w1,a2,E2,w2,x)a1.*exp(-((x-E1)./w1).^2)+a2.*exp(-((x-E2)./w2).^2);
         fit_obj = [];
         parameters = struct('a1',[],'E1',[],'w1',[],'a2',[],'E2',[],'w2',[]);
+        initialGuess = struct('a1',[],'E1',[],'w1',[],'a2',[],'E2',[],'w2',[]);
         x_data_fit = [];
         y_data_fit = [];
         y_gauss1 = [];
@@ -138,6 +140,18 @@ classdef BimodalHistogram
                plot_arg = 'yes';
             end
             
+            if exist('StartPoints','var')
+                
+                if isvector(StartPoints)
+                    error('StartPoints must be a vector with six elements!');
+                end
+                
+                if ~length(StartPoints) == 6
+                    error('StartPoints must be a six-element vector!\nIt must be constructed like this: [a1 E1 w1 a2 E2 w2].\n%s',' ');
+                end
+                
+            end
+            
             % prepare fit data
             warning off
             [x_fit,y_fit] = prepareCurveData(obj.BinCenters,obj.BinCounts);
@@ -145,11 +159,38 @@ classdef BimodalHistogram
             
             % do bimodal fit
             if exist('StartPoints','var')
-               fitobj = fit(x_fit,y_fit,'gauss2','StartPoint',StartPoints);
-               obj.fit_obj = fitobj;
+                % set initialGuess property
+                obj.initialGuess.a1 = StartPoints(1);
+                obj.initialGuess.E1 = StartPoints(2);
+                obj.initialGuess.w1 = StartPoints(3);
+                obj.initialGuess.a2 = StartPoints(4);
+                obj.initialGuess.E2 = StartPoints(5);
+                obj.initialGuess.w2 = StartPoints(6);
+                
+                % fitting
+                fitobj = fit(x_fit,y_fit,'gauss2','StartPoint',StartPoints);
+                obj.fit_obj = fitobj;
             else
-               fitobj = fit(x_fit,y_fit,'gauss2');
-               obj.fit_obj = fitobj;
+                % Start point guessing
+                [hist_max,max_ind] = max(obj.BinCounts);
+                max_pos = obj.BinCenters(max_ind);
+                max_width = (max_pos - min(obj.BinCenters))/(2*sqrt(2));
+                max_pos_2 = (obj.BinCenters(end)-max_pos)/2;
+                [~,max_ind_2] = min(abs(obj.BinCenters-max_pos_2));
+                hist_max_2 = obj.BinCounts(max_ind_2);
+                max_width_2 = (max(obj.BinCenters) - max_pos_2)/(2*sqrt(2));
+                
+                % set initialGuess property
+                obj.initialGuess.a1 = hist_max;
+                obj.initialGuess.E1 = max_pos;
+                obj.initialGuess.w1 = max_width;
+                obj.initialGuess.a2 = hist_max_2;
+                obj.initialGuess.E2 = max_pos_2;
+                obj.initialGuess.w2 = max_width_2;
+                
+                % fitting
+                fitobj = fit(x_fit,y_fit,'gauss2','StartPoint',[hist_max max_pos max_width hist_max_2 max_pos_2 max_width_2]);
+                obj.fit_obj = fitobj;
             end
             
             % get fitted parameters
@@ -196,6 +237,47 @@ classdef BimodalHistogram
         end
         
         function plotFit(obj,hold_arg)
+            % error handling for plotFit method
+            if isempty(obj.fit_obj)
+                error('First you need to apply the "doFit" method on this BimodalHistogram object!');                
+            end
+            
+            hold on
+             plot(obj.x_data_fit,obj.y_data_fit,'-k','LineWidth',2);
+             plot(obj.x_data_fit,obj.y_gauss1,'--k','LineWidth',2);
+             plot(obj.x_data_fit,obj.y_gauss2,'--k','LineWidth',2);
+            hold off
+            
+        end
+        
+        function obj = showInitialGuess(obj)
+            % obj = showInitialGuess(obj)
+            %
+            % showInitialGuess draws the initialGuess curve in the current
+            % figure for verification
+            %
+            % Syntax:
+            % * obj = showInitialGuess(obj);
+            % * obj = obj.ShowInitialGuess();
+            
+            a1 = obj.initialGuess.a1;
+            E1 = obj.initialGuess.E1;
+            w1 = obj.initialGuess.w1;
+            a2 = obj.initialGuess.a2;
+            E2 = obj.initialGuess.E2;
+            w2 = obj.initialGuess.w2;
+            
+            
+            draw_x = linspace(min(obj.edges),max(obj.edges),400);
+            draw_y = feval(obj.bimodal,a1,E1,w1,a2,E2,w2,draw_x);
+            
+            hold on
+            plot(draw_x,draw_y,'-r','LineWidth',2);
+            hold off
+            
+        end
+        
+        function AddAnnotation(obj)
             
         end
     end
