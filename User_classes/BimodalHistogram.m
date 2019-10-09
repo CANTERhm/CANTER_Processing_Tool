@@ -6,6 +6,7 @@ classdef BimodalHistogram
         EModul = [];
         hist = [];
         edges = [];
+        BinNum = [];
         BinCenters = [];
         BinWidth = [];
         BinCounts = [];
@@ -67,7 +68,7 @@ classdef BimodalHistogram
                 error('x_range must be numeric!');
             end
             
-            if ~isvector(x_range) && length(x_range) ~= 2
+            if ~isvector(x_range) || length(x_range) ~= 2
                 error('x_range must be two element vector with a size of 1-by-2 or 2-by-1!');
             end
             
@@ -92,6 +93,7 @@ classdef BimodalHistogram
 
             edges = linspace(x_range(1),x_range(2),BinNum+1);
             obj.edges = edges';
+            obj.BinNum = BinNum;
             
             switch plot_arg
                 case 'yes'
@@ -174,11 +176,15 @@ classdef BimodalHistogram
                 % Start point guessing
                 [hist_max,max_ind] = max(obj.BinCounts);
                 max_pos = obj.BinCenters(max_ind);
-                max_width = (max_pos - min(obj.BinCenters))/(2*sqrt(2));
-                max_pos_2 = (obj.BinCenters(end)-max_pos)/2;
+                diff = abs(max_pos - min(obj.BinCenters));
+                half_diff = diff/2;
+                max_width = half_diff/(2*sqrt(2*log(2)));
+                max_pos_2 = max_pos + abs(max(obj.EModul)-max_pos)/2;
                 [~,max_ind_2] = min(abs(obj.BinCenters-max_pos_2));
                 hist_max_2 = obj.BinCounts(max_ind_2);
-                max_width_2 = (max(obj.BinCenters) - max_pos_2)/(2*sqrt(2));
+                diff_2 = abs(max(obj.BinCenters) - max_pos_2);
+                half_diff_2 = diff_2/2;
+                max_width_2 = half_diff_2/(2*sqrt(2*log(2)));
                 
                 % set initialGuess property
                 obj.initialGuess.a1 = hist_max;
@@ -202,7 +208,7 @@ classdef BimodalHistogram
             obj.parameters.w2 = fitobj.c2;
                         
             % calculate bimodal distribution
-            obj.x_data_fit = linspace(min(obj.EModul)-obj.BinWidth*2.,max(obj.EModul)+obj.BinWidth*2)';
+            obj.x_data_fit = linspace(min(obj.EModul)-obj.BinWidth*2,max(obj.EModul)+obj.BinWidth*2,400)';
             obj.y_data_fit = feval(obj.fit_obj,obj.x_data_fit);
                         
             % calculate gauss1
@@ -215,7 +221,7 @@ classdef BimodalHistogram
             % plot if desired
             if strcmp(plot_arg,'yes')
                 hold on
-                    plot(obj.x_data_fit,obj.y_data_fit,'-k',obj.x_data_fit,obj.y_gauss1,'--k',obj.x_data_fit,obj.y_gauss2,'--k','LineWidth',2);
+                plot(obj.x_data_fit,obj.y_data_fit,'-k',obj.x_data_fit,obj.y_gauss1,'--k',obj.x_data_fit,obj.y_gauss2,'--k','LineWidth',2);
                 hold off
             end
             
@@ -236,29 +242,29 @@ classdef BimodalHistogram
             obj.hist = histogram(obj.EModul,obj.edges);
         end
         
-        function plotFit(obj,hold_arg)
+        function plotFit(obj)
             % error handling for plotFit method
-            if isempty(obj.fit_obj)
-                error('First you need to apply the "doFit" method on this BimodalHistogram object!');                
+            if isempty(obj.x_data_fit) || isempty(obj.y_data_fit) || isempty(obj.y_gauss1) || isempty(obj.y_gauss2)
+                error('First you need to apply the "doFit" method on this BimodalHistogram object!');
             end
             
             hold on
-             plot(obj.x_data_fit,obj.y_data_fit,'-k','LineWidth',2);
-             plot(obj.x_data_fit,obj.y_gauss1,'--k','LineWidth',2);
-             plot(obj.x_data_fit,obj.y_gauss2,'--k','LineWidth',2);
+            plot(obj.x_data_fit,obj.y_data_fit,'-k','LineWidth',2);
+            plot(obj.x_data_fit,obj.y_gauss1,'--k','LineWidth',2);
+            plot(obj.x_data_fit,obj.y_gauss2,'--k','LineWidth',2);
             hold off
             
         end
         
-        function obj = showInitialGuess(obj)
+        function showInitialGuess(obj)
             % obj = showInitialGuess(obj)
             %
             % showInitialGuess draws the initialGuess curve in the current
             % figure for verification
             %
             % Syntax:
-            % * obj = showInitialGuess(obj);
-            % * obj = obj.ShowInitialGuess();
+            % showInitialGuess
+            % obj.showInitialGuess();
             
             a1 = obj.initialGuess.a1;
             E1 = obj.initialGuess.E1;
@@ -270,14 +276,132 @@ classdef BimodalHistogram
             
             draw_x = linspace(min(obj.edges),max(obj.edges),400);
             draw_y = feval(obj.bimodal,a1,E1,w1,a2,E2,w2,draw_x);
+            draw_y1 = feval(obj.gauss1,a1,E1,w1,draw_x);
+            draw_y2 = feval(obj.gauss2,a2,E2,w2,draw_x);
             
             hold on
             plot(draw_x,draw_y,'-r','LineWidth',2);
+            plot(draw_x,draw_y1,'--r','LineWidth',2);
+            plot(draw_x,draw_y2,'--r','LineWidth',2);
             hold off
             
         end
         
-        function AddAnnotation(obj)
+        function AddAnnotations(obj)
+            
+            % get order of magnitude of the displayed range
+            max_edge = obj.edges(end);
+            max_edge_ord = floor(log10(max_edge));
+            
+            % determine unit of x axis
+            if max_edge_ord >= 9
+                axis_unit = 'GPa';
+                power = 9;
+            elseif max_edge_ord < 9 && max_edge_ord >= 6
+                axis_unit = 'MPa';
+                power = 6;
+            elseif max_edge_ord < 6 && max_edge_ord >=3
+                axis_unit = 'kPa';
+                power = 3;
+            else
+                axis_unit = 'Pa';
+                power = 0;
+            end
+            
+            % format x axis
+            current_ax = gca;
+            current_ax.XAxis.Exponent = 0;
+            tick_text = string(current_ax.XTickLabel);
+            tick_numbers = str2double(tick_text);
+            tick_numbers_new = tick_numbers/10^power;
+            current_ax.XTickLabel = num2cell(string(tick_numbers_new));
+            xlabel(current_ax,sprintf('Young''s modulus [%s]',axis_unit));
+            ylabel(current_ax,'Frequency');
+            
+            % determine order of magnetude for E1 and E2 and set the
+            % corresponding unit
+            ord_E1 = floor(log10(obj.parameters.E1));
+            ord_E2 = floor(log10(obj.parameters.E2));
+            
+            if ord_E1 >= 9
+                E1_unit = 'GPa';
+                E1_power = 9;
+            elseif ord_E1 < 9 && ord_E1 >= 6
+                E1_unit = 'MPa';
+                E1_power = 6;
+            elseif ord_E1 < 6 && ord_E1 >=3
+                E1_unit = 'kPa';
+                E1_power = 3;
+            else
+                E1_unit = 'Pa';
+                E1_power = 0;
+            end
+            
+            if ord_E2 >= 9
+                E2_unit = 'GPa';
+                E2_power = 9;
+            elseif ord_E2 < 9 && ord_E2 >= 6
+                E2_unit = 'MPa';
+                E2_power = 6;
+            elseif ord_E2 < 6 && ord_E2 >=3
+                E2_unit = 'kPa';
+                E2_power = 3;
+            else
+                E2_unit = 'Pa';
+                E2_power = 0;
+            end
+            
+            % prepare string for annotation
+            annotation_string = sprintf('Peak values:\n1^{st} Peak: %.2f %s\n2^{nd} Peak: %.2f %s',...
+                                        obj.parameters.E1/10^E1_power,...
+                                        E1_unit,...
+                                        obj.parameters.E2/10^E2_power,...
+                                        E2_unit);
+                                    
+            % add annotation to figure
+            
+            
+        end
+        
+        function obj = GenerateTestEModul(obj)
+            % obj = GenerateTestEModul(obj)
+            %
+            % GenerateTestEModul generates a EModul vector for the purpose
+            % of testing this class. ATTENTION: When you apply this method
+            % on a BimodalHistogram class the "EModul" property will be
+            % overwritten!
+            %
+            % One possibility for testing is to first create a
+            % BimodalHistogram object with a random EModul vector and a
+            % x_range of [0 300e3]. For the BinNum 75 is a good guess. h1 =
+            % BimodalHistogram(rand(5,1),[0 300e3],75);
+            %
+            % Then you can apply the "GenerateTestEModul" method to
+            % overwrite the random EModul vector and reinitialize the
+            % properties. h1 = h1.GenerateTestEModul;
+            
+            % genreate a bimodal distributed EModul vector
+            EModul1 = 10e3*randn(5000,1)+60e3;
+            EModul2 = 25e3*randn(1500,1)+110e3;
+            EModul = [EModul1;EModul2]; %#ok<PROP>
+            
+            % overwrite "EModul" property
+            obj.EModul = EModul; %#ok<PROP>
+            
+            % reinitialize object properties
+            edges = linspace(0,300e3,obj.BinNum+1); %#ok<PROP>
+            obj.edges = edges'; %#ok<PROP>
+            
+            hist = histogram(EModul,edges); %#ok<PROP>
+            obj.hist = hist; %#ok<PROP>
+
+            BinCenters = hist.BinEdges + hist.BinWidth/2; %#ok<PROP>
+            BinCenters(end) = []; %#ok<PROP>
+            obj.BinCenters = BinCenters; %#ok<PROP>
+
+            obj.BinWidth = hist.BinWidth; %#ok<PROP>
+
+            obj.BinCounts = hist.BinCounts; %#ok<PROP>
             
         end
     end
