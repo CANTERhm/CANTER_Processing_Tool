@@ -54,12 +54,13 @@ classdef BimodalHistogram
         y_gauss1 = [];      % Numeric vector of the y values used to draw the fit result of the first Gaussian distribution.
         y_gauss2 = [];      % Numeric vector of the y values used to draw the fit result of the second Gaussian distribution.
         annotation_obj = [];    % Handle to the annotation shown in the plot window after exectuing the "AddAnnotations" method.
+        axes_object = [];       % Handle of the axes the histogram is meant to be plotted in.
         
 
     end
     
     methods
-        function obj = BimodalHistogram(EModul,x_range,BinNum,plot_arg)
+        function obj = BimodalHistogram(EModul,x_range,BinNum,plot_arg,ax_obj)
             % Constructor of the BimodalHistogram class
             % obj = BimodalHistrogram(EModul,x_range,BinNum,[plot_arg]);
             %
@@ -81,6 +82,10 @@ classdef BimodalHistogram
             %                          to be plotted. You can plot the
             %                          histogram afterward by using the
             %                          plotHist method.
+            %       - ax_obj        -> here you can define the axes where
+            %                          the histgram should be drawn in.
+            %                          If not defined, the histogram will
+            %                          be plotted in the current axes.
             
             
             % input check of constructor
@@ -118,11 +123,25 @@ classdef BimodalHistogram
             end
             
             if nargin < 4
-                plot_arg = 'yes'; 
+                   plot_arg = 'yes'; 
+                   ax_obj = gca;
             end
                 
             if ~any(ismember({'yes','no'},plot_arg))
                 error('plot_arg must be either ''yes'' or ''no''!');
+            end
+            
+            if nargin < 5
+                if isgraphics(plot_arg,'Axes')
+                    ax_obj = plot_arg;
+                    plot_arg = 'yes';
+                else
+                    ax_obj = gca;
+                end
+            end
+            
+            if ~isgraphics(ax_obj,'Axes')
+               error('ax_obj must be a valid handle to an axes objec!');
             end
             
             % calculate and assign property values
@@ -132,9 +151,11 @@ classdef BimodalHistogram
             obj.edges = edges';
             obj.BinNum = BinNum;
             
+            obj.axes_object = ax_obj;
+            
             switch plot_arg
                 case 'yes'
-                    hist = histogram(EModul,edges);
+                    hist = histogram(ax_obj,EModul,edges);
                     obj.hist = hist;
 
                     BinCenters = hist.BinEdges + hist.BinWidth/2;
@@ -158,14 +179,14 @@ classdef BimodalHistogram
             end
         end
         
-        function obj = doFit(obj,StartPoints,plot_arg)
+        function obj = doFit(obj,StartPoints,plot_arg,ax_obj)
             % Fit the bimodal distribution to the histogram data and plot the fit result.
             % 
             % Syntax:
             %   * obj = doFit(obj);
             %   * obj = obj.doFit;
-            %   * obj = doFit(obj[,StartPoints,plot_arg]);
-            %   * obj = obj.doFit([StartPoints,plot_arg]);
+            %   * obj = doFit(obj[,StartPoints,plot_arg,ax_obj]);
+            %   * obj = obj.doFit([StartPoints,plot_arg,ax_obj]);
             % 
             % doFit This method calculates the bimodal fit and draws the
             % fit together with the unimodal distributions
@@ -184,12 +205,37 @@ classdef BimodalHistogram
             %                          'no' if you don't want the fits to
             %                          be plotted. You can plot the fits
             %                          anytime by using the plotFit method.
+            %       * ax_obj        -> Handle of the axes object the fit
+            %                          as destination for the plotting of
+            %                          the fit result.
+            %                          If not defined, the default are the
+            %                          current axes.
             
             
             
-            % error handling for doFit method            
+            % error handling for doFit method 
             if ~exist('plot_arg','var')
                plot_arg = 'yes';
+            end
+            
+            if isgraphics(plot_arg,'Axes')
+               ax_obj = plot_arg;
+               plot_arg = 'yes';
+            end
+            
+            
+            if exist('plot_arg','var') && ~exist('ax_obj','class')
+               ax_obj = gca; 
+            end
+            
+            if isempty(StartPoints)
+               clearvars StartPoints; 
+            end
+            
+            if isgraphics(StartPoints)
+               ax_obj = StartPoints;
+               plot_arg = 'yes';
+               clearvars StartPoints;
             end
             
             if exist('StartPoints','var')
@@ -270,63 +316,104 @@ classdef BimodalHistogram
             
             % plot if desired
             if strcmp(plot_arg,'yes')
-                hold on
-                plot(obj.x_data_fit,obj.y_data_fit,'-k',obj.x_data_fit,obj.y_gauss1,'--k',obj.x_data_fit,obj.y_gauss2,'--k','LineWidth',2);
-                hold off
+                hold(ax_obj,'on')
+                plot(ax_obj,obj.x_data_fit,obj.y_data_fit,'-k',obj.x_data_fit,obj.y_gauss1,'--k',obj.x_data_fit,obj.y_gauss2,'--k','LineWidth',2);
+                hold(ax_obj,'off');
             end
             
             
         end
         
-        function obj = plotHist(obj)
+        function obj = plotHist(obj,ax_obj)
             % Plot the histogram
             %
-            % obj = plotHist(obj)
+            % obj = plotHist(obj[,ax_obj])
             %
             % plotHist: Method to plot the Histogram of the Young's modulus
             % values in the property "EModul".
             % The binning is determined by the property "edges".
+            %
+            % Optionally, you can specify by ax_obj in which axes the
+            % Annotations will be added. 
             %
             % Syntax:
             %   * obj = plotHist(obj);
             %   * obj = obj.plotHist();
             %   * plotHist(obj);
             %   * obj.plotHist;
+            %   * obj = plotHist(obj,ax_obj);
+            %   * obj = obj.plotHist(ax_obj);
+            %   * plotHist(obj,ax_obj);
+            %   * obj.plotHist(ax_obj);
             
-            obj.hist = histogram(obj.EModul,obj.edges);
+            if nargin < 2
+                ax_obj = gca;
+            end
+            
+            if ~isgraphics(ax_obj,'Axes')
+               error('ax_obj must be a valid handle to an axes object!'); 
+            end
+            
+            obj.hist = histogram(ax_obj,obj.EModul,obj.edges);
         end
         
-        function plotFit(obj)
+        function plotFit(obj,ax_obj)
             % Plot the fitted bimodal distributions together with the two Gaussian distributions.
             % 
+            % Optionally, you can specify by ax_obj in which axes the
+            % Annotations will be added.
+            %
             % Syntax:
-            %   * plotFit(obj)
+            %   * plotFit(obj);
             %   * obj.plotFit;
+            %   * plotFit(obj,ax_obj);
+            %   * obj.plotFit(ax_obj);
             
             % error handling for plotFit method
             if isempty(obj.x_data_fit) || isempty(obj.y_data_fit) || isempty(obj.y_gauss1) || isempty(obj.y_gauss2)
                 error('First you need to apply the "doFit" method on this BimodalHistogram object!');
             end
+            if nargin < 2
+               ax_obj = gca; 
+            end
             
-            hold on
-            plot(obj.x_data_fit,obj.y_data_fit,'-k','LineWidth',2);
-            plot(obj.x_data_fit,obj.y_gauss1,'--k','LineWidth',2);
-            plot(obj.x_data_fit,obj.y_gauss2,'--k','LineWidth',2);
-            hold off
+            if ~isgraphics(ax_obj,'Axes')
+               error('ax_obj must be a valid handle to an axes object!'); 
+            end
+            
+            hold(ax_obj,'on')
+            plot(ax_obj,obj.x_data_fit,obj.y_data_fit,'-k','LineWidth',2);
+            plot(ax_obj,obj.x_data_fit,obj.y_gauss1,'--k','LineWidth',2);
+            plot(ax_obj,obj.x_data_fit,obj.y_gauss2,'--k','LineWidth',2);
+            hold(ax_obj,'off')
             
         end
         
-        function showInitialGuess(obj)
+        function showInitialGuess(obj,ax_obj)
             % Draw the bimodal distribution with the initial guesses for the six fit parameters.
             %
-            % obj = showInitialGuess(obj)
+            % obj = showInitialGuess(obj[,ax_obj])
+            %
+            % Optionally, you can specify by ax_obj in which axes the
+            % Annotations will be added.
             %
             % showInitialGuess draws the initialGuess curve in the current
             % figure for verification
             %
             % Syntax:
-            % showInitialGuess
+            % showInitialGuess(obj);
             % obj.showInitialGuess();
+            % showInitialGuess(obj,ax_obj);
+            % obj.showInitialGuess(ax_obj);
+            % 
+            
+            if nargin < 2
+               ax_obj = gca; 
+            end
+            if ~isgraphics(ax_obj,'Axes')
+               error('ax_obj must be a valid handle to an axes object!'); 
+            end
+            
             
             a1 = obj.initialGuess.a1;
             E1 = obj.initialGuess.E1;
@@ -341,20 +428,33 @@ classdef BimodalHistogram
             draw_y1 = feval(obj.gauss1,a1,E1,w1,draw_x);
             draw_y2 = feval(obj.gauss2,a2,E2,w2,draw_x);
             
-            hold on
-            plot(draw_x,draw_y,'-r','LineWidth',2);
-            plot(draw_x,draw_y1,'--r','LineWidth',2);
-            plot(draw_x,draw_y2,'--r','LineWidth',2);
-            hold off
+            hold(ax_obj,'on');
+            plot(ax_obj,draw_x,draw_y,'-r','LineWidth',2);
+            plot(ax_obj,draw_x,draw_y1,'--r','LineWidth',2);
+            plot(ax_obj,draw_x,draw_y2,'--r','LineWidth',2);
+            hold(ax_obj,'off');
             
         end
         
-        function obj = AddAnnotations(obj)
+        function obj = AddAnnotations(obj,ax_obj)
             % Add axis labels and annotation with the peak positions to the current axes.
+            %
+            % Optionally, you can specify by ax_obj in which axes the
+            % Annotations will be added.
             %
             % Syntax:
             %   * obj = AddAnnotations(obj);
             %   * obj = obj.AddAnnotations;
+            %   * obj = obj.AddAnnotations(ax_obj);
+            %   * obj = AddAnnotations(obj,ax_obj);
+            
+            if nargin < 2
+               ax_obj = gca; 
+            end
+            if ~isgraphics(ax_obj,'Axes')
+               error('ax_obj must be a valid handle to an axes object!'); 
+            end
+            
             
             % get order of magnitude of the displayed range
             max_edge = obj.edges(end);
