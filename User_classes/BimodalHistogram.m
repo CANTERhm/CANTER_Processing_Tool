@@ -212,7 +212,6 @@ classdef BimodalHistogram
             %                          current axes.
             
             
-            
             % error handling for doFit method 
             if ~exist('plot_arg','var')
                plot_arg = 'yes';
@@ -228,14 +227,16 @@ classdef BimodalHistogram
                ax_obj = gca; 
             end
             
-            if isempty(StartPoints)
-               clearvars StartPoints; 
-            end
-            
-            if isgraphics(StartPoints)
-               ax_obj = StartPoints;
-               plot_arg = 'yes';
-               clearvars StartPoints;
+            try
+                if exist('StartPoint','var') || isgraphics(StartPoints,'Axes')
+                    if isgraphics(StartPoints,'Axes')
+                       ax_obj = StartPoints;
+                       plot_arg = 'yes';
+                       clearvars StartPoints;
+                    end
+                end
+            catch %ME
+                % if you can
             end
             
             if exist('StartPoints','var')
