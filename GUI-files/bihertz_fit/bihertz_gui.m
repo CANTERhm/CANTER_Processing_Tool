@@ -2826,6 +2826,39 @@ else
         set_afm_gold;
         handles = colorbar_helpf(handles.map_axes,handles);
     end
+    if strcmp(channel_string, 'Youngs Modulus')
+        EModul_matrix = zeros(handles.map_info.y_pixel, handles.map_info.x_pixel);
+        for i=1:handles.map_info.y_pixel
+            for j=1:handles.map_info.x_pixel
+                if (i-1)*handles.map_info.x_pixel+j > length(handles.T_result.EModul)
+                    EModul_matrix(i,j) = 0;
+                else
+                    EModul_matrix(i,j) = handles.T_result.EModul((i-1)*handles.map_info.x_pixel+j);
+                end
+            end
+        end
+        
+        EModul_matrix(EModul_matrix == 0) = min(handles.T_result.EModul);
+        EModul_matrix = flip(EModul_matrix);
+        handles.EModul_matrix = EModul_matrix;
+        
+        % Get interpolation maps
+        [handles.EModul_matrix_linear_interpolation, handles.EModul_matrix_cubic_interpolation] = ImageInterpolationMFP(handles.map_info.x_pixel,handles.map_info.y_pixel,handles.EModul_matrix);
+        
+        axes(handles.map_axes);
+        if strcmp (channel_interpolation, 'linear')
+            imshow(handles.EModul_matrix_linear_interpolation, 'InitialMagnification', 'fit', 'XData', [1 handles.map_info.x_pixel], 'YData', [1 handles.map_info.y_pixel], 'DisplayRange', []);
+        elseif strcmp(channel_interpolation, 'bicubic')
+            imshow(handles.EModul_matrix_cubic_interpolation, 'InitialMagnification', 'fit', 'XData', [1 handles.map_info.x_pixel], 'YData', [1 handles.map_info.y_pixel], 'DisplayRange', []);
+        else
+            imshow(handles.EModul_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.map_info.x_pixel], 'YData', [1 handles.map_info.y_pixel], 'DisplayRange', []);
+        end
+        set_afm_gold();
+        handles = colorbar_helpf(handles.map_axes,handles);
+        hline = findall(gca,'Type','image');
+        set(hline(1),'uicontextmenu',handles.map_axes_context);
+    end
+    
 end
 
 % update current curve marker on map axes
@@ -3416,18 +3449,18 @@ function handles = colorbar_helpf(ax_handle,handles)
                    label_num = str2double(lable_char);
                    if max_order < 3
                        labels(i) = {sprintf('%3.0f Pa',label_num)};
-                       max_label = sprintf('max: %.2g Pa',c_max);
-                       min_label = sprintf('min: %.2g Pa',c_min);
+                       max_label = sprintf('max: %f Pa',c_max);
+                       min_label = sprintf('min: %f Pa',c_min);
                    elseif max_order >= 3 && max_order < 6
                        label_num = label_num*1e-3;
                        labels(i) = {sprintf('%.2f kPa',label_num)};
-                       max_label = sprintf('max: %.2g kPa',c_max*1e-3);
-                       min_label = sprintf('min: %.2g kPa',c_min*1e-3);
+                       max_label = sprintf('max: %.2f kPa',c_max*1e-3);
+                       min_label = sprintf('min: %.2f kPa',c_min*1e-3);
                    else
                        label_num = label_num*1e-6;
                        labels(i) = {sprintf('%.2f MPa',label_num)};
-                       max_label = sprintf('max: %.2g MPa',c_max*1e-6);
-                       min_label = sprintf('min: %.2g MPa',c_min*1e-6);
+                       max_label = sprintf('max: %.2f MPa',c_max*1e-6);
+                       min_label = sprintf('min: %.2f MPa',c_min*1e-6);
                    end
                 end
                 cbar.TickLabels = labels;
