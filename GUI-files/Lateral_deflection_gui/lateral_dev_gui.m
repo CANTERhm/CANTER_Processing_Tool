@@ -190,14 +190,14 @@ try
             handles.current_line = 1;
 
             % plot map
-            axes(handles.map_plot_axes);
             handles.number_of_lines = y_pixel;
             [X,Y] = meshgrid(handles.lines.line1.x_values,y_data(1:x_pixel:length(y_data)));
             Z = reshape(z_data,x_pixel,y_pixel);
             Z = rot90(Z,3);
             Z = flip(Z,2);
-            handles.pc = pcolor(X.*1e6,Y.*1e6,Z.*1e3);
+            handles.pc = pcolor(handles.map_plot_axes,X.*1e6,Y.*1e6,Z.*1e3);
             handles.pc.LineStyle = 'none';
+            axes(handles.map_plot_axes)
             set_afm_gold(0.9,handles.cbar_factor);
             asp = pbaspect;
             y_asp = y_pixel/x_pixel;
@@ -569,7 +569,7 @@ try
 
         waitbar(0,wb,'Saving Peak Results');
         for i = 1:handles.number_of_lines
-           waitbar(i/handles.number_of_lines,wb,sprintf('Saving Peal Results: line%u',i));
+           waitbar(i/handles.number_of_lines,wb,sprintf('Saving Peak Results: line%u',i));
            line_string = sprintf('line%u',i);
            if isfield(handles.lines.(line_string),'num_kept_peaks')
                peak_num = handles.lines.(line_string).num_kept_peaks;
