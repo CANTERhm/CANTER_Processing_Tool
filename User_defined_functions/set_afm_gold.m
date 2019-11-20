@@ -50,11 +50,16 @@ function set_afm_gold(varargin)
     colormap(afm_darkgold);
     % colorbar;
     image = findobj(gca,'Type','Image');
+    
+    if isempty(image)
+       image = findobj(gca,'Type','Surface'); 
+    end
+    
     c_data = get(image(plot_num),'CData');
     c_data = reshape(c_data,[],1);
     % calculate color data statistics
-    mu = mean(c_data, 'omitnan');
-    sigma = std((c_data), 'omitnan');
+    mu = mean(c_data,'omitnan');
+    sigma = std(c_data,'omitnan');
     
     % calculate colorbar min and max
     cbar_range = sigma*multiplier;
