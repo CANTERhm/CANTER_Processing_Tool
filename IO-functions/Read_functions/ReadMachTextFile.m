@@ -1,5 +1,5 @@
 function [mach_data,segment_headers] = ReadMachTextFile(varargin)
-    %%   ReadMachTextFile:
+    %%  ReadMachTextFile:
     %   This function reads text files created from the Mach-1 indenter
     %   system from Biomomentum.
     %   
@@ -32,8 +32,13 @@ function [mach_data,segment_headers] = ReadMachTextFile(varargin)
         fullpath = fullfile(path,file);
     else 
         [path,file,ext] = fileparts(varargin{1});
-        fullpath = fullfile(path,[file ext]);
-        exist_output = exist(fullpath,'file');
+        full_file_name = [file,ext];
+        try
+            full_file_name = strjoin(full_file_name,'');
+        catch %ME if you can 
+        end
+        fullpath = fullfile(path,full_file_name);
+        exist_output = exist(varargin{1},'file');
         if ~strcmp(ext,'.txt')
             error('FileTypeError\nYou have to parse a valid path to a Mach-1 text file!%s\n',' ');
         elseif exist_output ~= 2
