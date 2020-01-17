@@ -239,10 +239,10 @@ classdef BimodalHistogram
                 % if you can
             end
             
-            if exist('StartPoints','var')
+            if exist('StartPoints','var') && ~isempty(StartPoints)
                 
-                if isvector(StartPoints)
-                    error('StartPoints must be a vector with six elements!');
+                if ~isvector(StartPoints)
+                    error('StartPoints must be a numeric vector!');
                 end
                 
                 if ~(length(StartPoints) == 6) && ~isempty(StartPoints)
