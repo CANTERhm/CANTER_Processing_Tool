@@ -245,7 +245,7 @@ classdef BimodalHistogram
                     error('StartPoints must be a vector with six elements!');
                 end
                 
-                if ~length(StartPoints) == 6
+                if ~(length(StartPoints) == 6) && ~isempty(StartPoints)
                     error('StartPoints must be a six-element vector!\nIt must be constructed like this: [a1 E1 w1 a2 E2 w2].\n%s',' ');
                 end
                 
@@ -257,7 +257,7 @@ classdef BimodalHistogram
             warning on
             
             % do bimodal fit
-            if exist('StartPoints','var')
+            if exist('StartPoints','var') && ~isempty(StartPoints)
                 % set initialGuess property
                 obj.initialGuess.a1 = StartPoints(1);
                 obj.initialGuess.E1 = StartPoints(2);
