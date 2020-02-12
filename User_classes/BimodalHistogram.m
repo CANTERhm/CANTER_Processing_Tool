@@ -223,7 +223,7 @@ classdef BimodalHistogram
             end
             
             
-            if exist('plot_arg','var') && ~exist('ax_obj','class')
+            if (exist('plot_arg','var') && strcmp(plot_arg,'yes')) && (exist('ax_obj','var') && ~strcmp(ax_obj.Type,'axes'))
                ax_obj = gca; 
             end
             
