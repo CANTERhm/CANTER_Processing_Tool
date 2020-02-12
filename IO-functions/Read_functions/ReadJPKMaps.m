@@ -61,7 +61,7 @@ try
     status = system(['"' zip_prog_path '"' ' ' zip_command  ' ' '"' zippath '"' ' ' switches]);
     rmdir(fullfile(path_parts{1:end-3},'7-Zip'),'s');
 catch
-    warning('7zip wasn''found; matlabs unzip function was used instead!');
+    warning('7zip wasn''t found; matlabs unzip function was used instead!');
     unzip(zippath, unzipfolder);
 end
 
