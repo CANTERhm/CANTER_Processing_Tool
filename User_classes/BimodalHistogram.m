@@ -101,9 +101,9 @@ classdef BimodalHistogram
                 error('EModul must be a vector with a size of 1-by-N or N-by-1!')
             end
             
-            if any(EModul<0)
-                error('EModul must be only positive numbers!');
-            end
+%             if any(EModul<0)
+%                 error('EModul must be only positive numbers!');
+%             end
             
             
             if ~isnumeric(x_range)
