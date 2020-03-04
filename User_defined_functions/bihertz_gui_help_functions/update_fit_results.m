@@ -133,7 +133,7 @@ switch handles.options.model
             
             % set values
             handles.hertz_EModul.String = sprintf('%.2f',corr_EModul);
-            handles.hertz_gofString = sprintf('%.4f',rsquare);
+            handles.hertz_gof.String = sprintf('%.4f',rsquare);
             
             % set unit
             handles.text49.String = unit_EModul;

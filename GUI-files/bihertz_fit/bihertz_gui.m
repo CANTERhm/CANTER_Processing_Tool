@@ -3150,9 +3150,9 @@ if any(EModul)
     EModul(EModul == 0)=[];
     EModul(isnan(EModul)) = [];
     EModul = EModul/1000;
-    [h,~] = histogram_fits(EModul, 'gauss', 100);
-    h.Histogram_handle.FaceColor = [1 0.72 0.73];
-    h.Histogram_handle.EdgeColor = [0.77 0.32 0.34];
+    [~,~] = histogram_fits(EModul, 'gauss', 100);
+%     h.Histogram_handle.FaceColor = [1 0.72 0.73];     -> The face color is now set directly in the histogram_fits function when the histogram is created.
+%     h.Histogram_handle.EdgeColor = [0.77 0.32 0.34];  -> The Edge color is now set directly in the histogram_fits function when the histogram is created.
     title('Youngs Modulus');
     xlabel('Youngs Modulus [kPa]');
     ylabel('Frequency');
