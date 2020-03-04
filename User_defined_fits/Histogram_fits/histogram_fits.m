@@ -100,7 +100,7 @@ parse(p,x,varargin{:});
 if p.Results.BinNum == -1
     h = histogram(x);
 else
-    h = histogram(x,p.Results.BinNum);
+    h = histogram(x,p.Results.BinNum,'FaceColor',[1 0.72 0.73],'EdgeColor',[0.77 0.32 0.34]);
 end
 
 %% extracting x- and y-values from histogram handle
