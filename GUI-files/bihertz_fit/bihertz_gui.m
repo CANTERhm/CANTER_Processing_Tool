@@ -2450,6 +2450,7 @@ if strcmp(answer,'Yes')
     warning on
     delete(handles.figure1);
     delete(allchild(groot));
+    run('Auswertetool_exe.m');
 end
 
 % --- Executes during object deletion, before destroying properties.
