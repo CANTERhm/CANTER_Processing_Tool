@@ -259,6 +259,7 @@ try
 
     if strcmp(answer,'Yes')
         delete(handles.figure1);
+        run('Auswertetool_exe.m');
     end
 
 catch MException
