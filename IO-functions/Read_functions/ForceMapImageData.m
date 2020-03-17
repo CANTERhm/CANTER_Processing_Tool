@@ -199,8 +199,8 @@ colormap(256,:) = [1 1 1];
 
             % interpolated image data
             if strcmp(image_type,'height')
-                F_absolute = griddedInterpolant({xvector,yvector},imageFiles.height.absolute_height_data);
-                F_nominal = griddedInterpolant({xvector,yvector},imageFiles.height.nominal_height_data);
+                F_absolute = griddedInterpolant({yvector,xvector},imageFiles.height.absolute_height_data);
+                F_nominal = griddedInterpolant({yvector,xvector},imageFiles.height.nominal_height_data);
                 % refined grid (20 times finer)
                 x_interp = linspace(min(xvector),max(xvector),info(i).Width*20);
                 y_interp = linspace(min(yvector),max(yvector),info(i).Height*20);
@@ -211,24 +211,24 @@ colormap(256,:) = [1 1 1];
                 % linear interpolation
                 F_absolute.Method = 'linear';
                 F_nominal.Method = 'linear';
-                absolute_height_interpol = F_absolute({x_interp,y_interp});
-                absolute_height_interpol = flip(absolute_height_interpol,2);
+                absolute_height_interpol = F_absolute({y_interp,x_interp});
+                absolute_height_interpol = flip(absolute_height_interpol,1);
                 imageFiles.height.absolute_height_data_linear_interpolation = absolute_height_interpol;
-                nominal_height_interpol = F_nominal({x_interp,y_interp});
-                nominal_height_interpol = flip(nominal_height_interpol,2);
+                nominal_height_interpol = F_nominal({y_interp,x_interp});
+                nominal_height_interpol = flip(nominal_height_interpol,1);
                 imageFiles.height.nominal_height_data_linear_interpolation = nominal_height_interpol;
                 % bicubic interpolation
                 F_absolute.Method = 'cubic';
                 F_nominal.Method = 'cubic';
-                absolute_height_interpol = F_absolute({x_interp,y_interp});
-                absolute_height_interpol = flip(absolute_height_interpol,2);
+                absolute_height_interpol = F_absolute({y_interp,x_interp});
+                absolute_height_interpol = flip(absolute_height_interpol,1);
                 imageFiles.height.absolute_height_data_bicubic_interpolation = absolute_height_interpol;
-                nominal_height_interpol = F_nominal({x_interp,y_interp});
-                nominal_height_interpol = flip(nominal_height_interpol,2);
+                nominal_height_interpol = F_nominal({y_interp,x_interp});
+                nominal_height_interpol = flip(nominal_height_interpol,1);
                 imageFiles.height.nominal_height_data_bicubic_interpolation = nominal_height_interpol;
             else
                 data_type = sprintf('%s_data',image_type);
-                F = griddedInterpolant({xvector,yvector},imageFiles.(image_type).(data_type));
+                F = griddedInterpolant({yvector,xvector},imageFiles.(image_type).(data_type));
                 % refined grid (20 times finer)
                 x_interp = linspace(min(xvector),max(xvector),info(i).Width*20);
                 y_interp = linspace(min(yvector),max(yvector),info(i).Height*20);
@@ -238,13 +238,13 @@ colormap(256,:) = [1 1 1];
                 imageFiles.(image_type).YGrid_interpol = YGrid_interpol;
                 % linear interpolation
                 F.Method = 'linear';
-                linear_interpol = F({x_interp,y_interp});
-                linear_interpol = flip(linear_interpol,2);
+                linear_interpol = F({y_interp,x_interp});
+                linear_interpol = flip(linear_interpol,1);
                 imageFiles.(image_type).(sprintf('%s_linear_interpolation',data_type)) = linear_interpol;
                 % bicubic interpolation
                 F.Method = 'cubic';
-                bicubic_interpol = F({x_interp,y_interp});
-                bicubic_interpol = flip(bicubic_interpol,2);
+                bicubic_interpol = F({y_interp,x_interp});
+                bicubic_interpol = flip(bicubic_interpol,1);
                 imageFiles.(image_type).(sprintf('%s_bicubic_interpolation',data_type)) = bicubic_interpol;
             end
         end
