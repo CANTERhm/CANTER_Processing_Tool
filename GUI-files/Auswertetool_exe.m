@@ -39,6 +39,8 @@ if ~isempty(options)
 
         case 7
             lateral_dev_gui;
+        case 8
+            Hist_GUI;
     end
 end
     

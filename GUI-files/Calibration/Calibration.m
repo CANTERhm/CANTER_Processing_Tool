@@ -44,7 +44,7 @@ function varargout = Calibration(varargin)
 
 % Edit the above text to modify the response to help Calibration
 
-% Last Modified by GUIDE v2.5 06-Mar-2020 16:31:15
+% Last Modified by GUIDE v2.5 27-Mar-2020 15:57:35
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -286,7 +286,7 @@ function yes_KeyPressFcn(hObject, eventdata, handles)
 %	Character: character interpretation of the key(s) that was pressed
 %	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
 % handles    structure with handles and user data (see GUIDATA)
-            figure1_KeyPressFcn(handles.figure1,eventdata,handles)
+    figure1_KeyPressFcn(handles.figure1,eventdata,handles)
 
 
 % --- Executes on key press with focus on no and none of its controls.
@@ -297,4 +297,31 @@ function no_KeyPressFcn(hObject, eventdata, handles)
 %	Character: character interpretation of the key(s) that was pressed
 %	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
 % handles    structure with handles and user data (see GUIDATA)
-figure1_KeyPressFcn(handles.figure1,eventdata,handles)
+    figure1_KeyPressFcn(handles.figure1,eventdata,handles)
+
+
+% --- Executes on button press in get_values_button.
+function get_values_button_Callback(hObject, eventdata, handles)
+% hObject    handle to get_values_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% call Calibration_file_generator
+if ~isfield(handles,'Calibration_values_struct')
+   handles.Calibration_values_struct = struct('Sens_1',[],'Spring_1',[],...
+                                              'Sens_2',[],'Spring_2',[],...
+                                              'Sens_3',[],'Spring_3',[]);
+end
+% Call Calibration_file_generator app and wait till the app sets its
+% keep_waiting property to 0
+Cal_app = Calibration_file_generator(handles.Calibration_values_struct);
+waitfor(Cal_app,'keep_waiting',0);
+if ~isempty(Cal_app.Sens_output) || ~isempty(Cal_app.Spring_output)
+    sens_num = Cal_app.Sens_output;
+    spring_num = Cal_app.Spring_output;
+    handles.Calibration_values_struct = Cal_app.Prev_values;
+    handles.sensitivity_value.String = sprintf('%.2f',sens_num);
+    handles.spring_const_value.String = sprintf('%.4f',spring_num);
+end
+delete(Cal_app);
+guidata(hObject,handles);

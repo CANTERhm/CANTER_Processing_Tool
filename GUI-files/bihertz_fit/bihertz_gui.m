@@ -45,7 +45,7 @@ function varargout = bihertz_gui(varargin)
 
 % Edit the above text to modify the response to help bihertz_gui
 
-% Last Modified by GUIDE v2.5 19-Sep-2019 13:20:15
+% Last Modified by GUIDE v2.5 26-Sep-2019 11:03:57
     warning off
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -131,6 +131,7 @@ guidata(hObject,handles);
 
 
 % UIWAIT makes bihertz_gui wait for user response (see UIRESUME)
+% Not needed anymore!!!
 % uiwait(handles.figure1);
 
 
@@ -2826,6 +2827,39 @@ else
         set_afm_gold;
         handles = colorbar_helpf(handles.map_axes,handles);
     end
+    if strcmp(channel_string, 'Youngs Modulus')
+        EModul_matrix = zeros(handles.map_info.y_pixel, handles.map_info.x_pixel);
+        for i=1:handles.map_info.y_pixel
+            for j=1:handles.map_info.x_pixel
+                if (i-1)*handles.map_info.x_pixel+j > length(handles.T_result.EModul)
+                    EModul_matrix(i,j) = 0;
+                else
+                    EModul_matrix(i,j) = handles.T_result.EModul((i-1)*handles.map_info.x_pixel+j);
+                end
+            end
+        end
+        
+        EModul_matrix(EModul_matrix == 0) = min(handles.T_result.EModul);
+        EModul_matrix = flip(EModul_matrix);
+        handles.EModul_matrix = EModul_matrix;
+        
+        % Get interpolation maps
+        [handles.EModul_matrix_linear_interpolation, handles.EModul_matrix_cubic_interpolation] = ImageInterpolationMFP(handles.map_info.x_pixel,handles.map_info.y_pixel,handles.EModul_matrix);
+        
+        axes(handles.map_axes);
+        if strcmp (channel_interpolation, 'linear')
+            imshow(handles.EModul_matrix_linear_interpolation, 'InitialMagnification', 'fit', 'XData', [1 handles.map_info.x_pixel], 'YData', [1 handles.map_info.y_pixel], 'DisplayRange', []);
+        elseif strcmp(channel_interpolation, 'bicubic')
+            imshow(handles.EModul_matrix_cubic_interpolation, 'InitialMagnification', 'fit', 'XData', [1 handles.map_info.x_pixel], 'YData', [1 handles.map_info.y_pixel], 'DisplayRange', []);
+        else
+            imshow(handles.EModul_matrix, 'InitialMagnification', 'fit', 'XData', [1 handles.map_info.x_pixel], 'YData', [1 handles.map_info.y_pixel], 'DisplayRange', []);
+        end
+        set_afm_gold();
+        handles = colorbar_helpf(handles.map_axes,handles);
+        hline = findall(gca,'Type','image');
+        set(hline(1),'uicontextmenu',handles.map_axes_context);
+    end
+    
 end
 
 % update current curve marker on map axes
@@ -3117,9 +3151,9 @@ if any(EModul)
     EModul(EModul == 0)=[];
     EModul(isnan(EModul)) = [];
     EModul = EModul/1000;
-    [h,~] = histogram_fits(EModul, 'gauss', 100);
-    h.Histogram_handle.FaceColor = [1 0.72 0.73];
-    h.Histogram_handle.EdgeColor = [0.77 0.32 0.34];
+    [~,~] = histogram_fits(EModul, 'gauss', 100);
+%     h.Histogram_handle.FaceColor = [1 0.72 0.73];     -> The face color is now set directly in the histogram_fits function when the histogram is created.
+%     h.Histogram_handle.EdgeColor = [0.77 0.32 0.34];  -> The Edge color is now set directly in the histogram_fits function when the histogram is created.
     title('Youngs Modulus');
     xlabel('Youngs Modulus [kPa]');
     ylabel('Frequency');
@@ -3282,21 +3316,15 @@ function handles = colorbar_helpf(ax_handle,handles)
                 % determine if the maximum dimension is nm or µm and
                 % correct the tick lables of the colorbar
                 check = abs(c_max) < 1e-6 && abs(c_min) < 1e-6;
-                labels = cbar.TickLabels;
-                for i = 1:length(labels)
-                   lable_char = labels{i};
-                   label_num = str2double(lable_char);
-                   if check
-                       label_num = label_num*1e9;
-                       labels(i) = {sprintf('%.0f nm',label_num)};
-                       max_label = sprintf('max: %.2g nm',c_max*1e9);
-                       min_label = sprintf('min: %.2g nm',c_min*1e9);                           
-                   else
-                       label_num = label_num*1e6;
-                       labels(i) = {sprintf('%.2f µm',label_num)};
-                       max_label = sprintf('max: %.2g µm',c_max*1e6);
-                       min_label = sprintf('min: %.2g µm',c_min*1e6);  
-                   end
+                labels = cbar.Ticks;
+                if check
+                    labels = strcat(string(labels*1e9), ' nm');
+                    max_label = sprintf('max: %.f nm',c_max*1e9);
+                    min_label = sprintf('min: %.f nm',c_min*1e9);                           
+                else
+                    labels = strcat(string(labels*1e6), ' µm');
+                    max_label = sprintf('max: %.2f µm',c_max*1e6);
+                    min_label = sprintf('min: %.2f µm',c_min*1e6);  
                 end
                 cbar.TickLabels = labels;
                 % provide min and max information of shown data
@@ -3422,18 +3450,18 @@ function handles = colorbar_helpf(ax_handle,handles)
                    label_num = str2double(lable_char);
                    if max_order < 3
                        labels(i) = {sprintf('%3.0f Pa',label_num)};
-                       max_label = sprintf('max: %.2g Pa',c_max);
-                       min_label = sprintf('min: %.2g Pa',c_min);
+                       max_label = sprintf('max: %f Pa',c_max);
+                       min_label = sprintf('min: %f Pa',c_min);
                    elseif max_order >= 3 && max_order < 6
                        label_num = label_num*1e-3;
                        labels(i) = {sprintf('%.2f kPa',label_num)};
-                       max_label = sprintf('max: %.2g kPa',c_max*1e-3);
-                       min_label = sprintf('min: %.2g kPa',c_min*1e-3);
+                       max_label = sprintf('max: %.2f kPa',c_max*1e-3);
+                       min_label = sprintf('min: %.2f kPa',c_min*1e-3);
                    else
                        label_num = label_num*1e-6;
                        labels(i) = {sprintf('%.2f MPa',label_num)};
-                       max_label = sprintf('max: %.2g MPa',c_max*1e-6);
-                       min_label = sprintf('min: %.2g MPa',c_min*1e-6);
+                       max_label = sprintf('max: %.2f MPa',c_max*1e-6);
+                       min_label = sprintf('min: %.2f MPa',c_min*1e-6);
                    end
                 end
                 cbar.TickLabels = labels;
@@ -3468,7 +3496,7 @@ function handles = colorbar_helpf(ax_handle,handles)
                 % provide min and max information of shown data
                 title(ax_handle,{'Full data range:';max_label;min_label},'FontSize',9);
             otherwise
-                warning('No colorbar processing is availlible for the choosen map channel');
+                warning('No colorbar processing is available for the choosen map channel');
         end
     else
         warning('No matching filetype for the color bar processing is loaded!')
@@ -3569,7 +3597,7 @@ function save_image_Callback(~, ~, handles)
 % hObject    handle to save_image (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-path = get(handles.edit_filepath,'String');
+path = handles.edit_filepath.String;
 [filepath,filename,~] = fileparts(path);
 
 if ~exist(filepath, 'dir')
@@ -3594,3 +3622,26 @@ if exist(fullFileName, 'file')
 else
     imwrite(image.cdata, fullFileName); % img respresents input image.
 end
+
+
+% --------------------------------------------------------------------
+function bug_report_menu_Callback(hObject, eventdata, handles)
+% hObject    handle to bug_report_menu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function report_a_bug_submenu_Callback(hObject, eventdata, handles)
+% hObject    handle to report_a_bug_submenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+web('https://github.com/CANTERhm/Canter_Matlab_Library/issues','-browser');
+
+
+% --------------------------------------------------------------------
+function how_to_report_submenu_Callback(hObject, eventdata, handles)
+% hObject    handle to how_to_report_submenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+web('https://github.com/CANTERhm/Canter_Matlab_Library/wiki/How-to-report-an-issue','-browser');

@@ -90,24 +90,35 @@ switch list_check
     case 1
         handles.bihertz_options.Visible = 'on';
         handles.lateral_description.Visible = 'off';
+        handles.filtering_tool_description.Visible = 'off';
     case 2
         handles.bihertz_options.Visible = 'on';
         handles.lateral_description.Visible = 'off';
+        handles.filtering_tool_description.Visible = 'off';
     case 3
         handles.bihertz_options.Visible = 'off';
         handles.lateral_description.Visible = 'off';
+        handles.filtering_tool_description.Visible = 'off';
     case 4
         handles.bihertz_options.Visible = 'off';
         handles.lateral_description.Visible = 'off';
+        handles.filtering_tool_description.Visible = 'off';
     case 5
         handles.bihertz_options.Visible = 'off';
         handles.lateral_description.Visible = 'off';
+        handles.filtering_tool_description.Visible = 'off';
     case 6
         handles.bihertz_options.Visible = 'off';
         handles.lateral_description.Visible = 'off';
+        handles.filtering_tool_description.Visible = 'off';
     case 7
         handles.bihertz_options.Visible = 'off';
         handles.lateral_description.Visible = 'on';
+        handles.filtering_tool_description.Visible = 'off';
+    case 8
+        handles.bihertz_options.Visible = 'off';
+        handles.lateral_description.Visible = 'off';
+        handles.filtering_tool_description.Visible = 'on';
 end
 
 guidata(hObject,handles);
@@ -193,6 +204,8 @@ switch get(handles.listbox1,'Value')
         
     case 7
         handles.options = struct('list_object',7);
+    case 8
+        handles.options = struct('list_object',8);
 end
     
 
