@@ -312,12 +312,16 @@ if ~isfield(handles,'Calibration_values_struct')
                                               'Sens_2',[],'Spring_2',[],...
                                               'Sens_3',[],'Spring_3',[]);
 end
+% Call Calibration_file_generator app and wait till the app sets its
+% keep_waiting property to 0
 Cal_app = Calibration_file_generator(handles.Calibration_values_struct);
 waitfor(Cal_app,'keep_waiting',0);
-sens_num = Cal_app.Sens_output;
-spring_num = Cal_app.Spring_output;
-handles.Calibration_values_struct = Cal_app.Prev_values;
-handles.sensitivity_value.String = sprintf('%.2f',sens_num);
-handles.spring_const_value.String = sprintf('%.4f',spring_num);
+if ~isempty(Cal_app.Sens_output) || ~isempty(Cal_app.Spring_output)
+    sens_num = Cal_app.Sens_output;
+    spring_num = Cal_app.Spring_output;
+    handles.Calibration_values_struct = Cal_app.Prev_values;
+    handles.sensitivity_value.String = sprintf('%.2f',sens_num);
+    handles.spring_const_value.String = sprintf('%.4f',spring_num);
+end
 delete(Cal_app);
 guidata(hObject,handles);
