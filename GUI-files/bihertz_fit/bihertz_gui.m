@@ -3538,7 +3538,7 @@ function help_wiki_Callback(~, ~, ~)
 % handles    structure with handles and user data (see GUIDATA)
 
 % if clicked, open the help wiki on our github site
-web('https://github.com/CANTERhm/Canter_Matlab_Library/wiki/2a.-Force-indentation-processing','-browser');
+web('https://github.com/CANTERhm/CANTER_Processing_Tool/wiki/2a.-Force-indentation-processing','-browser');
 
 %--------------------------------------------------------------------
 function handles = get_indenter_parameter(handles)
