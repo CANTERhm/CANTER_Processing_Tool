@@ -156,8 +156,11 @@ classdef BimodalHistogram
             switch plot_arg
                 case 'yes'
                     hist = histogram(ax_obj,EModul,edges);
+                    if ischar(hist.BinWidth)
+                        hist.BinWidth = mean(diff(edges));
+                    end
                     obj.hist = hist;
-
+                                    
                     BinCenters = hist.BinEdges + hist.BinWidth/2;
                     BinCenters(end) = [];
                     obj.BinCenters = BinCenters;
