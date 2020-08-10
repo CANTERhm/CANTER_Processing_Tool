@@ -613,24 +613,7 @@ function help_button_Callback(hObject, eventdata, handles)
 % hObject    handle to help_button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-try
-
-    if isdeployed
-        path = ctfroot;
-        full_path = fullfile(path,'lateral_dev_','help_file.pdf');
-        winopen(full_path);
-    else
-        open 'help_file.pdf'
-    end
-    
-catch MException
-    ME = MException;
-    WriteInLogFile(handles.log_path,ME);
-    rethrow(ME);
-    
-end
-
+web('https://github.com/CANTERhm/Canter_Matlab_Library/wiki/Lateral-deflection-processing','-browser');
 
     
 

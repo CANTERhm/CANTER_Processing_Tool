@@ -163,7 +163,7 @@ function help_wiki_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % if clicked, open the help wiki on our github site
-web('https://github.com/CANTERhm/Canter_Matlab_Library/wiki/1.-Start-the-CANTER-Processing-Tool','-browser');
+web('https://github.com/CANTERhm/CANTER_Processing_Tool/wiki/1.-Start-the-CANTER-Processing-Tool','-browser');
 
 
 % --- Executes when selected object is changed in bihertz_buttongroup_processing.
