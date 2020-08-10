@@ -63,6 +63,7 @@ try
 catch
     warning('7zip wasn''t found; matlabs unzip function was used instead!');
     unzip(zippath, unzipfolder);
+    status = 0;
 end
 
 if status ~= 0
