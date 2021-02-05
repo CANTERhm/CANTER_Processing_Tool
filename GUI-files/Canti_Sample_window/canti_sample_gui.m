@@ -223,7 +223,7 @@ switch handles.popupmenu1.Value
                 angle = str2double(angle);
             case 'angle_face'
                 angle = handles.edit1.String;
-                angle = str2double(angle)*sqrt(2);
+                angle = atand(sqrt(2)*tand(str2double(angle)));
         end
         handles.options.tip_angle = angle;
         handles.options.cylinder_radius = NaN;
