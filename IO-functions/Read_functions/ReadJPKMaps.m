@@ -1,6 +1,9 @@
 function [x_data,y_data, x_data_retract, y_data_retract, Forcecurve_count, varargout]=ReadJPKMaps(varargin)
 % ReadJPKMaps  Reads .jkp-force-map files and returns the x and y values of
 % the extend and retract curves
+%
+% Function call:
+% [x_data,y_data, x_data_retract, y_data_retract, Forcecurve_count, varargout] = ReadJPKMaps(varargin)
 % 
 % Instruction: 
 % If the function is called you need to choose the .jpk-force-map and it
