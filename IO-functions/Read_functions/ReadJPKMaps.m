@@ -38,7 +38,7 @@ function [x_data,y_data, x_data_retract, y_data_retract, Forcecurve_count, varar
 % Get the direction/the file and convert it into a .zip file
 if nargin == 1
     [pathname, name, ext] = fileparts(varargin{1});
-    filename = [name ext];
+    filename = string(name)+string(ext);
 else
     [filename, pathname] = uigetfile('*.jpk-force-map','Select a jpk-force-map file');
 end
@@ -111,10 +111,11 @@ dividerWaitbar = 10^(floor(log10(num_files))-1);
 % Read all extend curves and save them as x and y values (Height & vDeflection)
     for i = 1:num_files
     n = i-1;
-    n_s = num2str(n);
-    movedir = [Indexfolder '/' n_s];
-    Heightpath = [movedir '/segments/0/channels/measuredHeight.dat'];
-    Deflectionpath = [movedir '/segments/0/channels/vDeflection.dat'];
+    n_s = string(num2str(n));
+    movedir = fullfile(Indexfolder,n_s);
+    channels_path = fullfile(movedir,"segments","0","channels");
+    Heightpath = fullfile(channels_path,"measuredHeight.dat");
+    Deflectionpath = fullfile(channels_path,"vDeflection.dat");
     fileHeight = fopen(Heightpath);
     fileDeflection = fopen(Deflectionpath);
     x_data_raw.(Forcecurve_count{i}) = fread(fileHeight,inf,'short','s');
@@ -130,10 +131,11 @@ dividerWaitbar = 10^(floor(log10(num_files))-1);
 % Read all retract curves and save them as x and y values (Height & vDeflection)
     for i = 1:num_files
     n = i-1;
-    n_s = num2str(n);
-    movedir = [Indexfolder '/' n_s];
-    Heightpath = [movedir '/segments/1/channels/measuredHeight.dat'];
-    Deflectionpath = [movedir '/segments/1/channels/vDeflection.dat'];
+    n_s = string(num2str(n));
+    movedir = fullfile(Indexfolder,n_s);
+    channels_path = fullfile(movedir,"segments","0","channels");
+    Heightpath = fullfile(channels_path,"measuredHeight.dat");
+    Deflectionpath = fullfile(channels_path,"vDeflection.dat");
     fileHeight = fopen(Heightpath);
     fileDeflection = fopen(Deflectionpath);
     x_data_raw_retract.(Forcecurve_count{i}) = fread(fileHeight,inf,'short','s');
