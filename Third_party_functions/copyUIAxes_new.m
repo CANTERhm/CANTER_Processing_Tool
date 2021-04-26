@@ -1,4 +1,4 @@
-function h = copyUIAxes(varargin)
+function h = copyUIAxes_new(varargin)
 % use COPYUIAXES to copy the content of a UI axis to a new figure.
 % COPYUIAXES receives the handle to a UI axes and copies all of its
 % children and most of its properties to a new axis. If the UI axis
