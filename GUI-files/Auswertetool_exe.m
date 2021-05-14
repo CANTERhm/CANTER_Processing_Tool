@@ -41,6 +41,8 @@ if ~isempty(options)
             lateral_dev_gui;
         case 8
             Hist_GUI;
+        case 9
+            SaderMethodCalibration_GUI;
     end
 end
     
