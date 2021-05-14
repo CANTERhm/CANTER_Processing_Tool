@@ -41,6 +41,9 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
         ViscosityofSurroundingLabel  matlab.ui.control.Label
         PasLabel                     matlab.ui.control.Label
         Viscosity                    matlab.ui.control.NumericEditField
+        GridLayout13                 matlab.ui.container.GridLayout
+        UsedCantileverLabel          matlab.ui.control.Label
+        CantileverDropDown           matlab.ui.control.DropDown
     end
 
     
@@ -67,7 +70,6 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
     end
     
     methods (Access = public)
-        
         function out_struct = LoadSweepFile(~,file_path)
             
             out_struct = [];
@@ -243,6 +245,31 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
             spring_constant = 0.1906 * density * b^2 * L * Q * Gamma_i * w_f^2;
             
         end
+        function staticSpringConst = NewSaderSpringConst(~,canti_length,canti_width,Q_factor,f_res,density,viscosity,a0,a1,a2,C)
+            
+            % New Sader Method corrected for certain cantilever shapes:
+            % From: Sader, et al., Rev. Sci. Instrum., 83, 103705 (2012)
+            
+            % simple names
+            L = canti_length;
+            b = canti_width;
+            w_res = 2.*pi.*f_res;
+            rho = density;
+            mu = viscosity;
+            
+            % Reynold's number
+            Re = (rho.*b.^2.*w_res)./(4.*mu);
+            
+            % simple hydrodynamic function
+            Lambda = a0.*Re.^(a1+a2.*log10(Re));
+            
+            % dynamic spring constant
+            dynamicSpringConst = rho.*b.^2.*L.*Lambda.*w_res.^2.*Q_factor;
+            
+            % static spring constant
+            staticSpringConst = dynamicSpringConst./C;
+            
+        end
     end
     
 
@@ -269,11 +296,23 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
             % write sweep values to properties
             app.SweepLoaded = true;
             app.x_sweep = app.Sweep_struct.channels.Excitation_Frequency_Hz;
-            app.y_sweep = app.Sweep_struct.channels.Lock_In_Amplitude_m;
+            field_names = string(fieldnames(app.Sweep_struct.channels));
+            amp_field_idx = contains(field_names,"Lock_In_Amplitude");
+            amp_field_name = field_names(amp_field_idx);
+            app.y_sweep = app.Sweep_struct.channels.(amp_field_name);
             
             % display loaded sweep;
             x_plot = app.x_sweep.*1e-3;
-            y_plot = app.y_sweep.*1e9;
+            
+            split_string = split(amp_field_name,"_");
+            unit_string = split_string(end);
+            if strcmp(unit_string,"m")
+                app.Spectrum_Axes.YAxis.Label.String = "Amplitude [nm]";
+                y_plot = app.y_sweep.*1e9;
+            else
+                y_plot = app.y_sweep;
+                app.Spectrum_Axes.YAxis.Label.String = "Amplitude ["+unit_string+"]";
+            end
             plot(app.Spectrum_Axes,x_plot,y_plot,".","LineWidth",2,"MarkerSize",6);
             xlim(app.Spectrum_Axes,[min(x_plot) max(x_plot)]);
         end
@@ -306,13 +345,78 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
             xline(app.Spectrum_Axes,app.f2.*1e-3,"--","Color",[.6 .6 .6],"LineWidth",.5);
             hold(app.Spectrum_Axes,"off");
             
-            % Calculate the hydrodynamic function of the rectangular cantilever
-            app.hydrodynamic_function = CalculateRecHydrodynamicFunctionAir(app,app.Res_Frequ,app.CWidth,app.density,app.viscosity);
-            app.hydrodynamic_function_imag_part = imag(app.hydrodynamic_function);
-            
-            % Calculate Spring Constant using the Sader Method
-            app.Spring_Const = SaderSpingConst(app,app.CLength,app.CWidth,app.Q_Fac,app.Res_Frequ,app.density,app.hydrodynamic_function_imag_part);
-            app.Spring_Const_Result.Value = app.Spring_Const;
+            % Get selected Cantilever from drop down menu
+            value = string(app.CantileverDropDown.Value);
+
+            if strcmp(value,"Basic Rectangular Cantilever")
+                % Calculate the hydrodynamic function of the rectangular cantilever
+                app.hydrodynamic_function = CalculateRecHydrodynamicFunctionAir(app,app.Res_Frequ,app.CWidth,app.density,app.viscosity);
+                app.hydrodynamic_function_imag_part = imag(app.hydrodynamic_function);
+                
+                % Calculate Spring Constant using the Sader Method
+                app.Spring_Const = SaderSpingConst(app,app.CLength,app.CWidth,app.Q_Fac,app.Res_Frequ,app.density,app.hydrodynamic_function_imag_part);
+                app.Spring_Const_Result.Value = app.Spring_Const;
+            else
+                switch value % Coefficiants from: Sader, et al., Rev. Sci. Instrum., 83, 103705 (2012)
+                    case "AC160TS"
+                        a0 = 0.7779;
+                        a1 = -0.7230;
+                        a2 = 0.0251;
+                        C = 1.101;
+                    case "AC240TM"
+                        a0 = 0.8170;
+                        a1 = -0.7055;
+                        a2 = 0.0423;
+                        C = 1.043;
+                    case "AC240TS"
+                        a0 = 0.8170;
+                        a1 = -0.7055;
+                        a2 = 0.0423;
+                        C = 1.043;
+                    case "ASYMFM"
+                        a0 = 0.8170;
+                        a1 = -0.7055;
+                        a2 = 0.0423;
+                        C = 1.043;
+                    case "BL-RC150BV(L)"
+                        a0 = 1.0025;
+                        a1 = -0.7649;
+                        a2 = 0.0361;
+                        C = 1.035;
+                    case "FMR"
+                        a0 = 0.8758;
+                        a1 = -0.6834;
+                        a2 = 0.0357;
+                        C = 1.029;
+                    case "NCHR"
+                        a0 = 0.9369;
+                        a1 = -0.7053;
+                        a2 = 0.0438;
+                        C = 1.036;
+                    case "TR400(S)"
+                        a0 = 1.5346;
+                        a1 = -0.6793;
+                        a2 = 0.0265;
+                        C = 1.054;
+                    case "TR800(S)"
+                        a0 = 1.5346;
+                        a1 = -0.6793;
+                        a2 = 0.0265;
+                        C = 1.054;
+                    case "TR400(L)"
+                        a0 = 1.2017;
+                        a1 = -0.6718;
+                        a2 = 0.0383;
+                        C = 1.072;
+                    case "TR800(L)"
+                        a0 = 1.2017;
+                        a1 = -0.6718;
+                        a2 = 0.0383;
+                        C = 1.072;
+                end
+                app.Spring_Const = NewSaderSpringConst(app,app.CLength,app.CWidth,app.Q_Fac,app.Res_Frequ,app.density,app.viscosity,a0,a1,a2,C);
+                app.Spring_Const_Result.Value = app.Spring_Const;
+            end
         end
 
         % Value changed function: CantiWidth
@@ -372,10 +476,15 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
         end
 
         % Close request function: UIFigure
-        function UIFigureCloseRequest(app, ~)
+        function UIFigureCloseRequest(app, event)
             
             delete(app)
-            run('Auswertetool_exe.m');
+            
+        end
+
+        % Value changed function: CantileverDropDown
+        function CantileverDropDownValueChanged(app, event)
+            value = app.CantileverDropDown.Value;
             
         end
     end
@@ -497,7 +606,7 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
 
             % Create Spring_Const_Result
             app.Spring_Const_Result = uieditfield(app.GridLayout6, 'numeric');
-            app.Spring_Const_Result.ValueDisplayFormat = '%11.2f';
+            app.Spring_Const_Result.ValueDisplayFormat = '%11.4f';
             app.Spring_Const_Result.Editable = 'off';
             app.Spring_Const_Result.Layout.Row = 1;
             app.Spring_Const_Result.Layout.Column = 1;
@@ -552,14 +661,14 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
             % Create GridLayout8
             app.GridLayout8 = uigridlayout(app.ParametersPanel);
             app.GridLayout8.ColumnWidth = {'1x'};
-            app.GridLayout8.RowHeight = {'1x', '1x', '1x', '1x'};
+            app.GridLayout8.RowHeight = {'1x', '1x', '1x', '1x', '1x'};
 
             % Create GridLayout9
             app.GridLayout9 = uigridlayout(app.GridLayout8);
             app.GridLayout9.ColumnWidth = {'3x', '1x'};
             app.GridLayout9.ColumnSpacing = 0;
             app.GridLayout9.RowSpacing = 0;
-            app.GridLayout9.Layout.Row = 1;
+            app.GridLayout9.Layout.Row = 2;
             app.GridLayout9.Layout.Column = 1;
 
             % Create CantileverWidthLabel
@@ -589,7 +698,7 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
             app.GridLayout10.ColumnWidth = {'3x', '1x'};
             app.GridLayout10.ColumnSpacing = 0;
             app.GridLayout10.RowSpacing = 0;
-            app.GridLayout10.Layout.Row = 2;
+            app.GridLayout10.Layout.Row = 3;
             app.GridLayout10.Layout.Column = 1;
 
             % Create CantileverLengthLabel
@@ -619,7 +728,7 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
             app.GridLayout11.ColumnWidth = {'3x', '1x'};
             app.GridLayout11.ColumnSpacing = 0;
             app.GridLayout11.RowSpacing = 0;
-            app.GridLayout11.Layout.Row = 3;
+            app.GridLayout11.Layout.Row = 4;
             app.GridLayout11.Layout.Column = 1;
 
             % Create DensityofSurroundingLabel
@@ -649,7 +758,7 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
             app.GridLayout12.ColumnWidth = {'3x', '1x'};
             app.GridLayout12.ColumnSpacing = 0;
             app.GridLayout12.RowSpacing = 0;
-            app.GridLayout12.Layout.Row = 4;
+            app.GridLayout12.Layout.Row = 5;
             app.GridLayout12.Layout.Column = 1;
 
             % Create ViscosityofSurroundingLabel
@@ -673,6 +782,29 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
             app.Viscosity.Layout.Row = 2;
             app.Viscosity.Layout.Column = 1;
             app.Viscosity.Value = 1.86e-05;
+
+            % Create GridLayout13
+            app.GridLayout13 = uigridlayout(app.GridLayout8);
+            app.GridLayout13.ColumnWidth = {'3x', '1x'};
+            app.GridLayout13.ColumnSpacing = 0;
+            app.GridLayout13.RowSpacing = 0;
+            app.GridLayout13.Layout.Row = 1;
+            app.GridLayout13.Layout.Column = 1;
+
+            % Create UsedCantileverLabel
+            app.UsedCantileverLabel = uilabel(app.GridLayout13);
+            app.UsedCantileverLabel.Layout.Row = 1;
+            app.UsedCantileverLabel.Layout.Column = 1;
+            app.UsedCantileverLabel.Text = 'Used Cantilever';
+
+            % Create CantileverDropDown
+            app.CantileverDropDown = uidropdown(app.GridLayout13);
+            app.CantileverDropDown.Items = {'Basic Rectangular Cantilever', 'AC160TS', 'AC240TM', 'AC240TS', 'ASYMFM', 'BL-RC150BV(L)', 'FMR', 'NCHR', 'TR400(S)', 'TR400(L)', 'TR800(S)', 'TR800(L)'};
+            app.CantileverDropDown.ValueChangedFcn = createCallbackFcn(app, @CantileverDropDownValueChanged, true);
+            app.CantileverDropDown.Enable = 'off';
+            app.CantileverDropDown.Layout.Row = 2;
+            app.CantileverDropDown.Layout.Column = 1;
+            app.CantileverDropDown.Value = 'Basic Rectangular Cantilever';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
