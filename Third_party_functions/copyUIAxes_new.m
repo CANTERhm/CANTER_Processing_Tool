@@ -135,7 +135,7 @@ addParameter(p, 'listIgnoredProps', false, @(h)assert(islogical(h),'CUIAx:IgnPrp
 addParameter(p, 'copyPosition', false, @(h)assert(islogical(h),'CUIAx:CopyPos','It must be a logical true|false.'));
 % Undocumented: yyNextAx is true when copying the 2nd yyaxis, detected internally.  Otherwise, false.
 addParameter(p, 'yyNextAx', false, @(h)assert(islogical(h),'CUIAx:yyNextAx','It must be a logical true|false.')); % undocumented
-parse(p,varargin{:})
+parse(p,varargin{:});
 % Store matlab version comparisons
 if isempty(vs)
     vs.lessThan2018a = verLessThan('Matlab','9.4'); 
@@ -178,7 +178,7 @@ end
 % for each axis. YAxisLocation is read-only in yyaxis plots and is added to the exclusion list. 
 isyyaxis = numel(p.Results.uiax.YAxis) == 2; 
 if isyyaxis
-    yyaxis(h.axes, p.Results.uiax.YAxisLocation)
+    yyaxis(h.axes, p.Results.uiax.YAxisLocation);
     yyexcludeList = 'YAxisLocation'; 
 else
     yyexcludeList = ''; 
@@ -188,7 +188,7 @@ end
 posCopied = setPosition(p, h, destinationCreatedInternally, true, [], sourceFig);
 %% Copy axis children and (most) properties
 % Copy all children from UIAxes to new axis
-copyobj(p.Results.uiax.Children, h.axes)
+copyobj(p.Results.uiax.Children, h.axes);
 % Anonymous func used to move selected fields to the end of a structure 
 % INPUTS: 
 %   S: input structure
@@ -208,7 +208,8 @@ uiaxGoodParams = newFieldOrder(uiaxGoodParams, {'XLim','YLim','ZLim'});
 [lastWarnMsg, lastWarnID] = lastwarn(); 
 lastwarn('') % Clear last warning so we can detect if one appears. 
 % set properties 
-set(h.axes, uiaxGoodParams)
+uiaxGoodParams = rmfield(uiaxGoodParams,"ContextMenu");
+set(h.axes, uiaxGoodParams);
 % Set colormap prior to r2018a (see note [24])
 if vs.lessThan2018a && isprop(p.Results.uiax, 'Colormap')
     colormap(h.axes, p.Results.uiax.Colormap); 
@@ -238,10 +239,10 @@ h.axesZLabel = zlabel(h.axes, p.Results.uiax.ZLabel.String);
 [axXLGoodParams, axXLbadProps] = getGoodParams(p.Results.uiax.XLabel, h.axesXLabel, {'Parent'; 'Position'}, 'axesXLabel');
 [axYLGoodParams, axYLbadProps] = getGoodParams(p.Results.uiax.YLabel, h.axesYLabel, {'Parent'; 'Position'}, 'axesYLabel');
 [axZLGoodParams, axZLbadProps] = getGoodParams(p.Results.uiax.ZLabel, h.axesZLabel, {'Parent'; 'Position'}, 'axesZLabel');
-set(h.axesTitle, axTtlGoodParams)
-set(h.axesXLabel, axXLGoodParams)
-set(h.axesYLabel, axYLGoodParams)
-set(h.axesZLabel, axZLGoodParams)
+set(h.axesTitle, axTtlGoodParams);
+set(h.axesXLabel, axXLGoodParams);
+set(h.axesYLabel, axYLGoodParams);
+set(h.axesZLabel, axZLGoodParams);
 % if ~vs.lessThan2020a % subtitles added in r2020b
 %     set(h.axesSubtitle, axSubtGoodParams)
 % end
@@ -253,8 +254,8 @@ if isyyaxis
     else
         nextside = 'left';
     end
-    yyaxis(p.Results.uiax, nextside)
-    yyaxis(h.axes, nextside)
+    yyaxis(p.Results.uiax, nextside);
+    yyaxis(h.axes, nextside);
     if ~p.Results.yyNextAx
         newChildrenYY = p.Results.uiax.Children; 
         copyUIAxes(p.Results.uiax, h.axes, 'yyNextAx', true);
@@ -291,7 +292,7 @@ if (any(strcmpi(properties(p.Results.uiax),'Legend')) && ~isempty(p.Results.uiax
         excludeList{end+1} = 'Location'; % see note [20]
     end
     [legGoodParams, legbadProps] = getGoodParams(legHand, h.legend, excludeList, 'legend');  % see note [3]
-    set(h.legend, legGoodParams)
+    set(h.legend, legGoodParams);
     % For trouble shooting, loop through each property rather then setting them all at once.
     %     legProps = fields(legGoodParams); 
     %     for i = 1:numel(legProps)
@@ -301,7 +302,7 @@ if (any(strcmpi(properties(p.Results.uiax),'Legend')) && ~isempty(p.Results.uiax
     % Copy legend title; see note [13]
     h.legendTitle = title(h.legend, legHand.Title.String);
     [legTtlGoodParams, legTtlbadProps] = getGoodParams(legHand.Title, h.legendTitle, {'Parent'; 'Children'}, 'legendTitle');
-    set(h.legendTitle, legTtlGoodParams)
+    set(h.legendTitle, legTtlGoodParams);
     
     % Reset position of axes i& set position of legend if requirements are met. 
     posCopied = setPosition(p, h, destinationCreatedInternally, false, legHand, sourceFig); % see note [20]
@@ -320,7 +321,7 @@ if  ~isempty(p.Results.colorbar)
         excludeList{end+1} = 'Location'; % see note [20]
     end
     [cbGoodParams, cbbadProps] = getGoodParams(p.Results.colorbar, h.colorbar, excludeList, 'colorbar');
-    set(h.colorbar, cbGoodParams)
+    set(h.colorbar, cbGoodParams);
     
     % % For trouble shooting, loop through each property rather then setting them all at once.
     % % To remove fields for testing purposes, cbTtlGoodParams = rmfield(cbTtlGoodParams, {'XTick', 'XLim'});
@@ -334,12 +335,12 @@ if  ~isempty(p.Results.colorbar)
     % Copy title
     h.colorbarTitle = title(h.colorbar, p.Results.colorbar.Title.String);
     [cbTtlGoodParams, cbTtlbadProps] = getGoodParams(p.Results.colorbar.Title, h.colorbarTitle, {'Parent'; 'Children';'Position'}, 'colorbarTitle'); 
-    set(h.colorbarTitle, cbTtlGoodParams)
+    set(h.colorbarTitle, cbTtlGoodParams);
         
     % Copy ylabels
     h.colorbarYlabel = ylabel(h.colorbar, p.Results.colorbar.YLabel.String);
     [cbYLabGoodParams, cbYLabbadProps] = getGoodParams(p.Results.colorbar.YLabel, h.colorbarYlabel, {'Parent'; 'Children';'Position'},'colorbarYlabel'); 
-    set(h.colorbarYlabel, cbYLabGoodParams)
+    set(h.colorbarYlabel, cbYLabGoodParams);
     
     % Reset position of axes and legend and set position of colorbar if requirements are met. 
     posCopied = setPosition(p, h, destinationCreatedInternally, false, legHand, sourceFig); % see note [20]
@@ -400,12 +401,12 @@ if ~isempty(lastwarn())
     defaultMode = warning('query', 'backtrace');  %store default
     warning off backtrace                         %turn off backtrace
     fprintf('\n')
-    warning(msg)
-    warning(defaultMode.state, 'backtrace')       %turn back on default
+    warning(msg);
+    warning(defaultMode.state, 'backtrace');       %turn back on default
     
 else
     % A warning was not thrown; return the lastwarning.
-    lastwarn(lastWarnMsg, lastWarnID)
+    lastwarn(lastWarnMsg, lastWarnID);
    
 end
 %% Local functions
@@ -470,12 +471,12 @@ if p.Results.copyPosition
         % Set the figure to the same size as destination figure.
         h.figure.Units = sourceFig.Units;
         h.figure.Position(3:4) = sourceFig.Position(3:4);   % [21]
-        movegui(h.figure) % Ensure it's on the screen
+        movegui(h.figure); % Ensure it's on the screen
     end
     if ~destinationCreatedInternally(2) % If axes was not created internally (then the fig wasn't either)
         if firstCall
             % Axis position property is only copied when axes are produced internally.
-            warning('The ''copyPosition'' property is ignored when the destination axes are created externally to %s.', mfilename())
+            warning('The ''copyPosition'' property is ignored when the destination axes are created externally to %s.', mfilename());
         end
     else
         % Set destination axis position (but not units) [18, 20, 23].
@@ -484,7 +485,7 @@ if p.Results.copyPosition
         
         % Set destination legend position (but not units) iff Location is 'none'
         if isfield(h,'legend') && ~isempty(legHand) && strcmpi(legHand.Location,'none')
-            convertPosition(p, h, legHand, sourceFig)
+            convertPosition(p, h, legHand, sourceFig);
             posCopied(2) = true; 
         end
         
@@ -512,7 +513,7 @@ if strcmpi(obj.Type, 'legend')
 elseif strcmpi(obj.Type, 'colorbar')
     obj(2) = h.colorbar; 
 else
-    error('Object repositioning only supports legends and colorbars. Respositioning attempted with %s object.', obj.Type)
+    error('Object repositioning only supports legends and colorbars. Respositioning attempted with %s object.', obj.Type);
 end
 % Store original units and then change them temporarily
 original.objUnits = obj(1).Units; 
@@ -550,7 +551,7 @@ function nestedParentFigPosition(source, destination, firstCall)
 % the positions again and the previous values are used.  
 persistent outPos inPos
 if firstCall
-    drawnow(); pause(0.05)
+    drawnow(); pause(0.05);
     parentIsFig = false;
     innerPos = [];
     outerPos = [];

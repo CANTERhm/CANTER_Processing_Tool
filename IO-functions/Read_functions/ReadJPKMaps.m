@@ -60,8 +60,8 @@ try
     unzip(fullfile(path_parts{1:end-3},'7-Zip.zip'),fullfile(path_parts{1:end-3}));
     zip_prog_path = fullfile(path_parts{1:end-3},'7-Zip','7z.exe');
     zip_command = 'x';
-    switches = ['-bso0' ' ' '-r' ' ' '-y' ' ' '-o' '"' unzipfolder '"' ];
-    status = system(['"' zip_prog_path '"' ' ' zip_command  ' ' '"' zippath '"' ' ' switches]);
+    switches = ['-bso0' ' ' '-r' ' ' '-y' ' ' '-o' '"' char(unzipfolder) '"' ];
+    status = system(['"' char(zip_prog_path) '"' ' ' char(zip_command)  ' ' '"' char(zippath) '"' ' ' switches]);
     rmdir(fullfile(path_parts{1:end-3},'7-Zip'),'s');
 catch
     warning('7zip wasn''t found; matlabs unzip function was used instead!');
