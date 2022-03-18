@@ -585,23 +585,57 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                                 warning on
                                 warning('Unknown unit for Position_z\nValues may be laoded in a different unit than meter!%s\n',' ');
                         end
+                        % Determine multiplier for Fz data
+                        curr_fz = mach_data.(current_label).Fz.Values;
+                        curr_min = min(curr_fz);
+                        curr_max = max(curr_fz);
+                        curr_median = median(curr_fz);
+                        if (abs(curr_min-curr_median)) < (abs(curr_max-curr_median))
+                            multiplier = 1;
+                        else
+                            multiplier = -1;
+                        end
                         % load y values in dependency of unit
                         % (The multiplication by (-1) is due to the different sign convention of the positive force direction of the MACH-1 sytem)
-                        switch mach_data.(current_label).Fz.Unit
-                            case 'N'
-                                curves.(c_string).y_values = mach_data.(current_label).Fz.Values.*(-1);   % get y values in newton
-                            case 'mN'
-                                curves.(c_string).y_values = mach_data.(current_label).Fz.Values.*(-1).*1e-3;   % get y values in newton
-                            case 'µN'
-                                curves.(c_string).y_values = mach_data.(current_label).Fz.Values.*(-1).*1e-6;   % get y values in newton
-                            case 'nN'
-                                curves.(c_string).y_values = mach_data.(current_label).Fz.Values.*(-1).*1e-9;   % get y values in newton
+                        switch mach_info.(current_label){6,2}
+                            case 'Single-axis'
+                                switch mach_data.(current_label).Fz.Unit
+                                    case 'gf'
+                                        curves.(c_string).y_values = mach_data.(current_label).Fz.Values.*multiplier.*0.00980665; % convert gf to N
+                                    case 'N'
+                                        curves.(c_string).y_values = mach_data.(current_label).Fz.Values.*multiplier;   % get y values in newton
+                                    case 'mN'
+                                        curves.(c_string).y_values = mach_data.(current_label).Fz.Values.multiplier.*1e-3;   % get y values in newton
+                                    case 'µN'
+                                        curves.(c_string).y_values = mach_data.(current_label).Fz.Values.*multiplier.*1e-6;   % get y values in newton
+                                    case 'nN'
+                                        curves.(c_string).y_values = mach_data.(current_label).Fz.Values.*multiplier.*1e-9;   % get y values in newton
+                                    otherwise
+                                        curves.(c_string).y_values = mach_data.(current_label).Fz.Values.*multiplier;   % get y values in any unit
+                                        warning on
+                                        warning('Unknown unit for Fz\nValues may be laoded in a different unit than newton!%s\n',' ');
+                                end
+                            case 'Multiple-axis'
+                                switch mach_data.(current_label).Fz.Unit
+                                    case 'N'
+                                        curves.(c_string).y_values = mach_data.(current_label).Fz.Values.*multiplier;   % get y values in newton
+                                    case 'mN'
+                                        curves.(c_string).y_values = mach_data.(current_label).Fz.Values.*multiplier.*1e-3;   % get y values in newton
+                                    case 'µN'
+                                        curves.(c_string).y_values = mach_data.(current_label).Fz.Values.*multiplier.*1e-6;   % get y values in newton
+                                    case 'nN'
+                                        curves.(c_string).y_values = mach_data.(current_label).Fz.Values.*multiplier.*1e-9;   % get y values in newton
+                                    otherwise
+                                        curves.(c_string).y_values = mach_data.(current_label).Fz.Values.*multiplier;   % get y values in any unit
+                                        warning on
+                                        warning('Unknown unit for Fz\nValues may be laoded in a different unit than newton!%s\n',' ');
+                                end
                             otherwise
-                                curves.(c_string).y_values = mach_data.(current_label).Fz.Values.*(-1);   % get y values in any unit
+                                curves.(c_string).y_values = mach_data.(current_label).Fz.Values.*multiplier;   % get y values in any unit
                                 warning on
-                                warning('Unknown unit for Fz\nValues may be laoded in a different unit than newton!%s\n',' ');
+                                warning('Unknown Load Cell Type:\nValues may be laoded in a different unit than newton!%s\n',' ');
                         end
-                            
+                                                  
                         % add listbox element                  
                         it = handles.listbox1.String;
                         it{i,1} = sprintf('curve %3u  ->  unprocessed',i);
