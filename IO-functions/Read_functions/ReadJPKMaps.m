@@ -25,15 +25,15 @@ function [x_data,y_data, x_data_retract, y_data_retract, Forcecurve_count, varar
 % varargout{5} = map_info;      -> A struct containing all availlable information about the loaded map images in raw format.
 % varargout{6} = info_array;    -> Contains all information about the laoded map as a cell array (first column: names, second column: values)
 % 
-% encoder:
-% (1)= offset_scaling_height;
-% (2)= multiplier_scaling_height;
-% (3)= offset_cali_height;
-% (4)= multiplier_cali_height;
-% (5) = offset_encoder_height;
-% (6) = multiplier_encoder_height;
-% (7) = offset_encoder_vdef;
-% (8) = multiplier_encoder_vdef;
+% encoder: (1-6 for measuredHeight; 7-8 for verticalDef)
+% (1)= nominal.scaling.offset;          %channel: measuredHeight
+% (2)= nominal.scaling.multiplier;      %channel: measuredHeight
+% (3)= absolute.scaling.offset;         %channel: measuredHeight
+% (4)= absolute.scaling.multiplier;     %channel: measuredHeight
+% (5) = encoder.scaling.offset;         %channel: measuredHeight
+% (6) = encoder.scaling.multiplier;     %channel: measuredHeight
+% (7) = encoder.scaling.offset;         %channel: verticalDeflection
+% (8) = encoder.scaling.multiplier;     %channel: verticalDeflection
 
 % Get the direction/the file and convert it into a .zip file
 if nargin == 1
@@ -262,7 +262,7 @@ for i=1:num_files
     x_data.(Forcecurve_count{i})=x_data_raw.(Forcecurve_count{i}).*encoder(6)+encoder(5); % decoding into Volts
     x_data.(Forcecurve_count{i})=(x_data.(Forcecurve_count{i}).*encoder(4))+encoder(3); % absolute scaling
     x_data.(Forcecurve_count{i})=x_data.(Forcecurve_count{i}).*encoder(2)+encoder(1); % nominal scaling
-    x_data.(Forcecurve_count{i}) = flip(x_data.(Forcecurve_count{i})); %JPK PreProcessing does present it like that, this is necessary to get all the calculations for the next functions
+    %x_data.(Forcecurve_count{i}) = flip(x_data.(Forcecurve_count{i})); %JPK PreProcessing does present it like that, this is necessary to get all the calculations for the next functions
 end
 waitbar(0.25,wbar);
 %Decode the height for the retract part
