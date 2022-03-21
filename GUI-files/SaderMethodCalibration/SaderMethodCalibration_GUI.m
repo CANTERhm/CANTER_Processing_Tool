@@ -478,7 +478,9 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
         % Close request function: UIFigure
         function UIFigureCloseRequest(app, event)
             
+            
             delete(app)
+            run("CANTER_Processing_Tool.mlapp")
             
         end
 
