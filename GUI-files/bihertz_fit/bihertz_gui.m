@@ -2484,7 +2484,7 @@ if strcmp(answer,'Yes')
     warning on
     delete(handles.figure1);
     delete(allchild(groot));
-    run('Auswertetool_exe.m');
+    run('CANTER_Processing_Tool.mlapp');
 end
 
 % --- Executes during object deletion, before destroying properties.
