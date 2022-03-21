@@ -508,7 +508,7 @@ elseif strcmp(answer,'Yes')  || strcmp(answer, 'NaN')
                         end
                         % load x and y values of each force curve
                         c_string = sprintf('curve%u',i);
-                        curves.(c_string).x_values = x_data.(Forcecurve_label{i}).*1e-6; %Save data as meter[m]
+                        curves.(c_string).x_values = x_data.(Forcecurve_label{i}); %Save data as meter[m]
                         curves.(c_string).y_values = y_data.(Forcecurve_label{i}); %Save data as Volt[V]
                         % add listbox element                  
                         it = handles.listbox1.String;
