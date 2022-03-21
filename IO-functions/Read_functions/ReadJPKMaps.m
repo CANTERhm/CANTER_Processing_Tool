@@ -25,15 +25,15 @@ function [x_data,y_data, x_data_retract, y_data_retract, Forcecurve_count, varar
 % varargout{5} = map_info;      -> A struct containing all availlable information about the loaded map images in raw format.
 % varargout{6} = info_array;    -> Contains all information about the laoded map as a cell array (first column: names, second column: values)
 % 
-% encoder:
-% (1)= offset_scaling_height;
-% (2)= multiplier_scaling_height;
-% (3)= offset_cali_height;
-% (4)= multiplier_cali_height;
-% (5) = offset_encoder_height;
-% (6) = multiplier_encoder_height;
-% (7) = offset_encoder_vdef;
-% (8) = multiplier_encoder_vdef;
+% encoder: (1-6 for measuredHeight; 7-8 for verticalDef)
+% (1)= nominal.scaling.offset;          %channel: measuredHeight
+% (2)= nominal.scaling.multiplier;      %channel: measuredHeight
+% (3)= absolute.scaling.offset;         %channel: measuredHeight
+% (4)= absolute.scaling.multiplier;     %channel: measuredHeight
+% (5) = encoder.scaling.offset;         %channel: measuredHeight
+% (6) = encoder.scaling.multiplier;     %channel: measuredHeight
+% (7) = encoder.scaling.offset;         %channel: verticalDeflection
+% (8) = encoder.scaling.multiplier;     %channel: verticalDeflection
 
 % Get the direction/the file and convert it into a .zip file
 if nargin == 1
@@ -60,8 +60,8 @@ try
     unzip(fullfile(path_parts{1:end-3},'7-Zip.zip'),fullfile(path_parts{1:end-3}));
     zip_prog_path = fullfile(path_parts{1:end-3},'7-Zip','7z.exe');
     zip_command = 'x';
-    switches = ['-bso0' ' ' '-r' ' ' '-y' ' ' '-o' '"' unzipfolder '"' ];
-    status = system(['"' zip_prog_path '"' ' ' zip_command  ' ' '"' zippath '"' ' ' switches]);
+    switches = ['-bso0' ' ' '-r' ' ' '-y' ' ' '-o' '"' char(unzipfolder) '"' ];
+    status = system(['"' char(zip_prog_path) '"' ' ' char(zip_command)  ' ' '"' char(zippath) '"' ' ' switches]);
     rmdir(fullfile(path_parts{1:end-3},'7-Zip'),'s');
 catch
     warning('7zip wasn''t found; matlabs unzip function was used instead!');
@@ -172,10 +172,11 @@ while ischar(tline)
        
        matches1 = strfind(tline, sprintf('lcd-info.%u.conversion-set.conversion.nominal.scaling.offset',channelnum_measuredHeight));
        matches2 = strfind(tline, sprintf('lcd-info.%u.conversion-set.conversion.nominal.scaling.multiplier',channelnum_measuredHeight));
-       matches3 = strfind(tline, sprintf('lcd-info.%u.conversion-set.conversion.calibrated.scaling.offset',channelnum_measuredHeight));
-       matches4 = strfind(tline, sprintf('lcd-info.%u.conversion-set.conversion.calibrated.scaling.multiplier',channelnum_measuredHeight));
+       matches3 = strfind(tline, sprintf('lcd-info.%u.conversion-set.conversion.absolute.scaling.offset',channelnum_measuredHeight));
+       matches4 = strfind(tline, sprintf('lcd-info.%u.conversion-set.conversion.absolute.scaling.multiplier',channelnum_measuredHeight));
        matches5 = strfind(tline, sprintf('lcd-info.%u.encoder.scaling.offset',channelnum_measuredHeight));
        matches6 = strfind(tline, sprintf('lcd-info.%u.encoder.scaling.multiplier',channelnum_measuredHeight));
+
         
        if matches1==1
            h1=textscan(tline,'%s %f' ,'Delimiter','=');
@@ -258,21 +259,17 @@ wbar = waitbar(0,'Decoding all channels');
 % Decode measuredHeight
 %Decode the height for the extend part
 for i=1:num_files
-    x_data.(Forcecurve_count{i})=x_data_raw.(Forcecurve_count{i}).*encoder(6)+encoder(5);
-    x_data.(Forcecurve_count{i})=x_data.(Forcecurve_count{i}).*encoder(2)+encoder(1);
-    % x_data.(Forcecurve_count{i})=(x_data.(Forcecurve_count{i})*multiplier_cali_height)+offset_cali_height;
-    % Formula is only needed if  Height is used
-    % (lcd.info0) instead of measured height (lcd.info4)
-    x_data.(Forcecurve_count{i}) = flip(x_data.(Forcecurve_count{i})); %JPK PreProcessing does present it like that, this is necessary to get all the calculations for the next functions
+    x_data.(Forcecurve_count{i})=x_data_raw.(Forcecurve_count{i}).*encoder(6)+encoder(5); % decoding into Volts
+    x_data.(Forcecurve_count{i})=(x_data.(Forcecurve_count{i}).*encoder(4))+encoder(3); % absolute scaling
+    x_data.(Forcecurve_count{i})=x_data.(Forcecurve_count{i}).*encoder(2)+encoder(1); % nominal scaling
+    %x_data.(Forcecurve_count{i}) = flip(x_data.(Forcecurve_count{i})); %JPK PreProcessing does present it like that, this is necessary to get all the calculations for the next functions
 end
 waitbar(0.25,wbar);
 %Decode the height for the retract part
 for i=1:num_files
-    x_data_retract.(Forcecurve_count{i})=(x_data_raw_retract.(Forcecurve_count{i})*encoder(6))+encoder(5);
-    x_data_retract.(Forcecurve_count{i})=(x_data_retract.(Forcecurve_count{i})*encoder(2))+encoder(1);
-    % x_data.(Forcecurve_count{i})=(x_data.(Forcecurve_count{i})*multiplier_cali_height)+offset_cali_height;
-    % Formula is only needed if  Height is used
-    % (lcd.info0) instead of measured height (lcd.info4)
+    x_data_retract.(Forcecurve_count{i})=(x_data_raw_retract.(Forcecurve_count{i})*encoder(6))+encoder(5); % decoding into Volts
+    x_data_retract.(Forcecurve_count{i})=(x_data_retract.(Forcecurve_count{i}).*encoder(4))+encoder(3); % absolute scaling
+    x_data_retract.(Forcecurve_count{i})=(x_data_retract.(Forcecurve_count{i})*encoder(2))+encoder(1); % nominal scaling
     x_data_retract.(Forcecurve_count{i}) = flip(x_data_retract.(Forcecurve_count{i})); %JPK PreProcessing does present it like that, this is necessary to get all the calculations for the next functions
 end
 waitbar(0.5,wbar);
