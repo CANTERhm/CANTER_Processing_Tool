@@ -1,0 +1,201 @@
+<deployment-project plugin="plugin.apptool" plugin-version="1.0">
+  <configuration build-checksum="2964195387" file="C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Installation_File\CANTER_Processing_Tool.prj" location="C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Installation_File" name="CANTER_Processing_Tool" target="target.mlapps" target-name="Package App">
+    <param.appname>CANTER_Processing_Tool</param.appname>
+    <param.authnamewatermark>Bastian Hartmann &amp; Lutz Fleischhauer</param.authnamewatermark>
+    <param.email>bastian.hartmann@gmx.de</param.email>
+    <param.company>Munich University of Applied Sciences</param.company>
+    <param.icon>${PROJECT_ROOT}\CANTER_Processing_Tool_resources\icon_24.png</param.icon>
+    <param.icons>
+      <file>${PROJECT_ROOT}\CANTER_Processing_Tool_resources\icon_48.png</file>
+      <file>${PROJECT_ROOT}\CANTER_Processing_Tool_resources\icon_24.png</file>
+      <file>${PROJECT_ROOT}\CANTER_Processing_Tool_resources\icon_16.png</file>
+    </param.icons>
+    <param.summary />
+    <param.description>The essential tool for analyzing IT-AFM force data.</param.description>
+    <param.screenshot>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\Wiki_files\images\Start_Window\Screenshot_CANTER_Processing_Tool_GUI.png</param.screenshot>
+    <param.version>4.0</param.version>
+    <param.products.name>
+      <item>MATLAB</item>
+      <item>Curve Fitting Toolbox</item>
+      <item>Image Acquisition Toolbox</item>
+      <item>Image Processing Toolbox</item>
+      <item>Optimization Toolbox</item>
+      <item>Statistics and Machine Learning Toolbox</item>
+    </param.products.name>
+    <param.products.id>
+      <item>1</item>
+      <item>60</item>
+      <item>78</item>
+      <item>17</item>
+      <item>6</item>
+      <item>19</item>
+    </param.products.id>
+    <param.products.version>
+      <item>9.12</item>
+      <item>3.7</item>
+      <item>6.6</item>
+      <item>11.5</item>
+      <item>9.3</item>
+      <item>12.3</item>
+    </param.products.version>
+    <param.platforms />
+    <param.output>${PROJECT_ROOT}</param.output>
+    <param.guid>816eb67e-5779-425a-ab0d-b8923f0137b3</param.guid>
+    <unset>
+      <param.email />
+      <param.summary />
+      <param.platforms />
+      <param.output />
+    </unset>
+    <fileset.main>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\CANTER_Processing_Tool.mlapp</file>
+    </fileset.main>
+    <fileset.depfun>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\bihertz_fit\bihertz_gui.fig</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\bihertz_fit\bihertz_gui.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\bihertz_fit\grid_creation_function.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\Calibration\Calibration.fig</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\Calibration\Calibration.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\Calibration\Calibration_file_generator.mlapp</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\Canti_Sample_window\canti_sample_gui.fig</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\Canti_Sample_window\canti_sample_gui.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\Histogram_image_manipulation\button_0.png</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\Histogram_image_manipulation\button_1.png</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\Histogram_image_manipulation\Get_Paths_GUI.mlapp</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\Histogram_image_manipulation\Hist_GUI.mlapp</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\Histogram_Plotting_Tool\HistogramPlottingTool.mlapp</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\Lateral_deflection_gui\lateral_dev_gui.fig</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\Lateral_deflection_gui\lateral_dev_gui.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\Pictures\cantilever_tip.png</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\Pictures\flat_cylinder.png</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\SaderMethodCalibration\SaderMethodCalibration_GUI.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\Simple_Filtering_Tool\SimpleFilteringTool.mlapp</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\IO-functions\Read_functions\ForceMapImageData.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\IO-functions\Read_functions\IBWread.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\IO-functions\Read_functions\import_force_curve_txt_file_fast.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\IO-functions\Read_functions\import_xyz_file.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\IO-functions\Read_functions\read_JPK_text_header.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\IO-functions\Read_functions\read_WaveNotes.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\IO-functions\Read_functions\readIBWbinheader.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\IO-functions\Read_functions\readIBWheaders.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\IO-functions\Read_functions\ReadJPKMaps.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\IO-functions\Read_functions\ReadMachTextFile.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\IO-functions\Read_functions\ReadMFPMaps.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\IO-functions\Read_functions\ReadMFPMaps_wo_bar.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\IO-functions\Save_functions\save_table.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\+mixin\Container.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\+mixin\Panel.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\Box.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\calcPixelSizes.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\ChildEvent.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\ChildObserver.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\Container.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\Empty.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\FigureData.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\FigureObserver.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\Grid.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\HBox.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\Node.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\ScrollingPanel.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\SelectionData.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\set.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\setPosition.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\tracking.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\copyUIAxes.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\copyUIAxes_new.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_classes\BimodalHistogram.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_fits\Bihertz_fits\bihertz_split_heaviside.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_fits\Bihertz_fits\bihertz_sum_heaviside.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_fits\Bihertz_fits\initial_guess_hard.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_fits\Bihertz_fits\initial_guess_soft.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_fits\curve_fit_functions.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_fits\Hertz_fits\HertzFit.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_fits\Histogram_fits\histogram_fits.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\afm_darkgold.mat</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\bihertz_gui_help_functions\ImageInterpolationMFP.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\bihertz_gui_help_functions\plot_bihertz.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\bihertz_gui_help_functions\plot_hertz.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\bihertz_gui_help_functions\update_curve_marker.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\bihertz_gui_help_functions\update_fit_results.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\bihertz_gui_help_functions\update_patches.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\bihertz_gui_help_functions\update_patches_hertzfit.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\bihertz_gui_help_functions\update_progress_info.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\displayCrosshairInfo.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\displayCrosshairInfoAndPatch.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\get_order_of_magnitude.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\Graph_modify_functions\BaselineFinder.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\Graph_modify_functions\ContactPoint_via_hertz.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\Graph_modify_functions\ContactPoint_via_intersec.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\Graph_modify_functions\OffsetCorrection.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\Graph_modify_functions\process_options.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\Graph_modify_functions\TiltCorrection.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\Graph_modify_functions\Tip_Sample_Separation.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\lateral_dev_gui_help_functions\map_line_plot.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\poly_rsquare.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\set_afm_gold.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\WriteInLogFile.m</file>
+    </fileset.depfun>
+    <fileset.resources />
+    <fileset.package />
+    <build-deliverables>
+      <file location="C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool" name="Installation_File" optional="false">C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Installation_File</file>
+    </build-deliverables>
+    <workflow />
+    <matlab>
+      <root>C:\Program Files\MATLAB\R2022a</root>
+      <toolboxes>
+        <toolbox name="matlabcoder" />
+        <toolbox name="embeddedcoder" />
+        <toolbox name="gpucoder" />
+        <toolbox name="fixedpoint" />
+        <toolbox name="matlabhdlcoder" />
+        <toolbox name="neuralnetwork" />
+      </toolboxes>
+      <toolbox>
+        <matlabcoder>
+          <enabled>true</enabled>
+        </matlabcoder>
+      </toolbox>
+      <toolbox>
+        <embeddedcoder>
+          <enabled>true</enabled>
+        </embeddedcoder>
+      </toolbox>
+      <toolbox>
+        <gpucoder>
+          <enabled>true</enabled>
+        </gpucoder>
+      </toolbox>
+      <toolbox>
+        <fixedpoint>
+          <enabled>true</enabled>
+        </fixedpoint>
+      </toolbox>
+      <toolbox>
+        <matlabhdlcoder>
+          <enabled>true</enabled>
+        </matlabhdlcoder>
+      </toolbox>
+      <toolbox>
+        <neuralnetwork>
+          <enabled>true</enabled>
+        </neuralnetwork>
+      </toolbox>
+    </matlab>
+    <platform>
+      <unix>false</unix>
+      <mac>false</mac>
+      <windows>true</windows>
+      <win2k>false</win2k>
+      <winxp>false</winxp>
+      <vista>false</vista>
+      <linux>false</linux>
+      <solaris>false</solaris>
+      <osver>10.0</osver>
+      <os32>false</os32>
+      <os64>true</os64>
+      <arch>win64</arch>
+      <matlab>true</matlab>
+    </platform>
+  </configuration>
+</deployment-project>
