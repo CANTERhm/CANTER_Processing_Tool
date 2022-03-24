@@ -15,13 +15,17 @@ y_fit = y(baseline_edges(1,1):baseline_edges(1,2));
 [p, ~] = polyfit(x_fit,y_fit,1);
 y_linfit = polyval(p, x);
 
-% save absolut maximum of baseline variations
-variation_max = max(abs(y_fit)-mean(y_linfit));
-
-% Get the intersection point of the baseline and the graph
-contactpoint = find(y-y_linfit <= variation_max, 1, 'last');
-real_contactpoint = x(contactpoint-1);
-% Set the contactpoint as 0/0
-x_corrected = x-(x(contactpoint-1));
+% Get the last index where curve is under the baseline
+last_index = find(y<y_linfit, 1, 'last');
+% Get index left of the last_index
+next_index = last_index + 1;
+% Interpolate between the curve values betwee the two indices
+warning off
+[p_inter,~] = polyfit(x([next_index,last_index]),[y([next_index,last_index])],1);
+warning on
+% Calculate intersection point (x-value) of the baseline and the interpolation polynome
+real_contactpoint = (p_inter(2)-p(2))/(p(1)-p_inter(1)); % x_intersect = (t2-t1)/(m1-m2)
+% Set the contact point to 0
+x_corrected = x-real_contactpoint;
 
 end
