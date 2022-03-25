@@ -117,7 +117,7 @@ switch handles.options.model
             ord_EModul = floor(log10(EModul));
             
             % format value and unit for Young's modulus
-            if ord_EModul < 3 || ord_EModul >= 12
+            if ord_EModul < 3 || ord_EModul >= 12 || isnan(ord_EModul)
                 corr_EModul = EModul;
                 unit_EModul = 'Pa';
             elseif ord_EModul >= 3 && ord_EModul < 6

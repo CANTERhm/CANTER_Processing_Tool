@@ -21,7 +21,11 @@ last_index = find(y<y_linfit, 1, 'last');
 next_index = last_index + 1;
 % Interpolate between the curve values betwee the two indices
 warning off
-[p_inter,~] = polyfit(x([next_index,last_index]),[y([next_index,last_index])],1);
+try
+    [p_inter,~] = polyfit(x([next_index,last_index]),[y([next_index,last_index])],1);
+catch ME
+    [p_inter,~] = polyfit(x([last_index-1,last_index]),[y([last_index-1,last_index])],1);
+end
 warning on
 % Calculate intersection point (x-value) of the baseline and the interpolation polynome
 real_contactpoint = (p_inter(2)-p(2))/(p(1)-p_inter(1)); % x_intersect = (t2-t1)/(m1-m2)
