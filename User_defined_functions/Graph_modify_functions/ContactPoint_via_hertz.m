@@ -11,19 +11,8 @@ function [x_corrected]=ContactPoint_via_hertz(x, y, baseline_edges, handles,vara
     
     %% Code
     
-    % Get the baseline via the baselineedges
-    x_fit = x(baseline_edges(1,1):baseline_edges(1,2));
-    y_fit = y(baseline_edges(1,1):baseline_edges(1,2));
-
-    % Fit the baseline
-    [p, ~] = polyfit(x_fit,y_fit,1);
-    y_linfit = polyval(p, x);
-    
-    % Get first the intersection point of the baseline and the graph
-    contactpoint = find(y-y_linfit <= 0, 1, 'last')+1;
-
-    % Set the preliminar contactpoint as 0/0
-    x_corrected = x-(x(contactpoint));  
+   % Pre-estimate the contact point via intersect
+   [x_corrected,~] = ContactPoint_via_intersec(x, y, baseline_edges);
     
     % when the optional parameter is empty, perc_steps will
     % be set to the defauld value of 20
