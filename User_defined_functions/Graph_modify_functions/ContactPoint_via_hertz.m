@@ -11,19 +11,8 @@ function [x_corrected]=ContactPoint_via_hertz(x, y, baseline_edges, handles,vara
     
     %% Code
     
-    % Get the baseline via the baselineedges
-    x_fit = x(baseline_edges(1,1):baseline_edges(1,2));
-    y_fit = y(baseline_edges(1,1):baseline_edges(1,2));
-
-    % Fit the baseline
-    [p, ~] = polyfit(x_fit,y_fit,1);
-    y_linfit = polyval(p, x);
-    
-    % Get first the intersection point of the baseline and the graph
-    contactpoint = find(y-y_linfit <= 0, 1, 'last')+1;
-
-    % Set the preliminar contactpoint as 0/0
-    x_corrected = x-(x(contactpoint));  
+   % Pre-estimate the contact point via intersect
+   [x_corrected,~] = ContactPoint_via_intersec(x, y, baseline_edges);
     
     % when the optional parameter is empty, perc_steps will
     % be set to the defauld value of 20
@@ -33,17 +22,35 @@ function [x_corrected]=ContactPoint_via_hertz(x, y, baseline_edges, handles,vara
         perc_steps = varargin{1};
     end
     
+    % Limit curve values to the maximum fit depth
+    fit_depth = str2double(handles.hertz_fit_depth.String);
+    fit_depth_unit = handles.text46.String;
+    switch fit_depth_unit
+        case "mm"
+            fit_depth = fit_depth * 1e-3;
+        case "µm"
+            fit_depth = fit_depth * 1e-6;
+        case "nm"
+            fit_depth = fit_depth * 1e-9;
+        case "pm"
+            fit_depth = fit_depth * 1e-12;
+    end
+    
+    x_mask = x_corrected >= fit_depth*(-1);
+    x_fit = x_corrected(x_mask);
+    y_fit = y(x_mask);
+
     switch handles.tip_shape
         case 'four_sided_pyramid'
             % approximation and calculation of contact point via liniarized
             % hertz model
-            [~,d_h,~] = initial_guess_hard(x_corrected,y,perc_steps,handles.tip_angle,handles.poisson,'plot','off');
+            [~,d_h,~] = initial_guess_hard(x_fit,y_fit,perc_steps,handles.tip_angle,handles.poisson,'plot','off');
         case 'flat_cylinder'
             % get contact point via polyfit on part of the negative curve
             % section
-            x_min = min(x_corrected);
-            poly_mask = x_corrected < (x_min - perc_steps/100*x_min);
-            p = polyfit(x_corrected(poly_mask),y(poly_mask),1);
+            x_min = min(x_fit);
+            poly_mask = x_fit < (x_min - perc_steps/100*x_min);
+            p = polyfit(x_fit(poly_mask),y_fit(poly_mask),1);
             d_h = roots(p);
     end
 
