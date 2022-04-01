@@ -2873,7 +2873,10 @@ else
             end
         end
         
-        EModul_matrix(EModul_matrix == 0) = min(handles.T_result.EModul);
+%         EModul_matrix(EModul_matrix == 0) = min(handles.T_result.EModul);
+        for i = 2:2:handles.map_info.y_pixel
+            EModul_matrix(i,:) = flip(EModul_matrix(i,:),2);
+        end
         EModul_matrix = flip(EModul_matrix);
         handles.EModul_matrix = EModul_matrix;
         
@@ -2941,6 +2944,8 @@ if handles.ibw == false
     if strcmp(channel_string,'height')
         channel_image = handles.map_images.height.(sprintf('absolute_%s_data%s',...
         channel_string,interpolation_string));
+    elseif strcmp(channel_string, 'Youngs Modulus')
+        channel_image = handles.EModul_matrix;
     else
         channel_image = handles.map_images.(channel_string).(sprintf('%s_data%s',...
             channel_string,interpolation_string));
@@ -2995,6 +3000,8 @@ if handles.ibw == false
     if strcmp(channel_string,'height')
         channel_image = handles.map_images.height.(sprintf('absolute_%s_data%s',...
         channel_string,interpolation_string));
+    elseif strcmp(channel_string, 'Youngs Modulus')
+        channel_image = handles.EModul_matrix_linear_interpolation;
     else
         channel_image = handles.map_images.(channel_string).(sprintf('%s_data%s',...
             channel_string,interpolation_string));
@@ -3048,6 +3055,8 @@ if handles.ibw == false
     if strcmp(channel_string,'height')
         channel_image = handles.map_images.height.(sprintf('absolute_%s_data%s',...
         channel_string,interpolation_string));
+    elseif strcmp(channel_string, 'Youngs Modulus')
+        channel_image = handles.EModul_matrix_cubic_interpolation;
     else
         channel_image = handles.map_images.(channel_string).(sprintf('%s_data%s',...
             channel_string,interpolation_string));
