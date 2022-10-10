@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.apptool" plugin-version="1.0">
-  <configuration build-checksum="1015347674" file="C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\App_Installation_File\CANTER_Processing_Tool.prj" location="C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\App_Installation_File" name="CANTER_Processing_Tool" target="target.mlapps" target-name="Package App">
+  <configuration build-checksum="1745902669" file="C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\App_Installation_File\CANTER_Processing_Tool.prj" location="C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\App_Installation_File" name="CANTER_Processing_Tool" target="target.mlapps" target-name="Package App">
     <param.appname>CANTER_Processing_Tool</param.appname>
     <param.authnamewatermark>Bastian Hartmann &amp; Lutz Fleischhauer</param.authnamewatermark>
     <param.email>bastian.hartmann@gmx.de</param.email>
@@ -12,8 +12,8 @@
     </param.icons>
     <param.summary />
     <param.description>The essential tool for analyzing IT-AFM force data.</param.description>
-    <param.screenshot>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\Wiki_files\images\Start_Window\Screenshot_CANTER_Processing_Tool_GUI.png</param.screenshot>
-    <param.version>5.0</param.version>
+    <param.screenshot>${PROJECT_ROOT}\Screenshot_CANTER_Processing_Tool.png</param.screenshot>
+    <param.version>5.01</param.version>
     <param.products.name>
       <item>MATLAB</item>
       <item>Curve Fitting Toolbox</item>
@@ -51,14 +51,10 @@
       <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\CANTER_Processing_Tool.mlapp</file>
     </fileset.main>
     <fileset.depfun>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\bihertz_fit\bihertz_gui.fig</file>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\bihertz_fit\bihertz_gui.m</file>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\bihertz_fit\grid_creation_function.m</file>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\Calibration\Calibration.fig</file>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\Calibration\Calibration.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\bihertz_fit\bihertz_gui_App.mlapp</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\Calibration\Calibration_App.mlapp</file>
       <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\Calibration\Calibration_file_generator.mlapp</file>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\Canti_Sample_window\canti_sample_gui.fig</file>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\Canti_Sample_window\canti_sample_gui.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\Canti_Sample_window\canti_sample_gui_App.mlapp</file>
       <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\Histogram_image_manipulation\button_0.png</file>
       <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\Histogram_image_manipulation\button_1.png</file>
       <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\GUI-files\Histogram_image_manipulation\Get_Paths_GUI.mlapp</file>
@@ -78,29 +74,11 @@
       <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\IO-functions\Read_functions\read_WaveNotes.m</file>
       <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\IO-functions\Read_functions\readIBWbinheader.m</file>
       <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\IO-functions\Read_functions\readIBWheaders.m</file>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\IO-functions\Read_functions\ReadJPKMaps.m</file>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\IO-functions\Read_functions\ReadMachTextFile.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\IO-functions\Read_functions\ReadJPKMaps_App.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\IO-functions\Read_functions\ReadMachTextFile_App.m</file>
       <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\IO-functions\Read_functions\ReadMFPMaps.m</file>
       <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\IO-functions\Read_functions\ReadMFPMaps_wo_bar.m</file>
       <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\IO-functions\Save_functions\save_table.m</file>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\+mixin\Container.m</file>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\+mixin\Panel.m</file>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\Box.m</file>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\calcPixelSizes.m</file>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\ChildEvent.m</file>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\ChildObserver.m</file>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\Container.m</file>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\Empty.m</file>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\FigureData.m</file>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\FigureObserver.m</file>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\Grid.m</file>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\HBox.m</file>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\Node.m</file>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\ScrollingPanel.m</file>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\SelectionData.m</file>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\set.m</file>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\setPosition.m</file>
-      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\+uix\tracking.m</file>
       <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\copyUIAxes.m</file>
       <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\Third_party_functions\copyUIAxes_new.m</file>
       <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_classes\BimodalHistogram.m</file>
@@ -130,6 +108,7 @@
       <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\Graph_modify_functions\process_options.m</file>
       <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\Graph_modify_functions\TiltCorrection.m</file>
       <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\Graph_modify_functions\Tip_Sample_Separation.m</file>
+      <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\heaviside.m</file>
       <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\lateral_dev_gui_help_functions\map_line_plot.m</file>
       <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\poly_rsquare.m</file>
       <file>C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\User_defined_functions\set_afm_gold.m</file>
