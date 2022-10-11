@@ -1,10 +1,10 @@
 # CANTER Processing Tool
 This is the *CANTER Processing Tool* created using MATLAB's AppDesigner
 
-The *CANTER Processing Tool* is a collection of different applications for the analysis, filtering and visualisation of IT-AFM expermental data.
+The *CANTER Processing Tool* is a collection of different applications for the analysis, filtering and visualization of IT-AFM experimental data.
 
 The *CANTER Processing Tool* currently (version 5.x.x) includes the following applications:
-* Furce Curve Analysis
+* Force Curve Analysis
 * R² Filtering Tool
 * Result Filtering Tool
 * Histogram Plotting Tool
@@ -18,10 +18,10 @@ The *CANTER Processing Tool* currently (version 5.x.x) includes the following ap
 1. First, download the latest release of the master branch. You can do this by either clicking on *Code* (green button in the top right corner)<br>
 and select *Download ZIP* or by clicking on the latest release in the right side bar and select *download code (zip)* under *Assets*.
 
-2. Put the downloaded zip file in a folder dedecated for the *CANTER Processing Tool* and unzip it.
+2. Put the downloaded zip file in a folder dedicated for the *CANTER Processing Tool* and unzip it.
 
-3. To enable MATLAB to find and use the scipts, functions and apps of the *CANTER Processing Tool* you must add its folder and subfolders 
-to the MATLAB serach path.<br>Therefore, go to the *HOME* tab of the MATLAB user interface and click on *Set Path*.
+3. To enable MATLAB to find and use the scripts, functions and apps of the *CANTER Processing Tool* you must add its folder and subfolders 
+to the MATLAB search path.<br>Therefore, go to the *HOME* tab of the MATLAB user interface and click on *Set Path*.
 In the *Set Path* window, click on *Add with Subfolders...* and select the folder where<br>all files of the *CANTER Processing Tool* are located.<br>
 **If you cloned the repository to a local folder (instead of downloading the code as .zip file), make sure to remove all paths including the .git folder to avoid conflicts**
 
