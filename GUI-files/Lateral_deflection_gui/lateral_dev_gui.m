@@ -259,7 +259,7 @@ try
 
     if strcmp(answer,'Yes')
         delete(handles.figure1);
-        run('CANTER_Processing_Tool.mlapp');
+        run('CANTER_Processing_Toolbox.mlapp');
     end
 
 catch MException

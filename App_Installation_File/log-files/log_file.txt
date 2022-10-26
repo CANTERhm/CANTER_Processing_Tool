@@ -1,0 +1,6 @@
+# log_file
+# date of creation: 26-Oct-2022 14:16:35
+# Type: Matlab Enviroment Application
+
+
+
