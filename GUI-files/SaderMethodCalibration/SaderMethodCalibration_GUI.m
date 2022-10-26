@@ -480,7 +480,7 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
             
             
             delete(app)
-            run("CANTER_Processing_Tool.mlapp")
+            run("CANTER_Processing_Toolbox.mlapp")
             
         end
 
