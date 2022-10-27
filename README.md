@@ -44,7 +44,8 @@ You can start the *CANTER Processing Toolbox* by either:
 
 ## Updating the CANTER Processing Toolbox
 
-* When a newer version is available, you can simply download all files from the repository's master branch again and replace them in the local program folder.
+* When a newer version is available, you can simply download all files from the repository's master branch again and replace them in the local program folder.<br>
+  **You can check which version you have currently installed by clicking on _About_ in the menu bar of the application selection window!**
 
 * To always ensure full functionality, also repeat step 3. of the *Installation Guide*.
 
