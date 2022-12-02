@@ -16,7 +16,7 @@ y_fit = y(baseline_edges(1,1):baseline_edges(1,2));
 y_linfit = polyval(p, x);
 
 % Get the last index where curve is under the baseline
-last_index = find(y<y_linfit, 1, 'last');
+last_index = find(y<=y_linfit, 1, 'last');
 % Get index left of the last_index
 next_index = last_index + 1;
 % Interpolate between the curve values betwee the two indices
