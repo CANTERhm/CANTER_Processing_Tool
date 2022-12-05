@@ -60,7 +60,7 @@ handles.load_status = 0;
 handles.results = struct;
 handles.lines = struct;
 handles.current_line = 0;
-handles.cbar_factor = 3;
+handles.cbar_factor = 2.2;
 handles.peak_prom = 1.5;
 handles.results = struct;
 handles.results.pks = struct;
@@ -287,14 +287,15 @@ try
     hObject.String = cbar_mult;
     handles.cbar_factor = str2double(cbar_mult);
     if isnan(handles.cbar_factor)
-        handles.cbar_factor = 3;
-        hObject.String = '3';
+        handles.cbar_factor = 2.2;
+        hObject.String = '2.2';
     end    
-
+    
+    guidata(hObject,handles)
 
     % set new colorbar on the map_plot_axes
     axes(handles.map_plot_axes);
-    set_afm_gold(0.9,handles.cbar_factor,2);
+    set_afm_gold(0.9,handles.cbar_factor);
 
 catch MException
     ME = MException;
