@@ -46,17 +46,19 @@ try
 
         % BiHertz_Fit
         case 'bihertz'
-            if strcmp(handles.tip_shape,'four_sided_pyramid')
-                % variables and structs
-                options = handles.options;
-                curve_ind = handles.current_curve;
-                curves = handles.curves;
+            
+            % variables and structs
+            options = handles.options;
+            curve_ind = handles.current_curve;
+            curves = handles.curves;
 
-                c_string = sprintf('curve%u',curve_ind);
-                x_fit = handles.proc_curves.(c_string).x_values;
-                y_fit = handles.proc_curves.(c_string).y_values;
-                d_ind = str2double(handles.fit_depth.String)*(-1)*1e-6;
-                fit_perc = str2double(handles.fit_perc.String);
+            c_string = sprintf('curve%u',curve_ind);
+            x_fit = handles.proc_curves.(c_string).x_values;
+            y_fit = handles.proc_curves.(c_string).y_values;
+            d_ind = str2double(handles.fit_depth.String)*(-1)*1e-6;
+            fit_perc = str2double(handles.fit_perc.String);
+
+            if strcmp(handles.tip_shape,'four_sided_pyramid')
                 angle = handles.tip_angle;
                 poisson = handles.poisson;
 
@@ -133,6 +135,67 @@ try
                             'fit_E_s',fit(1),'fit_E_h',fit(2),'fit_d_h',fit(3),'fit_s_p',fit(4),'rsquare_fit',Rs);
                         guidata(hObject,handles);
                 end
+
+            elseif strcmp(handles.tip_shape,'flat_cylinder')
+                % Indenter geometry
+                radius = handles.cylinder_radius;
+                poisson = handles.poisson;
+
+                %initial soft guess
+                E_s = initial_guess_soft_cylinder(x_fit,y_fit,d_ind,radius,poisson);
+                gof_soft = NaN;
+                % initial hard guess
+                C = (2*radius)/(1-poisson^2);
+                LinearCorrection = -E_s.*C.*x_fit;
+                LinearCorrection(x_fit>0) = 0;
+                y_fit_hard = y_fit - LinearCorrection;
+                [E_h,d_h,gof_hard] = initial_guess_hard_cylinder(x_fit,y_fit_hard,fit_perc,radius,poisson,'plot','off');
+                % bihertz fit with initial guesses
+                par0(1) = E_s;
+                par0(2) = E_h;
+                par0(3) = d_h;
+
+                % get user answer regarding displaying fits
+                answer_display = [];
+                if nargin == 3
+                    answer_display = varargin{1};
+                end
+                
+                switch handles.options.bihertz_variant
+                    case 1 % switching second HM on
+
+                        [fit,~,~,~,~,Rs] = bihertz_sum_heaviside_cylinder(x_fit,y_fit,par0,radius,poisson,'plot','off');
+                        % add fit to main plot window
+                        if strcmp(answer_display, 'Yes') || isempty(answer_display)
+                            figure(handles.figures.main_fig)
+                            hold(handles.figures.main_ax,'on');
+                            C = (2*radius)/(1-poisson^2);
+                            func = @(par,d) -C.*(par(1).*d+(-1*(heaviside(d-par(3))-1)).*par(2).*(d-par(3)));
+                            mask = x_fit < 0;
+                            y_plot(length(x_fit)) = 0;
+                            x_draw = x_fit(mask);
+                            y_plot(mask) = func(fit,x_draw);
+                            try
+                                delete(handles.figures.fit_plot)
+                            catch 
+                                %nix%
+                            end
+                            handles.figures.fit_plot = plot(x_fit.*1e6,y_plot.*1e9','r-');
+                            drawnow;
+                            hold(handles.figures.main_ax,'off');
+
+                        end
+
+                        % saving fit results in handles
+                        handles.fit_results = struct('initial_E_s',E_s,'gof_soft',gof_soft,...
+                            'initial_E_h',E_h,'initial_d_h',d_h,'gof_hard',gof_hard,...
+                            'fit_E_s',fit(1),'fit_E_h',fit(2),'fit_d_h',fit(3),'rsquare_fit',Rs);
+                        guidata(hObject,handles);
+
+                    case 2 % switching second HM on while turning off the first one
+
+                end
+
             end
 
 
