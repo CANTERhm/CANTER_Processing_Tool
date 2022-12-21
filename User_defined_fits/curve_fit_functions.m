@@ -204,6 +204,7 @@ try
         % Hertz_Fit
         case 'hertz'
             % variables and structs
+
             curve_ind = handles.current_curve;
 
             c_string = sprintf('curve%u',curve_ind);
