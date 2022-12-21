@@ -21,10 +21,8 @@ switch tip_shape
         opts = fitoptions( 'Method', 'LinearLeastSquares' );
     case 'flat_cylinder'
         radius = indenter_value;
-        magnitude = floor(log(radius)/log(10));
-        func_string = sprintf('EModul*(2*%fe%d./(1-%f.^2)).*(x-contact_point)',radius/10^magnitude,magnitude,poisson);
-        ft = fittype( func_string, 'independent', 'x', 'dependent', 'y', 'coefficients', {'EModul','contact_point'} );
-        opts = fitoptions( 'Method', 'NonlinearLeastSquares','Algorithm','Trust-Region','StartPoint',[-1e3 0]);
+        ft = fittype("poly1");
+        opts = fitoptions(ft);
 end
 
     
@@ -40,13 +38,17 @@ opts.Exclude = excludedPoints;
 % Fit model to data.
 [fitresult, gof] = fit( xData, yData, ft, opts );
 
-EModul = fitresult.EModul;
+
 switch tip_shape
     case 'four_sided_pyramid'
         baseline_mask = xData<0;
+        EModul = fitresult.EModul;
     case 'flat_cylinder'
-        contact_point = fitresult.contact_point;
+        m = fitresult.p1;
+        t = fitresult.p2;
+        contact_point = -1*(t/m);
         baseline_mask = xData<contact_point;
+        EModul = (m*(1-poisson^2))/(2*radius);
 end
 fittedcurve_y = zeros(length(xData),1);
 switch tip_shape

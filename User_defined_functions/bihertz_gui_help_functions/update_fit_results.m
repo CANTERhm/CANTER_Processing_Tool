@@ -137,6 +137,13 @@ switch handles.options.model
             
             % set unit
             handles.text49.String = unit_EModul;
+
+            % write contact point
+            if strcmp(handles.tip_shape,"flat_cylinder")
+                [CPNumber,~,CPUnit,~] = get_order_of_magnitude(handles.fit_results.hertz_contact_point,"m");
+                handles.ContactPointField.Value = CPNumber;
+                handles.CP_unit_label.Text = CPUnit;
+            end
                 
 end
 
