@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.apptool" plugin-version="1.0">
-  <configuration build-checksum="3013913330" file="C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\App_Installation_File\CANTER_Processing_Toolbox.prj" location="C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\App_Installation_File" name="CANTER_Processing_Toolbox" target="target.mlapps" target-name="Package App">
+  <configuration build-checksum="1130632599" file="C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\App_Installation_File\CANTER_Processing_Toolbox.prj" location="C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\App_Installation_File" name="CANTER_Processing_Toolbox" target="target.mlapps" target-name="Package App">
     <param.appname>CANTER_Processing_Toolbox</param.appname>
     <param.authnamewatermark>Bastian Hartmann &amp; Lutz Fleischhauer</param.authnamewatermark>
     <param.email>bastian.hartmann@gmx.de</param.email>
@@ -13,7 +13,7 @@
     <param.summary />
     <param.description>The essential tools for analyzing IT-AFM force data.</param.description>
     <param.screenshot>${PROJECT_ROOT}\Screenshot_CANTER_Processing_Tool.png</param.screenshot>
-    <param.version>5.3.0</param.version>
+    <param.version>5.3.1</param.version>
     <param.products.name>
       <item>MATLAB</item>
       <item>Curve Fitting Toolbox</item>
