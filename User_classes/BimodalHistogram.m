@@ -273,29 +273,38 @@ classdef BimodalHistogram
                 fitobj = fit(x_fit,y_fit,'gauss2','StartPoint',StartPoints);
                 obj.fit_obj = fitobj;
             else
-                % Start point guessing
-                [hist_max,max_ind] = max(obj.BinCounts);
-                max_pos = obj.BinCenters(max_ind);
-                diff = abs(max_pos - min(obj.BinCenters));
-                half_diff = diff/2;
-                max_width = half_diff/(2*sqrt(2*log(2)));
-                max_pos_2 = max_pos + abs(max(obj.EModul)-max_pos)/2;
-                [~,max_ind_2] = min(abs(obj.BinCenters-max_pos_2));
-                hist_max_2 = obj.BinCounts(max_ind_2);
-                diff_2 = abs(max(obj.BinCenters) - max_pos_2);
-                half_diff_2 = diff_2/2;
-                max_width_2 = half_diff_2/(2*sqrt(2*log(2)));
-                
-                % set initialGuess property
-                obj.initialGuess.a1 = hist_max;
-                obj.initialGuess.E1 = max_pos;
-                obj.initialGuess.w1 = max_width;
-                obj.initialGuess.a2 = hist_max_2;
-                obj.initialGuess.E2 = max_pos_2;
-                obj.initialGuess.w2 = max_width_2;
+%                 % Start point guessing
+%                 [hist_max,max_ind] = max(obj.BinCounts);
+%                 max_pos = obj.BinCenters(max_ind);
+%                 diff = abs(max_pos - min(obj.BinCenters));
+%                 half_diff = diff/2;
+%                 max_width = half_diff/(2*sqrt(2*log(2)));
+%                 max_pos_2 = max_pos + abs(max(obj.EModul)-max_pos)/2;
+%                 [~,max_ind_2] = min(abs(obj.BinCenters-max_pos_2));
+%                 hist_max_2 = obj.BinCounts(max_ind_2);
+%                 diff_2 = abs(max(obj.BinCenters) - max_pos_2);
+%                 half_diff_2 = diff_2/2;
+%                 max_width_2 = half_diff_2/(2*sqrt(2*log(2)));
+%                 
+%                 % set initialGuess property
+%                 obj.initialGuess.a1 = hist_max;
+%                 obj.initialGuess.E1 = max_pos;
+%                 obj.initialGuess.w1 = max_width;
+%                 obj.initialGuess.a2 = hist_max_2;
+%                 obj.initialGuess.E2 = max_pos_2;
+%                 obj.initialGuess.w2 = max_width_2;
                 
                 % fitting
-                fitobj = fit(x_fit,y_fit,'gauss2','StartPoint',[hist_max max_pos max_width hist_max_2 max_pos_2 max_width_2]);
+                fitobj = fit(x_fit,y_fit,'gauss2');
+
+                obj.initialGuess.a1 = fitobj.a1;
+                obj.initialGuess.E1 = fitobj.b1;
+                obj.initialGuess.w1 = fitobj.c1;
+                obj.initialGuess.a2 = fitobj.a2;
+                obj.initialGuess.E2 = fitobj.b2;
+                obj.initialGuess.w2 = fitobj.c2;
+                
+%                 fitobj = fit(x_fit,y_fit,'gauss2','StartPoint',[hist_max max_pos max_width hist_max_2 max_pos_2 max_width_2]);
                 obj.fit_obj = fitobj;
             end
             
@@ -306,7 +315,7 @@ classdef BimodalHistogram
             obj.parameters.a2 = fitobj.a2;
             obj.parameters.E2 = fitobj.b2;
             obj.parameters.w2 = fitobj.c2;
-                        
+
             % calculate bimodal distribution
             obj.x_data_fit = linspace(min(obj.EModul)-obj.BinWidth*2,max(obj.EModul)+obj.BinWidth*2,400)';
             obj.y_data_fit = feval(obj.fit_obj,obj.x_data_fit);
