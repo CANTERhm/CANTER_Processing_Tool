@@ -140,9 +140,15 @@ switch handles.options.model
 
             % write contact point
             if strcmp(handles.tip_shape,"flat_cylinder")
-                [CPNumber,~,CPUnit,~] = get_order_of_magnitude(handles.fit_results.hertz_contact_point,"m");
-                handles.ContactPointField.Value = CPNumber;
-                handles.CP_unit_label.Text = CPUnit;
+                CP_Fit = handles.fit_results.hertz_contact_point;
+                if isnan(CP_Fit) || isinf(CP_Fit)
+                   handles.ContactPointField.Value = 0;
+                   handles.CP_unit_label.Text = "nm";
+                else
+                    [CPNumber,~,CPUnit,~] = get_order_of_magnitude(handles.fit_results.hertz_contact_point,"m");
+                    handles.ContactPointField.Value = CPNumber;
+                    handles.CP_unit_label.Text = CPUnit;
+                end
             end
                 
 end
