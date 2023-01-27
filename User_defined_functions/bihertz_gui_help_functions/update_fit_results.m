@@ -142,16 +142,16 @@ switch handles.options.model
             if strcmp(handles.tip_shape,"flat_cylinder")
                 if isfield(handles.fit_results,"hertz_contact_point")
                     CP_Fit = handles.fit_results.hertz_contact_point;
-                    if isnan(CP_Fit) || isinf(CP_Fit)
-                       handles.ContactPointField.Value = 0;
+                    if isnan(CP_Fit) || isinf(CP_Fit) || isempty(CP_Fit)
+                       handles.ContactPointField.Value = 0.00;
                        handles.CP_unit_label.Text = "nm";
-                    else
+                     else
                         [CPNumber,~,CPUnit,~] = get_order_of_magnitude(handles.fit_results.hertz_contact_point,"m");
                         handles.ContactPointField.Value = CPNumber;
                         handles.CP_unit_label.Text = CPUnit;
                     end
                 else
-                    handles.ContactPointField.Value = 0;
+                    handles.ContactPointField.Value = 0.00;
                     handles.CP_unit_label.Text = "nm";
                 end
             end
