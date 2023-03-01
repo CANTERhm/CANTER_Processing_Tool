@@ -4,46 +4,46 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
     properties (Access = public)
         UIFigure                     matlab.ui.Figure
         GridLayout                   matlab.ui.container.GridLayout
+        GridLayout7                  matlab.ui.container.GridLayout
+        ParametersPanel              matlab.ui.container.Panel
+        GridLayout8                  matlab.ui.container.GridLayout
+        GridLayout13                 matlab.ui.container.GridLayout
+        CantileverDropDown           matlab.ui.control.DropDown
+        UsedCantileverLabel          matlab.ui.control.Label
+        GridLayout12                 matlab.ui.container.GridLayout
+        Viscosity                    matlab.ui.control.NumericEditField
+        PasLabel                     matlab.ui.control.Label
+        ViscosityofSurroundingLabel  matlab.ui.control.Label
+        GridLayout11                 matlab.ui.container.GridLayout
+        Density                      matlab.ui.control.NumericEditField
+        kgm3Label                    matlab.ui.control.Label
+        DensityofSurroundingLabel    matlab.ui.control.Label
+        GridLayout10                 matlab.ui.container.GridLayout
+        CantiLength                  matlab.ui.control.NumericEditField
+        mLabel_2                     matlab.ui.control.Label
+        CantileverLengthLabel        matlab.ui.control.Label
+        GridLayout9                  matlab.ui.container.GridLayout
+        CantiWidth                   matlab.ui.control.NumericEditField
+        mLabel                       matlab.ui.control.Label
+        CantileverWidthLabel         matlab.ui.control.Label
+        CalculateButton              matlab.ui.control.Button
+        LoadAmplitudeSweepButton     matlab.ui.control.Button
         GridLayout2                  matlab.ui.container.GridLayout
         ResultsPanel                 matlab.ui.container.Panel
         GridLayout3                  matlab.ui.container.GridLayout
-        ResonanceFrequencyLabel      matlab.ui.control.Label
-        QFactorLabel                 matlab.ui.control.Label
-        SpringConstantLabel          matlab.ui.control.Label
-        GridLayout4                  matlab.ui.container.GridLayout
-        Res_Frequ_Result             matlab.ui.control.NumericEditField
-        kHzLabel                     matlab.ui.control.Label
+        ExporttoTextFileButton       matlab.ui.control.Button
+        GridLayout6                  matlab.ui.container.GridLayout
+        Spring_Const_Result          matlab.ui.control.NumericEditField
+        NmLabel                      matlab.ui.control.Label
         GridLayout5                  matlab.ui.container.GridLayout
         Q_Fac_Result                 matlab.ui.control.NumericEditField
-        GridLayout6                  matlab.ui.container.GridLayout
-        NmLabel                      matlab.ui.control.Label
-        Spring_Const_Result          matlab.ui.control.NumericEditField
-        ExporttoTextFileButton       matlab.ui.control.Button
+        GridLayout4                  matlab.ui.container.GridLayout
+        kHzLabel                     matlab.ui.control.Label
+        Res_Frequ_Result             matlab.ui.control.NumericEditField
+        SpringConstantLabel          matlab.ui.control.Label
+        QFactorLabel                 matlab.ui.control.Label
+        ResonanceFrequencyLabel      matlab.ui.control.Label
         Spectrum_Axes                matlab.ui.control.UIAxes
-        GridLayout7                  matlab.ui.container.GridLayout
-        LoadAmplitudeSweepButton     matlab.ui.control.Button
-        CalculateButton              matlab.ui.control.Button
-        ParametersPanel              matlab.ui.container.Panel
-        GridLayout8                  matlab.ui.container.GridLayout
-        GridLayout9                  matlab.ui.container.GridLayout
-        CantileverWidthLabel         matlab.ui.control.Label
-        mLabel                       matlab.ui.control.Label
-        CantiWidth                   matlab.ui.control.NumericEditField
-        GridLayout10                 matlab.ui.container.GridLayout
-        CantileverLengthLabel        matlab.ui.control.Label
-        mLabel_2                     matlab.ui.control.Label
-        CantiLength                  matlab.ui.control.NumericEditField
-        GridLayout11                 matlab.ui.container.GridLayout
-        DensityofSurroundingLabel    matlab.ui.control.Label
-        kgm3Label                    matlab.ui.control.Label
-        Density                      matlab.ui.control.NumericEditField
-        GridLayout12                 matlab.ui.container.GridLayout
-        ViscosityofSurroundingLabel  matlab.ui.control.Label
-        PasLabel                     matlab.ui.control.Label
-        Viscosity                    matlab.ui.control.NumericEditField
-        GridLayout13                 matlab.ui.container.GridLayout
-        UsedCantileverLabel          matlab.ui.control.Label
-        CantileverDropDown           matlab.ui.control.DropDown
     end
 
     
@@ -192,7 +192,7 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
             n5 = -0.0035117;
             n6 = 0.00069085;
             
-            % parameters of the denumerator
+            % parameters of the denuminator
             d1 = -0.56964;
             d2 = 0.48690;
             d3 = -0.13444;
@@ -214,7 +214,7 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
             n4 = 0.000064577;
             n5 = -0.000044510;
             
-            % parameters of the denumerator
+            % parameters of the denuminator
             d1 = -0.59702;
             d2 = 0.55182;
             d3 = -0.18357;
@@ -458,8 +458,8 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
            % Write User Entered Parameters
            fprintf(Save_ID,"%s\n","Entered Parameters:");
            fprintf(Save_ID,"%s = %.5g %s\n",...
-               "Cantilever Width",app.CWidth.*1e6,"µm",...
-               "Cantilever Length",app.CLength.*1e6,"µm",...
+               "Cantilever Width",app.CWidth.*1e6,"Âµm",...
+               "Cantilever Length",app.CLength.*1e6,"Âµm",...
                "Density of Surrounding",app.density,"kg/m^3",...
                "Viscosity of Surrounding",app.viscosity,"Pa*s");
            fprintf(Save_ID,"%s\n","");
@@ -477,7 +477,6 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
 
         % Close request function: UIFigure
         function UIFigureCloseRequest(app, event)
-            
             
             delete(app)
             run("CANTER_Processing_Toolbox.mlapp")
@@ -515,6 +514,17 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
             app.GridLayout2.RowHeight = {'3x', '1x'};
             app.GridLayout2.Layout.Row = 1;
             app.GridLayout2.Layout.Column = 2;
+
+            % Create Spectrum_Axes
+            app.Spectrum_Axes = uiaxes(app.GridLayout2);
+            title(app.Spectrum_Axes, 'Displaying of Amplitude Sweep')
+            xlabel(app.Spectrum_Axes, 'Frequency [kHz]')
+            ylabel(app.Spectrum_Axes, 'Amplitude [nm]')
+            app.Spectrum_Axes.XTickLabelRotation = 0;
+            app.Spectrum_Axes.YTickLabelRotation = 0;
+            app.Spectrum_Axes.ZTickLabelRotation = 0;
+            app.Spectrum_Axes.Layout.Row = 1;
+            app.Spectrum_Axes.Layout.Column = 1;
 
             % Create ResultsPanel
             app.ResultsPanel = uipanel(app.GridLayout2);
@@ -620,14 +630,6 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
             app.ExporttoTextFileButton.Layout.Column = 2;
             app.ExporttoTextFileButton.Text = 'Export to Text-File';
 
-            % Create Spectrum_Axes
-            app.Spectrum_Axes = uiaxes(app.GridLayout2);
-            title(app.Spectrum_Axes, 'Displaying of Amplitude Sweep')
-            xlabel(app.Spectrum_Axes, 'Frequency [kHz]')
-            ylabel(app.Spectrum_Axes, 'Amplitude [nm]')
-            app.Spectrum_Axes.Layout.Row = 1;
-            app.Spectrum_Axes.Layout.Column = 1;
-
             % Create GridLayout7
             app.GridLayout7 = uigridlayout(app.GridLayout);
             app.GridLayout7.ColumnWidth = {'1x'};
@@ -683,7 +685,7 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
             app.mLabel = uilabel(app.GridLayout9);
             app.mLabel.Layout.Row = 2;
             app.mLabel.Layout.Column = 2;
-            app.mLabel.Text = '  µm';
+            app.mLabel.Text = '  Âµm';
 
             % Create CantiWidth
             app.CantiWidth = uieditfield(app.GridLayout9, 'numeric');
@@ -713,7 +715,7 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
             app.mLabel_2 = uilabel(app.GridLayout10);
             app.mLabel_2.Layout.Row = 2;
             app.mLabel_2.Layout.Column = 2;
-            app.mLabel_2.Text = '  µm';
+            app.mLabel_2.Text = '  Âµm';
 
             % Create CantiLength
             app.CantiLength = uieditfield(app.GridLayout10, 'numeric');
