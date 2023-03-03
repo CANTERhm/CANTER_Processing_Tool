@@ -4,46 +4,46 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
     properties (Access = public)
         UIFigure                     matlab.ui.Figure
         GridLayout                   matlab.ui.container.GridLayout
+        GridLayout7                  matlab.ui.container.GridLayout
+        ParametersPanel              matlab.ui.container.Panel
+        GridLayout8                  matlab.ui.container.GridLayout
+        GridLayout13                 matlab.ui.container.GridLayout
+        CantileverDropDown           matlab.ui.control.DropDown
+        UsedCantileverLabel          matlab.ui.control.Label
+        GridLayout12                 matlab.ui.container.GridLayout
+        Viscosity                    matlab.ui.control.NumericEditField
+        PasLabel                     matlab.ui.control.Label
+        ViscosityofSurroundingLabel  matlab.ui.control.Label
+        GridLayout11                 matlab.ui.container.GridLayout
+        Density                      matlab.ui.control.NumericEditField
+        kgm3Label                    matlab.ui.control.Label
+        DensityofSurroundingLabel    matlab.ui.control.Label
+        GridLayout10                 matlab.ui.container.GridLayout
+        CantiLength                  matlab.ui.control.NumericEditField
+        mLabel_2                     matlab.ui.control.Label
+        CantileverLengthLabel        matlab.ui.control.Label
+        GridLayout9                  matlab.ui.container.GridLayout
+        CantiWidth                   matlab.ui.control.NumericEditField
+        mLabel                       matlab.ui.control.Label
+        CantileverWidthLabel         matlab.ui.control.Label
+        CalculateButton              matlab.ui.control.Button
+        LoadAmplitudeSweepButton     matlab.ui.control.Button
         GridLayout2                  matlab.ui.container.GridLayout
         ResultsPanel                 matlab.ui.container.Panel
         GridLayout3                  matlab.ui.container.GridLayout
-        ResonanceFrequencyLabel      matlab.ui.control.Label
-        QFactorLabel                 matlab.ui.control.Label
-        SpringConstantLabel          matlab.ui.control.Label
-        GridLayout4                  matlab.ui.container.GridLayout
-        Res_Frequ_Result             matlab.ui.control.NumericEditField
-        kHzLabel                     matlab.ui.control.Label
+        ExporttoTextFileButton       matlab.ui.control.Button
+        GridLayout6                  matlab.ui.container.GridLayout
+        Spring_Const_Result          matlab.ui.control.NumericEditField
+        NmLabel                      matlab.ui.control.Label
         GridLayout5                  matlab.ui.container.GridLayout
         Q_Fac_Result                 matlab.ui.control.NumericEditField
-        GridLayout6                  matlab.ui.container.GridLayout
-        NmLabel                      matlab.ui.control.Label
-        Spring_Const_Result          matlab.ui.control.NumericEditField
-        ExporttoTextFileButton       matlab.ui.control.Button
+        GridLayout4                  matlab.ui.container.GridLayout
+        kHzLabel                     matlab.ui.control.Label
+        Res_Frequ_Result             matlab.ui.control.NumericEditField
+        SpringConstantLabel          matlab.ui.control.Label
+        QFactorLabel                 matlab.ui.control.Label
+        ResonanceFrequencyLabel      matlab.ui.control.Label
         Spectrum_Axes                matlab.ui.control.UIAxes
-        GridLayout7                  matlab.ui.container.GridLayout
-        LoadAmplitudeSweepButton     matlab.ui.control.Button
-        CalculateButton              matlab.ui.control.Button
-        ParametersPanel              matlab.ui.container.Panel
-        GridLayout8                  matlab.ui.container.GridLayout
-        GridLayout9                  matlab.ui.container.GridLayout
-        CantileverWidthLabel         matlab.ui.control.Label
-        mLabel                       matlab.ui.control.Label
-        CantiWidth                   matlab.ui.control.NumericEditField
-        GridLayout10                 matlab.ui.container.GridLayout
-        CantileverLengthLabel        matlab.ui.control.Label
-        mLabel_2                     matlab.ui.control.Label
-        CantiLength                  matlab.ui.control.NumericEditField
-        GridLayout11                 matlab.ui.container.GridLayout
-        DensityofSurroundingLabel    matlab.ui.control.Label
-        kgm3Label                    matlab.ui.control.Label
-        Density                      matlab.ui.control.NumericEditField
-        GridLayout12                 matlab.ui.container.GridLayout
-        ViscosityofSurroundingLabel  matlab.ui.control.Label
-        PasLabel                     matlab.ui.control.Label
-        Viscosity                    matlab.ui.control.NumericEditField
-        GridLayout13                 matlab.ui.container.GridLayout
-        UsedCantileverLabel          matlab.ui.control.Label
-        CantileverDropDown           matlab.ui.control.DropDown
     end
 
     
@@ -52,6 +52,12 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
         Sweep_struct = struct();
         x_sweep = []; % Vector that stores the x-coordinate of the laoded amplitude sweep.
         y_sweep = []; % Vector that stores the y-coordinate of the laoded amplitude sweep.
+        x_SIunit = ""; % SI unit of the x-coordinate.
+        y_SIunit = ""; % SI unit of the y-coordinate.
+        x_unit = ""; % Unit of the x-coordinate with corresponding prefix.
+        y_unit = ""; % Unit of the y-coordinate with corresponding prefix.
+        x_OoM = []; % Order of Magnitude of the x-coordinate.
+        y_OoM = []; % Order of Magnitude of the y-coordinate.
         x_spline = []; % Vector that stores the x-coordinate of the interpolating spline.
         y_spline = []; % Vector that stores the y-coordinate of the interpolating spline.
         CWidth = 40e-6;
@@ -120,6 +126,7 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
             units = split(channel_info(2,2),char(9));
             
             column_names = column_names + "_" + units;
+            out_struct.units = units;
             
             Vec_Table = table(channel_values(:,1),channel_values(:,2),channel_values(:,3),'VariableNames',column_names);
             
@@ -192,7 +199,7 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
             n5 = -0.0035117;
             n6 = 0.00069085;
             
-            % parameters of the denumerator
+            % parameters of the denuminator
             d1 = -0.56964;
             d2 = 0.48690;
             d3 = -0.13444;
@@ -214,7 +221,7 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
             n4 = 0.000064577;
             n5 = -0.000044510;
             
-            % parameters of the denumerator
+            % parameters of the denuminator
             d1 = -0.59702;
             d2 = 0.55182;
             d3 = -0.18357;
@@ -270,6 +277,86 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
             staticSpringConst = dynamicSpringConst./C;
             
         end
+        
+        function [f_val,f_OoM,f_unit] = OoM_Frequency(~,val)
+            OoM = floor(log10(val));
+            multi3 = int32(floor(OoM/3));
+            f_OoM = 3*multi3;
+            f_val = val/double(10^(f_OoM));
+            switch multi3
+                case 0
+                    f_unit = "Hz";
+                case 1
+                    f_unit = "kHz";
+                case 2
+                    f_unit = "MHz";
+                case 3
+                    f_unit = "GHz";
+                case 4
+                    f_unit = "THz";
+                otherwise
+                    f_val = val;
+                    f_OoM = 0;
+                    f_unit = "Hz";
+            end
+        end
+        
+        function [x_OoM,x_new_unit,y_OoM,y_new_unit] = OoM_x_and_y(~,x_data,x_unit,y_data,y_unit)
+            x_determinator = max([max(x_data),abs(min(x_data))]);
+            x_OoM = floor(floor(log10(abs(x_determinator)))/3)*3;
+
+            y_determinator = max([max(y_data),abs(min(y_data))]);
+            y_OoM = floor(floor(log10(abs(y_determinator)))/3)*3;
+
+            switch int32(x_OoM)
+                case -15
+                    x_new_unit = "f" + x_unit;
+                case -12
+                    x_new_unit = "p" + x_unit;
+                case -9
+                    x_new_unit = "n" + x_unit;
+                case -6
+                    x_new_unit = "Âµ" + x_unit;
+                case -3
+                    x_new_unit = "m" + x_unit;
+                case 0
+                    x_new_unit = x_unit;
+                case 3
+                    x_new_unit = "k" + x_unit;
+                case 6
+                    x_new_unit = "M" + x_unit;
+                case 9
+                    x_new_unit = "G" + x_unit;
+                case 12
+                    x_new_unit = "T" + x_unit;
+                case 15
+                    x_new_unit = "P" + x_unit;
+            end
+            switch int32(y_OoM)
+                case -15
+                    y_new_unit = "f" + y_unit;
+                case -12
+                    y_new_unit = "p" + y_unit;
+                case -9
+                    y_new_unit = "n" + y_unit;
+                case -6
+                    y_new_unit = "Âµ" + y_unit;
+                case -3
+                    y_new_unit = "m" + y_unit;
+                case 0
+                    y_new_unit = y_unit;
+                case 3
+                    y_new_unit = "k" + y_unit;
+                case 6
+                    y_new_unit = "M" + y_unit;
+                case 9
+                    y_new_unit = "G" + y_unit;
+                case 12
+                    y_new_unit = "T" + y_unit;
+                case 15
+                    y_new_unit = "P" + y_unit;
+            end
+        end
     end
     
 
@@ -296,23 +383,23 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
             % write sweep values to properties
             app.SweepLoaded = true;
             app.x_sweep = app.Sweep_struct.channels.Excitation_Frequency_Hz;
+            app.x_SIunit = app.Sweep_struct.units(1);
             field_names = string(fieldnames(app.Sweep_struct.channels));
             amp_field_idx = contains(field_names,"Lock_In_Amplitude");
             amp_field_name = field_names(amp_field_idx);
             app.y_sweep = app.Sweep_struct.channels.(amp_field_name);
+            app.y_SIunit = app.Sweep_struct.units(amp_field_idx);
+
+            % Determine OoM and prefixes
+            [app.x_OoM,app.x_unit,app.y_OoM,app.y_unit] = OoM_x_and_y(app,app.x_sweep,app.x_SIunit,app.y_sweep,app.y_SIunit);
             
             % display loaded sweep;
-            x_plot = app.x_sweep.*1e-3;
+            x_plot = app.x_sweep./10^(app.x_OoM);
+            app.Spectrum_Axes.XAxis.Label.String = "Frequency [" + app.x_unit + "]";
             
-            split_string = split(amp_field_name,"_");
-            unit_string = split_string(end);
-            if strcmp(unit_string,"m")
-                app.Spectrum_Axes.YAxis.Label.String = "Amplitude [nm]";
-                y_plot = app.y_sweep.*1e9;
-            else
-                y_plot = app.y_sweep;
-                app.Spectrum_Axes.YAxis.Label.String = "Amplitude ["+unit_string+"]";
-            end
+            y_plot = app.y_sweep./10^(app.y_OoM);
+            app.Spectrum_Axes.YAxis.Label.String = "Amplitude [" + app.y_unit + "]";
+            
             plot(app.Spectrum_Axes,x_plot,y_plot,".","LineWidth",2,"MarkerSize",6);
             xlim(app.Spectrum_Axes,[min(x_plot) max(x_plot)]);
         end
@@ -322,27 +409,28 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
             if ~app.SweepLoaded
                 return;
             end
-            cla(app.Spectrum_Axes)
             Calculate_fr_andQ(app,app.x_sweep,app.y_sweep);
             
             % Write fr and Q to corresponding result fields
-            app.Res_Frequ_Result.Value = app.Res_Frequ.*1e-3;
+            [f_val,~,f_unit] = OoM_Frequency(app,app.Res_Frequ);
+            app.Res_Frequ_Result.Value = f_val;
+            app.kHzLabel.Text = "  " + f_unit;
             app.Q_Fac_Result.Value = app.Q_Fac;
             
             % Draw spline and dashed lines
             cla(app.Spectrum_Axes);
-            x_plot = app.x_sweep.*1e-3;
-            y_plot = app.y_sweep.*1e9;
+            x_plot = app.x_sweep./10^(app.x_OoM);
+            y_plot = app.y_sweep./10^(app.y_OoM);
             plot(app.Spectrum_Axes,x_plot,y_plot,".","LineWidth",2,"MarkerSize",6);
             xlim(app.Spectrum_Axes,[min(x_plot) max(x_plot)]);
             
             hold(app.Spectrum_Axes,"on");
-            plot(app.Spectrum_Axes,app.x_spline.*1e-3,app.y_spline.*1e9,"g-","LineWidth",1);
-            plot(app.Spectrum_Axes,app.Res_Frequ.*1e-3,app.A_max.*1e9,"rx","LineWidth",1,"MarkerSize",10);
+            plot(app.Spectrum_Axes,app.x_spline./10^(app.x_OoM),app.y_spline./10^(app.y_OoM),"g-","LineWidth",1);
+            plot(app.Spectrum_Axes,app.Res_Frequ./10^(app.x_OoM),app.A_max./10^(app.y_OoM),"rx","LineWidth",1.5,"MarkerSize",10);
             legend(app.Spectrum_Axes,["Sweep Data","Interpolation Spline","Detected Maximum"],"Location","northeast","AutoUpdate","off");
-            yline(app.Spectrum_Axes,app.A_half_power.*1e9,"--","Color",[.6 .6 .6],"LineWidth",.5);
-            xline(app.Spectrum_Axes,app.f1.*1e-3,"--","Color",[.6 .6 .6],"LineWidth",.5);
-            xline(app.Spectrum_Axes,app.f2.*1e-3,"--","Color",[.6 .6 .6],"LineWidth",.5);
+            yline(app.Spectrum_Axes,app.A_half_power./10^(app.y_OoM),"--","Color",[.6 .6 .6],"LineWidth",.5);
+            xline(app.Spectrum_Axes,app.f1./10^(app.x_OoM),"--","Color",[.6 .6 .6],"LineWidth",.5);
+            xline(app.Spectrum_Axes,app.f2./10^(app.x_OoM),"--","Color",[.6 .6 .6],"LineWidth",.5);
             hold(app.Spectrum_Axes,"off");
             
             % Get selected Cantilever from drop down menu
@@ -458,8 +546,8 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
            % Write User Entered Parameters
            fprintf(Save_ID,"%s\n","Entered Parameters:");
            fprintf(Save_ID,"%s = %.5g %s\n",...
-               "Cantilever Width",app.CWidth.*1e6,"µm",...
-               "Cantilever Length",app.CLength.*1e6,"µm",...
+               "Cantilever Width",app.CWidth.*1e6,"Âµm",...
+               "Cantilever Length",app.CLength.*1e6,"Âµm",...
                "Density of Surrounding",app.density,"kg/m^3",...
                "Viscosity of Surrounding",app.viscosity,"Pa*s");
            fprintf(Save_ID,"%s\n","");
@@ -477,7 +565,6 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
 
         % Close request function: UIFigure
         function UIFigureCloseRequest(app, event)
-            
             
             delete(app)
             run("CANTER_Processing_Toolbox.mlapp")
@@ -515,6 +602,18 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
             app.GridLayout2.RowHeight = {'3x', '1x'};
             app.GridLayout2.Layout.Row = 1;
             app.GridLayout2.Layout.Column = 2;
+
+            % Create Spectrum_Axes
+            app.Spectrum_Axes = uiaxes(app.GridLayout2);
+            title(app.Spectrum_Axes, 'Displaying of Amplitude Sweep')
+            xlabel(app.Spectrum_Axes, 'Frequency [kHz]')
+            ylabel(app.Spectrum_Axes, 'Amplitude [nm]')
+            app.Spectrum_Axes.Toolbar.Visible = 'off';
+            app.Spectrum_Axes.XTickLabelRotation = 0;
+            app.Spectrum_Axes.YTickLabelRotation = 0;
+            app.Spectrum_Axes.ZTickLabelRotation = 0;
+            app.Spectrum_Axes.Layout.Row = 1;
+            app.Spectrum_Axes.Layout.Column = 1;
 
             % Create ResultsPanel
             app.ResultsPanel = uipanel(app.GridLayout2);
@@ -620,14 +719,6 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
             app.ExporttoTextFileButton.Layout.Column = 2;
             app.ExporttoTextFileButton.Text = 'Export to Text-File';
 
-            % Create Spectrum_Axes
-            app.Spectrum_Axes = uiaxes(app.GridLayout2);
-            title(app.Spectrum_Axes, 'Displaying of Amplitude Sweep')
-            xlabel(app.Spectrum_Axes, 'Frequency [kHz]')
-            ylabel(app.Spectrum_Axes, 'Amplitude [nm]')
-            app.Spectrum_Axes.Layout.Row = 1;
-            app.Spectrum_Axes.Layout.Column = 1;
-
             % Create GridLayout7
             app.GridLayout7 = uigridlayout(app.GridLayout);
             app.GridLayout7.ColumnWidth = {'1x'};
@@ -683,7 +774,7 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
             app.mLabel = uilabel(app.GridLayout9);
             app.mLabel.Layout.Row = 2;
             app.mLabel.Layout.Column = 2;
-            app.mLabel.Text = '  µm';
+            app.mLabel.Text = '  Âµm';
 
             % Create CantiWidth
             app.CantiWidth = uieditfield(app.GridLayout9, 'numeric');
@@ -713,7 +804,7 @@ classdef SaderMethodCalibration_GUI < matlab.apps.AppBase
             app.mLabel_2 = uilabel(app.GridLayout10);
             app.mLabel_2.Layout.Row = 2;
             app.mLabel_2.Layout.Column = 2;
-            app.mLabel_2.Text = '  µm';
+            app.mLabel_2.Text = '  Âµm';
 
             % Create CantiLength
             app.CantiLength = uieditfield(app.GridLayout10, 'numeric');
