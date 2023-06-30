@@ -19,6 +19,10 @@ switch tip_shape
         func_string = sprintf('(tan(%f.*pi/180)/(2*(1-%f.^2)).*x.^2)',angle,poisson);
         ft = fittype( {func_string}, 'independent', 'x', 'dependent', 'y', 'coefficients', {'EModul'} );
         opts = fitoptions( 'Method', 'LinearLeastSquares' );
+    case 'three_sided_pyramid'
+        keyboard;
+    case 'cone'
+        keyboard;
     case 'flat_cylinder'
         radius = indenter_value;
         ft = fittype("poly1");
@@ -43,6 +47,11 @@ switch tip_shape
     case 'four_sided_pyramid'
         baseline_mask = xData<0;
         EModul = fitresult.EModul;
+
+    case 'three_sided_pyramid'
+
+    case 'cone'
+
     case 'flat_cylinder'
         m = fitresult.p1;
         t = fitresult.p2;
@@ -54,6 +63,10 @@ fittedcurve_y = zeros(length(xData),1);
 switch tip_shape
     case 'four_sided_pyramid'
         fittedcurve_y(baseline_mask) = EModul*((tan(angle.*pi/180)/(2*(1-poisson.^2)).*(xData(baseline_mask).^2)));
+    case 'three_sided_pyramid'
+
+    case 'cone'
+
     case 'flat_cylinder'
         fittedcurve_y(baseline_mask) = EModul*(2*radius./(1-poisson.^2)).*(xData(baseline_mask)-contact_point);
 end
