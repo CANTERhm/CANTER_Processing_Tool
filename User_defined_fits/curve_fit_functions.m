@@ -215,6 +215,10 @@ try
             switch handles.tip_shape
                 case 'four_sided_pyramid'
                     indenter_value = handles.tip_angle;
+                case 'three_sided_pyramid'
+                    indenter_value = handles.tip_angle;
+                case 'cone'
+                    indenter_value = handles.tip_angle;
                 case 'flat_cylinder'
                     indenter_value = handles.cylinder_radius;
             end

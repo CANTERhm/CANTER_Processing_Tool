@@ -45,6 +45,14 @@ function [x_corrected]=ContactPoint_via_hertz(x, y, baseline_edges, handles,vara
             % approximation and calculation of contact point via liniarized
             % hertz model
             [~,d_h,~] = initial_guess_hard(x_fit,y_fit,perc_steps,handles.tip_angle,handles.poisson,'plot','off');
+        case 'three_sided_pyramid'
+            % approximation and calculation of contact point via liniarized
+            % hertz model
+            [~,d_h,~] = initial_guess_hard(x_fit,y_fit,perc_steps,handles.tip_angle,handles.poisson,'plot','off');
+        case 'cone'
+            % approximation and calculation of contact point via liniarized
+            % hertz model
+            [~,d_h,~] = initial_guess_hard(x_fit,y_fit,perc_steps,handles.tip_angle,handles.poisson,'plot','off');
         case 'flat_cylinder'
             % get contact point via polyfit on part of the negative curve
             % section
