@@ -15,7 +15,7 @@ imageFiles = struct;
 
 % create tiff file from .force or .jpk file
 [path,name,ext] = fileparts(filepath);
-name = strcat(name,'.tiff');
+name = strcat(name,'.tif');
 filepath_tiff = fullfile(path,name);
 copyfile(filepath,filepath_tiff);
 warning off
@@ -91,8 +91,8 @@ colormap(256,:) = [1 1 1];
                     im_data = (im_data.*info(i).UnknownTags(mult_num).Value)+info(i).UnknownTags(off_num).Value;
                     imageFiles.(image_type).slope_data = im_data;
                 case 'measuredHeight'
-                    imageFiles.height = struct;
-                    image_type = 'height';
+                    imageFiles.height_measured = struct;
+                    image_type = 'height_measured';
                     imageFiles.(image_type).channel = image_type;
                     imageFiles.(image_type).data_unit_absolute = 'm';
                     setDirectory(T,i);
@@ -198,34 +198,34 @@ colormap(256,:) = [1 1 1];
             % at the moment no rotation of the Grid is programmed
 
             % interpolated image data
-            if strcmp(image_type,'height')
-                F_absolute = griddedInterpolant({yvector,xvector},imageFiles.height.absolute_height_data);
-                F_nominal = griddedInterpolant({yvector,xvector},imageFiles.height.nominal_height_data);
+            if strcmp(image_type,'height_measured')
+                F_absolute = griddedInterpolant({yvector,xvector},imageFiles.height_measured.absolute_height_data);
+                F_nominal = griddedInterpolant({yvector,xvector},imageFiles.height_measured.nominal_height_data);
                 % refined grid (20 times finer)
                 x_interp = linspace(min(xvector),max(xvector),info(i).Width*20);
                 y_interp = linspace(min(yvector),max(yvector),info(i).Height*20);
                 y_interp = flip(y_interp',1);
                 [XGrid_interpol,YGrid_interpol] = meshgrid(x_interp,y_interp);
-                imageFiles.height.XGrid_interpol = XGrid_interpol;
-                imageFiles.height.YGrid_interpol = YGrid_interpol;
+                imageFiles.height_measured.XGrid_interpol = XGrid_interpol;
+                imageFiles.height_measured.YGrid_interpol = YGrid_interpol;
                 % linear interpolation
                 F_absolute.Method = 'linear';
                 F_nominal.Method = 'linear';
                 absolute_height_interpol = F_absolute({y_interp,x_interp});
                 absolute_height_interpol = flip(absolute_height_interpol,1);
-                imageFiles.height.absolute_height_data_linear_interpolation = absolute_height_interpol;
+                imageFiles.height_measured.absolute_height_data_linear_interpolation = absolute_height_interpol;
                 nominal_height_interpol = F_nominal({y_interp,x_interp});
                 nominal_height_interpol = flip(nominal_height_interpol,1);
-                imageFiles.height.nominal_height_data_linear_interpolation = nominal_height_interpol;
+                imageFiles.height_measured.nominal_height_data_linear_interpolation = nominal_height_interpol;
                 % bicubic interpolation
                 F_absolute.Method = 'cubic';
                 F_nominal.Method = 'cubic';
                 absolute_height_interpol = F_absolute({y_interp,x_interp});
                 absolute_height_interpol = flip(absolute_height_interpol,1);
-                imageFiles.height.absolute_height_data_bicubic_interpolation = absolute_height_interpol;
+                imageFiles.height_measured.absolute_height_data_bicubic_interpolation = absolute_height_interpol;
                 nominal_height_interpol = F_nominal({y_interp,x_interp});
                 nominal_height_interpol = flip(nominal_height_interpol,1);
-                imageFiles.height.nominal_height_data_bicubic_interpolation = nominal_height_interpol;
+                imageFiles.height_measured.nominal_height_data_bicubic_interpolation = nominal_height_interpol;
             else
                 data_type = sprintf('%s_data',image_type);
                 F = griddedInterpolant({yvector,xvector},imageFiles.(image_type).(data_type));
