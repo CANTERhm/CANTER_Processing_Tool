@@ -247,7 +247,7 @@ function outStruct = ImputeBMvsDetritus(DataMatrix,BM_Mask)
         outStruct.Medians.Detritus_Std(5) = std(outStruct.ImputedFromBoundaries.Imputed_BM_plus_TN3.Mean(~outStruct.TubularNeighborhoods.BM_and_TN3_Mask),0,"all");
 
     %% Nested functions (Utility functions)
-
+    
     % Function 1
     function nbd = GetSquareNBD(mat,pix,step)
         % The function returns a neighborhood nbd which is a small square
