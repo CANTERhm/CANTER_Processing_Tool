@@ -310,10 +310,31 @@ switch ext
             [XG,YG] = meshgrid(xvector,imageFiles.(image_type).YVector);
             imageFiles.(image_type).XGrid = XG;
             imageFiles.(image_type).YGrid = YG;
-        end
+        
 
-        % interpolated image data
-        %>>-----> NEXT STEP <-----<<%
+            % interpolated image data
+            if ~strcmp(image_type,'thumbnail')
+                data_type = sprintf('%s_data',image_type);
+                F = griddedInterpolant({yvector,xvector},imageFiles.(image_type).(data_type));
+                % refined grid (20 times finer)
+                x_interp = linspace(min(xvector),max(xvector),info(i).Width*20);
+                y_interp = linspace(min(yvector),max(yvector),info(i).Height*20);
+                y_interp = flip(y_interp',1);
+                [XGrid_interpol,YGrid_interpol] = meshgrid(x_interp,y_interp);
+                imageFiles.(image_type).XGrid_interpol = XGrid_interpol;
+                imageFiles.(image_type).YGrid_interpol = YGrid_interpol;
+                % linear interpolation
+                F.Method = 'linear';
+                linear_interpol = F({y_interp,x_interp});
+                linear_interpol = flip(linear_interpol,1);
+                imageFiles.(image_type).(sprintf('%s_linear_interpolation',data_type)) = linear_interpol;
+                % bicubic interpolation
+                F.Method = 'cubic';
+                bicubic_interpol = F({y_interp,x_interp});
+                bicubic_interpol = flip(bicubic_interpol,1);
+                imageFiles.(image_type).(sprintf('%s_bicubic_interpolation',data_type)) = bicubic_interpol;
+            end
+        end
 end
 close(T);
 % warning on

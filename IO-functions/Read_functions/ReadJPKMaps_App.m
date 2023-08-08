@@ -30,7 +30,7 @@ function [x_data,y_data, x_data_retract, y_data_retract, Forcecurve_count, varar
 % (2)= nominal.scaling.multiplier;      %channel: measuredHeight
 % (3)= absolute.scaling.offset;         %channel: measuredHeight
 % (4)= absolute.scaling.multiplier;     %channel: measuredHeight
-% (5) = encoder.scaling.offset;         %channel: measuredwaitbarHeight
+% (5) = encoder.scaling.offset;         %channel: measuredHeight
 % (6) = encoder.scaling.multiplier;     %channel: measuredHeight
 % (7) = encoder.scaling.offset;         %channel: verticalDeflection
 % (8) = encoder.scaling.multiplier;     %channel: verticalDeflection
@@ -84,6 +84,7 @@ folder = dir(Indexfolder); % get the information of all files in the chosen fold
 files = {folder.name}; % get names(amount of curves) of all files
 files = files(3:end); % get rid of the first two lines with no suitable information
 num_files = length(files); % get the number of containing force curves
+filenumber = zeros(1,num_files);
 for i=1:num_files
     filenumber(i)= str2double(files{i});
 end
@@ -114,7 +115,7 @@ wbar.Message = "Reading Force-Curve Extend Data ...";
 wbar.Indeterminate = "off";
 wbar.Value = 0;
 % Read all extend curves and save them as x and y values (Height & vDeflection)
-    for i = 1:num_files
+for i = 1:num_files
     n = i-1;
     n_s = string(num2str(n));
     movedir = fullfile(Indexfolder,n_s);
@@ -130,17 +131,16 @@ wbar.Value = 0;
     if round(i/dividerWaitbar) == i/dividerWaitbar
         wbar.Value = i/num_files; % Update the waitbar
     end
-        
-    end
+end
     
 % Read all retract curves and save them as x and y values (Height & vDeflection)
 wbar.Message = "Reading Force-Curve Retract Data ...";
 wbar.Value = 0;
-    for i = 1:num_files
+for i = 1:num_files
     n = i-1;
     n_s = string(num2str(n));
     movedir = fullfile(Indexfolder,n_s);
-    channels_path = fullfile(movedir,"segments","0","channels");
+    channels_path = fullfile(movedir,"segments","1","channels");
     Heightpath = fullfile(channels_path,"measuredHeight.dat");
     Deflectionpath = fullfile(channels_path,"vDeflection.dat");
     fileHeight = fopen(Heightpath);
@@ -152,8 +152,7 @@ wbar.Value = 0;
     if round(i/dividerWaitbar) == i/dividerWaitbar
         wbar.Value = i/num_files; % Update the waitbar
     end
-    
-    end
+end
 % delete(wbar);    
 
 segmentheader = fullfile(unzipfolder, '/shared-data/header.properties');
