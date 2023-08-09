@@ -43,7 +43,9 @@ switch ext
                     imageFiles.thumbnail = struct;
                     image_type = 'thumbnail';
                     imageFiles.(image_type).channel = image_type;
+                    warning off
                     setDirectory(T,i);
+                    warning off
                     [RGB,~] = readRGBAImage(T);
                     imageFiles.(image_type).thumbnail_image = RGB;
                     imageFiles.(image_type).image_type = 'RGB_image';
@@ -55,7 +57,9 @@ switch ext
                             image_type = 'adhesion';
                             imageFiles.(image_type).channel = image_type;
                             imageFiles.(image_type).data_unit = 'Volts';
+                            warning off
                             setDirectory(T,i);
+                            warning on
                             im_data_int = read(T);
                             im_data_int = flip(im_data_int,1);
                             % real value calculation for adhesion                    
@@ -77,7 +81,9 @@ switch ext
                             image_type = 'slope';
                             imageFiles.(image_type).channel = image_type;
                             imageFiles.(image_type).data_unit = 'V/m';
+                            warning off
                             setDirectory(T,i);
+                            warning on
                             im_data_int = read(T);
                             im_data_int = flip(im_data_int,1);
                             % real value calculation for slope
@@ -99,7 +105,9 @@ switch ext
                             image_type = 'height_measured';
                             imageFiles.(image_type).channel = image_type;
                             imageFiles.(image_type).data_unit_absolute = 'm';
+                            warning off
                             setDirectory(T,i);
+                            warning on
                             im_data_int = read(T);
                             im_data_int = flip(im_data_int,1);
                             % real value claculation for absolute height
@@ -136,7 +144,9 @@ switch ext
                             image_type = 'vDeflection';
                             imageFiles.(image_type).channel = image_type;
                             imageFiles.(image_type).data_unit = 'Volts';
+                            warning off
                             setDirectory(T,i);
+                            warning on
                             im_data_int = read(T);
                             im_data_int = flip(im_data_int,1);
                             % real value claculation for vDeflection
@@ -159,7 +169,9 @@ switch ext
                             info_table = struct2table(info(i).UnknownTags);
                             imageFiles.(image_type).channel = info_table.Value{info_table.ID==32850};
                             imageFiles.(image_type).data_unit = info_table.Value{info_table.ID==32978};
+                            warning off
                             setDirectory(T,i);
+                            warning on
                             im_data_int = read(T);
                             im_data_int = flip(im_data_int,1);
                             % real value calculation for slope
