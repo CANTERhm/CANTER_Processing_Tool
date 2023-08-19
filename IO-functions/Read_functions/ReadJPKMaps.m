@@ -83,6 +83,7 @@ folder = dir(Indexfolder); % get the information of all files in the chosen fold
 files = {folder.name}; % get names(amount of curves) of all files
 files = files(3:end); % get rid of the first two lines with no suitable information
 num_files = length(files); % get the number of containing force curves
+filenumber = zeros(1,num_files);
 for i=1:num_files
     filenumber(i)= str2double(files{i});
 end
@@ -109,7 +110,7 @@ y_data_raw_retract = struct; %vDeflection Retract
 dividerWaitbar = 10^(floor(log10(num_files))-1);
 
 % Read all extend curves and save them as x and y values (Height & vDeflection)
-    for i = 1:num_files
+for i = 1:num_files
     n = i-1;
     n_s = string(num2str(n));
     movedir = fullfile(Indexfolder,n_s);
@@ -125,15 +126,14 @@ dividerWaitbar = 10^(floor(log10(num_files))-1);
     if round(i/dividerWaitbar) == i/dividerWaitbar
         waitbar(i/num_files,wbar); % Update the waitbar
     end
-        
-    end
+end
     
 % Read all retract curves and save them as x and y values (Height & vDeflection)
-    for i = 1:num_files
+for i = 1:num_files
     n = i-1;
     n_s = string(num2str(n));
     movedir = fullfile(Indexfolder,n_s);
-    channels_path = fullfile(movedir,"segments","0","channels");
+    channels_path = fullfile(movedir,"segments","1","channels");
     Heightpath = fullfile(channels_path,"measuredHeight.dat");
     Deflectionpath = fullfile(channels_path,"vDeflection.dat");
     fileHeight = fopen(Heightpath);
@@ -145,8 +145,7 @@ dividerWaitbar = 10^(floor(log10(num_files))-1);
     if round(i/dividerWaitbar) == i/dividerWaitbar
         waitbar(i/num_files,wbar); % Update the waitbar
     end
-    
-    end
+end
 close(wbar);    
 
 segmentheader = fullfile(unzipfolder, '/shared-data/header.properties');
