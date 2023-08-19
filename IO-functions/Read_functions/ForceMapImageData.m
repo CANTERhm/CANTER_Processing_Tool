@@ -1,9 +1,8 @@
 function [imageFiles,varargout] = ForceMapImageData(filepath)
 %%  FORCEMAPIMAGEDATA: Provides the image data of the available channels
-%   of an .force or .jpk file
+%   of an .force or .jpk-qi-image file
 %   
-%   UNDER CONSTRUCTION
-%   -> Support for .jpk file is not jet implemented.
+%     
 %   
 %   
 %   
@@ -265,8 +264,6 @@ switch ext
                     end
                 end
             end
-    case ".jpk"
-        warndlg('Reading of .jpk files is not implemented at the moment!','No Implementiation');
     case ".jpk-qi-image"
         num_of_files = length(info);
         colormap = info(1).Colormap;
