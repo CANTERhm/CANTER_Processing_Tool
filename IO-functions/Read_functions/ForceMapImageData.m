@@ -2,12 +2,70 @@ function [imageFiles,varargout] = ForceMapImageData(filepath)
 %%  FORCEMAPIMAGEDATA: Provides the image data of the available channels
 %   of an .force or .jpk-qi-image file
 %   
-%     
+%   General function calls:
+%     Example 1: imageFiles = ForceMapImageData(filepath)
+%     Example 2: [imageFiles, imageInfo] = ForceMapImageData(filepath)
 %   
-%   
-%   
-%   
+%   Input Parameter:
+%       - filepath: String of the full path of the image file (.force or .jpk-qi-image).
+%
+%   Outpur Parameter:
+%       - imageFiles: Struct containing the loaded channels (e.g., slope, measuredHeight, adhesion) as fields which are structs themselve.
+%                     Each channel struct has to contain the following fields in any order:
+%                     (examples given for measuredHeight channel of a 3x3 µm map containing 25x25 force curves)
+%                     * channel: character variable containing the channel name (example: 'measuredHeigt')
+%                     * data_unit: SI unit of the image channel data as string (example: "m")
+%                     * measuredHeight_data: double array (dim: XPixel x YPixel) containing the channel image data (example: 25x25 double array for 25x25 force map)
+%                                            Note: the field name has to be the name of the channel followed by "_data" (example: measuredHeight_data)
+%                     * Colormap: colormap of the map image given as a 256 x 3 double array
+%                                 rows: 256 grey scale values & columns: one for R, G, and B values.
+%                     * XPixel: integer of the number of pixels recorded on the map's fast axis of the map. (example: 25)
+%                     * YPixel: integer of the number of pixels recorded on the map's slow axis of the map. (example: 25)
+%                     * BitDepth: integer of the number of image bits. (example: 32)
+%                     * Grid_Angle: integer of the angle the force map grid was recorded with. (example: 0)
+%                     * XOffset: double scalar of the x offset of the force map in the scanner region in meters. (example: -2.1765e-5)
+%                     * YOffset: double scalar of the y offset of the force map in the scanner region in meters. (example: -7.4124e-6)
+%                     * XLength: double scalar containing the length of the map's fast axis in meters. (example: 3.0e-6);
+%                     * YLength: double scalar containing the length of the map's slow axis in meters. (example: 3.0e-6);
+%                     * XVector: double row vector (dim: 1 x XPixel) containing the x coordinate of the map grid. (example: 1x25 double)
+%                                Can be created from the previous fields: "XVector = linspace(0,XLength,XPixel) - XLength/2 + XOffset/2"
+%                     * YVector: double column vector (dim: YPixel x 1) containing the x coordinate of the map grid. (example: 25x1 double)
+%                                Can be created from the previous fields: "YVector = flip((linspace(0,YLength,YPixel) - YLength/2 + YOffset/2)',1)"
+%                     * XGrid: double array (dim: YPixel x XPixel) containing the grid of the x values for the image interpolation (e.g., 25x25 double)
+%                              Can be created using the code: "[XGrid,YGrid] = meshgrid(XVector,YVector)"
+%                     * YGrid: double array (dim: YPixel x XPixel) containing the grid of the y values for the image interpolation (e.g., 25x25 double)
+%                              Can be created using the code: "[XGrid,YGrid] = meshgrid(XVector,YVector)"
+%                     * XGrid_interpol: double array containing the x grid positions for the interpolated image (e.g. 500x500 double)
+%                                       Here, an increase in image pixels of 20 is used (25 * 20 = 500)
+%                                       Code to generate: 
+%                                       XVector_interpol = linspace(0,XLength,XPixel*20) - XLength/2 + XOffset/2
+%                                       YVector = flip((linspace(0,YLength,YPixel*20) - YLength/2 + YOffset/2)',1)
+%                                       [XGrid_interpol,YGrid_interpol] = meshgrid(XVector_interpol,YVector_interpol)
+%                     * YGrid_interpol: double array containing the y grid positions for the interpolated image (e.g. 500x500 double)
+%                                       Here, an increase in image pixels of 20 is used (25 * 20 = 500)
+%                                       Code example for how to generate this array, see "XGrid_interpol" above.
+%                     * measuredHeight_data_linear_interpolation: interpolated image data using a "linear" interpolation in x and y (e.g. 500x500 double)
+%                                                                 Note: the field name has to be the name of the channel followed by "_data_linear_interpolation" (example: measuredHeight_data_linear_interpolation)
+%                                                                 Code to generate (for the measuredHeight channel):
+%                                                                 F = griddedInterpolant({YVector,XVector},measuredHeight_data)
+%                                                                 F.Method = 'linear';
+%                                                                 linear_interpol = F({YGrid_interpol(:,1),XGrid_interpol(1,:)});
+%                                                                 measuredHeight_data_linear_interpolation = flip(linear_interpol,1);
+%                     * measuredHeight_data_bicubic_interpolation: interpolated image data using a "cubic" interpolation in x and y (e.g. 500x500 double)
+%                                                                  Note: the field name has to be the name of the channel followed by "_data_bicubic_interpolation" (example: measuredHeight_data_bicubic_interpolation)
+%                                                                  Code to generate (for the measuredHeight channel):
+%                                                                  F = griddedInterpolant({YVector,XVector},measuredHeight_data)
+%                                                                  F.Method = 'cubic';
+%                                                                  bicubic_interpol = F({YGrid_interpol(:,1),XGrid_interpol(1,:)});
+%                                                                  measuredHeight_data_bicubic_interpolation = flip(bicubic_interpol,1);
 % 
+%                     -> For more information about the image interpolation see MATLAB's griddedInterpolant function.
+% 
+% 
+%       - imageFiles: (optional) This optional output parameters contains the info struct returned by the imfinfo MATLAB function which is used to get
+%                                information like the bit depth of the image file.
+%
+% See also: GRIDDEDINTERPOLANT | IMFINFO
 
 %%
 imageFiles = struct;
@@ -200,11 +258,11 @@ switch ext
                     imageFiles.(image_type).XLength = info(1).UnknownTags(14).Value;
                     imageFiles.(image_type).YLength = info(1).UnknownTags(15).Value;
                     xvector = linspace(0,info(1).UnknownTags(14).Value,info(i).Width);
-                    xvector = xvector - (info(1).UnknownTags(15).Value/2);
+                    xvector = xvector - (info(1).UnknownTags(14).Value/2);
                     xvector = xvector + info(1).UnknownTags(12).Value;
                     imageFiles.(image_type).XVector = xvector;
                     yvector = linspace(0,info(1).UnknownTags(15).Value,info(i).Height);
-                    yvector = yvector - (info(1).UnknownTags(14).Value/2);
+                    yvector = yvector - (info(1).UnknownTags(15).Value/2);
                     yvector = yvector + info(1).UnknownTags(13).Value;
                     imageFiles.(image_type).YVector = flip(yvector',1);
                     [XG,YG] = meshgrid(xvector,yvector);
