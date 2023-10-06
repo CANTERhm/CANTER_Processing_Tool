@@ -78,6 +78,11 @@ end
 % get general information about laoded map
 info_array = get_map_info(unzipfolder);
 
+% Read header.properties file containing the channel encoders
+segmentheader = fullfile(unzipfolder,"shared-data","header.properties");
+HeaderProps = readtable(segmentheader,"FileType","text","Delimiter","=","ReadVariableNames",false,"NumHeaderLines",1,"TextType","string");
+HeaderProps.Properties.VariableNames = ["Identifiers","Values"];
+
 % laod the force curves
 Indexfolder = fullfile(unzipfolder,'index');
 folder = dir(Indexfolder); % get the information of all files in the chosen folder
@@ -114,6 +119,52 @@ dividerWaitbar = 10^(floor(log10(num_files))-1);
 wbar.Message = "Reading Force-Curve Extend Data ...";
 wbar.Indeterminate = "off";
 wbar.Value = 0;
+
+% Determine Channel Numbers for measuredHeight and vDeflection
+vDeflIndex = find(strcmp(HeaderProps.Values,"vDeflection")&contains(HeaderProps.Identifiers,"lcd-info."),1,"first");
+mHeightIndex = find(strcmp(HeaderProps.Values,"measuredHeight")&contains(HeaderProps.Identifiers,"lcd-info."),1,"first");
+
+vDeflIdentifier = string(split(HeaderProps.Identifiers(vDeflIndex),"."));
+vDeflChannelNum = vDeflIdentifier(2);
+
+mHeightIdentifier = string(split(HeaderProps.Identifiers(mHeightIndex),"."));
+mHeightChannelNum = mHeightIdentifier(2);
+
+% Determine channel encoding
+vDeflIdentifier = sprintf("lcd-info.%s.encoder.type",vDeflChannelNum);
+mHeightIdentifier = sprintf("lcd-info.%s.encoder.type",mHeightChannelNum);
+vDeflEncoderLine = find(strcmp(HeaderProps.Identifiers,vDeflIdentifier),1,"first");
+mHeightEncoderLine = find(strcmp(HeaderProps.Identifiers,mHeightIdentifier),1,"first");
+
+vDeflEncoder = HeaderProps.Values(vDeflEncoderLine);
+mHeightEncoder = HeaderProps.Values(mHeightEncoderLine);
+
+switch vDeflEncoder
+    case "signedshort"
+        vDeflEncodingString = "short";
+    case "unsignedshort"
+        vDeflEncodingString = "ushort";
+    case "signedinteger"
+        vDeflEncodingString = "long";
+    case "unsignedinteger"
+        vDeflEncodingString = "ulong";
+    case "signedlong"
+        vDeflEncodingString = "int64";
+end
+
+switch mHeightEncoder
+    case "signedshort"
+        mHeightEncodingString = "short";
+    case "unsignedshort"
+        mHeightEncodingString = "ushort";
+    case "signedinteger"
+        mHeightEncodingString = "long";
+    case "unsignedinteger"
+        mHeightEncodingString = "ulong";
+    case "signedlong"
+        mHeightEncodingString = "int64";
+end
+
 % Read all extend curves and save them as x and y values (Height & vDeflection)
 for i = 1:num_files
     n = i-1;
@@ -124,8 +175,8 @@ for i = 1:num_files
     Deflectionpath = fullfile(channels_path,"vDeflection.dat");
     fileHeight = fopen(Heightpath);
     fileDeflection = fopen(Deflectionpath);
-    x_data_raw.(Forcecurve_count{i}) = fread(fileHeight,inf,'short','s');
-    y_data_raw.(Forcecurve_count{i}) = fread(fileDeflection,inf, 'short','s');
+    x_data_raw.(Forcecurve_count{i}) = fread(fileHeight,inf,mHeightEncodingString,'s');
+    y_data_raw.(Forcecurve_count{i}) = fread(fileDeflection,inf, vDeflEncodingString,'s');
     fclose('all');
     
     if round(i/dividerWaitbar) == i/dividerWaitbar
@@ -145,8 +196,8 @@ for i = 1:num_files
     Deflectionpath = fullfile(channels_path,"vDeflection.dat");
     fileHeight = fopen(Heightpath);
     fileDeflection = fopen(Deflectionpath);
-    x_data_raw_retract.(Forcecurve_count{i}) = fread(fileHeight,inf,'short','s');
-    y_data_raw_retract.(Forcecurve_count{i}) = fread(fileDeflection,inf, 'short','s');
+    x_data_raw_retract.(Forcecurve_count{i}) = fread(fileHeight,inf,mHeightEncodingString,'s');
+    y_data_raw_retract.(Forcecurve_count{i}) = fread(fileDeflection,inf, vDeflEncodingString,'s');
     fclose('all');
     
     if round(i/dividerWaitbar) == i/dividerWaitbar
@@ -155,105 +206,145 @@ for i = 1:num_files
 end
 % delete(wbar);    
 
-segmentheader = fullfile(unzipfolder, '/shared-data/header.properties');
+% segmentheader = fullfile(unzipfolder, '/shared-data/header.properties');
 
 % wbar = waitbar(0,'Encoder values for height are read from header file');
 wbar.Value = 0;
 wbar.Message = "Encoder values for height are read from header file";
 % Read the Encoder's for the measuredHeight 
-fid = fopen(segmentheader,'r');
-tline = fgetl(fid);
-% Find channel number of measured Heigth
-while ischar(tline)
-    match = contains(tline,'channel.name=measuredHeight');
-    if match == 1
-        line_string = split(tline,'.');
-        channelnum_measuredHeight = str2double(line_string(2));
-    end
-    tline = fgetl(fid);
-end
-fclose(fid);
-% Read the Encoder's for the measuredHeight 
-fid = fopen(segmentheader,'r');
-tline = fgetl(fid);
-while ischar(tline)
-       
-       matches1 = strfind(tline, sprintf('lcd-info.%u.conversion-set.conversion.nominal.scaling.offset',channelnum_measuredHeight));
-       matches2 = strfind(tline, sprintf('lcd-info.%u.conversion-set.conversion.nominal.scaling.multiplier',channelnum_measuredHeight));
-       matches3 = strfind(tline, sprintf('lcd-info.%u.conversion-set.conversion.absolute.scaling.offset',channelnum_measuredHeight));
-       matches4 = strfind(tline, sprintf('lcd-info.%u.conversion-set.conversion.absolute.scaling.multiplier',channelnum_measuredHeight));
-       matches5 = strfind(tline, sprintf('lcd-info.%u.encoder.scaling.offset',channelnum_measuredHeight));
-       matches6 = strfind(tline, sprintf('lcd-info.%u.encoder.scaling.multiplier',channelnum_measuredHeight));
+% % fid = fopen(segmentheader,'r');
+% % tline = fgetl(fid);
+% % % Find channel number of measured Heigth
+% % while ischar(tline)
+% %     match = contains(tline,'channel.name=measuredHeight');
+% %     if match == 1
+% %         line_string = split(tline,'.');
+% %         channelnum_measuredHeight = str2double(line_string(2));
+% %     end
+% %     tline = fgetl(fid);
+% % end
+% % fclose(fid);
+channelnum_measuredHeight = str2double(mHeightChannelNum);
 
-        
-       if matches1==1
-           h1=textscan(tline,'%s %f' ,'Delimiter','=');
-           encoder(1)=h1{1,2}; % offset_scaling_height
-       end
-       if matches2 ==1
-           h2=textscan(tline,'%s %f' ,'Delimiter','=');
-           encoder(2)=h2{1,2}; %multiplier_scaling_height
-       end
-       if matches3 ==1
-           h3=textscan(tline,'%s %f' ,'Delimiter','=');
-           encoder(3)=h3{1,2}; %offset_cali_height
-       end
-       if matches4 ==1
-           h4=textscan(tline,'%s %f' ,'Delimiter','=');
-           encoder(4)=h4{1,2}; %multiplier_cali_height
-       end
-       if matches5 ==1
-           h5=textscan(tline,'%s %f' ,'Delimiter','=');
-           encoder(5)=h5{1,2}; %offset_encoder_height
-       end
-       if matches6 ==1
-           h6=textscan(tline,'%s %f' ,'Delimiter','=');
-           encoder(6)=h6{1,2}; %multiplier_encoder_height
-       end
-         tline = fgetl(fid);
- end
-        clearvars('h1','h2','h3','h4','h5','h6');
-fclose(fid);
+% Read the Encoder's for the measuredHeight 
+% % fid = fopen(segmentheader,'r');
+% % tline = fgetl(fid);
+% % while ischar(tline)
+% % 
+% %        matches1 = strfind(tline, sprintf('lcd-info.%u.conversion-set.conversion.nominal.scaling.offset',channelnum_measuredHeight));
+% %        matches2 = strfind(tline, sprintf('lcd-info.%u.conversion-set.conversion.nominal.scaling.multiplier',channelnum_measuredHeight));
+% %        matches3 = strfind(tline, sprintf('lcd-info.%u.conversion-set.conversion.absolute.scaling.offset',channelnum_measuredHeight));
+% %        matches4 = strfind(tline, sprintf('lcd-info.%u.conversion-set.conversion.absolute.scaling.multiplier',channelnum_measuredHeight));
+% %        matches5 = strfind(tline, sprintf('lcd-info.%u.encoder.scaling.offset',channelnum_measuredHeight));
+% %        matches6 = strfind(tline, sprintf('lcd-info.%u.encoder.scaling.multiplier',channelnum_measuredHeight));
+% % 
+% %        if matches1==1
+% %            h1=textscan(tline,'%s %f' ,'Delimiter','=');
+% %            encoder(1)=h1{1,2}; % offset_scaling_height
+% %        end
+% %        if matches2 ==1
+% %            h2=textscan(tline,'%s %f' ,'Delimiter','=');
+% %            encoder(2)=h2{1,2}; %multiplier_scaling_height
+% %        end
+% %        if matches3 ==1
+% %            h3=textscan(tline,'%s %f' ,'Delimiter','=');
+% %            encoder(3)=h3{1,2}; %offset_cali_height
+% %        end
+% %        if matches4 ==1
+% %            h4=textscan(tline,'%s %f' ,'Delimiter','=');
+% %            encoder(4)=h4{1,2}; %multiplier_cali_height
+% %        end
+% %        if matches5 ==1
+% %            h5=textscan(tline,'%s %f' ,'Delimiter','=');
+% %            encoder(5)=h5{1,2}; %offset_encoder_height
+% %        end
+% %        if matches6 ==1
+% %            h6=textscan(tline,'%s %f' ,'Delimiter','=');
+% %            encoder(6)=h6{1,2}; %multiplier_encoder_height
+% %        end
+% %          tline = fgetl(fid);
+% %  end
+% % clearvars('h1','h2','h3','h4','h5','h6');
+% % fclose(fid);
+Identifier1 = sprintf('lcd-info.%u.conversion-set.conversion.nominal.scaling.offset',channelnum_measuredHeight);
+Identifier2 = sprintf('lcd-info.%u.conversion-set.conversion.nominal.scaling.multiplier',channelnum_measuredHeight);
+Identifier3 = sprintf('lcd-info.%u.conversion-set.conversion.absolute.scaling.offset',channelnum_measuredHeight);
+Identifier4 = sprintf('lcd-info.%u.conversion-set.conversion.absolute.scaling.multiplier',channelnum_measuredHeight);
+Identifier5 = sprintf('lcd-info.%u.encoder.scaling.offset',channelnum_measuredHeight);
+Identifier6 = sprintf('lcd-info.%u.encoder.scaling.multiplier',channelnum_measuredHeight);
+
+Encoder1ID = find(strcmp(HeaderProps.Identifiers,Identifier1),1,"first");
+Encoder2ID = find(strcmp(HeaderProps.Identifiers,Identifier2),1,"first");
+Encoder3ID = find(strcmp(HeaderProps.Identifiers,Identifier3),1,"first");
+Encoder4ID = find(strcmp(HeaderProps.Identifiers,Identifier4),1,"first");
+Encoder5ID = find(strcmp(HeaderProps.Identifiers,Identifier5),1,"first");
+Encoder6ID = find(strcmp(HeaderProps.Identifiers,Identifier6),1,"first");
+
+encoder(1) = str2double(HeaderProps.Values(Encoder1ID));
+encoder(2) = str2double(HeaderProps.Values(Encoder2ID));
+if isempty(Encoder3ID)
+    encoder(3) = NaN;
+else
+    encoder(3) = str2double(HeaderProps.Values(Encoder3ID));
+end
+if isempty(Encoder4ID)
+    encoder(4) = NaN;
+else
+    encoder(4) = str2double(HeaderProps.Values(Encoder4ID));
+end
+encoder(5) = str2double(HeaderProps.Values(Encoder5ID));
+encoder(6) = str2double(HeaderProps.Values(Encoder6ID));
 
 % waitbar(0.5,wbar,'Encoder values for vDeflection are read from header file');
 wbar.Value = 0.5;
 wbar.Message = "Encoder values for vDeflection are read from header file";
 
 % Get channel number of vDeflection
-fid = fopen(segmentheader,'r');
-tline = fgetl(fid);
-while ischar(tline)
-    match = contains(tline,'channel.name=vDeflection');
-    if match == 1
-        line_string = split(tline,'.');
-        channelnum_vDeflection = str2double(line_string(2));
-    end
-    tline = fgetl(fid);
-end
-fclose(fid);
+% % fid = fopen(segmentheader,'r');
+% % tline = fgetl(fid);
+% % while ischar(tline)
+% %     match = contains(tline,'channel.name=vDeflection');
+% %     if match == 1
+% %         line_string = split(tline,'.');
+% %         channelnum_vDeflection = str2double(line_string(2));
+% %     end
+% %     tline = fgetl(fid);
+% % end
+% % fclose(fid);
+channelnum_vDeflection = str2double(vDeflChannelNum);
 
 % Read the Encoder's for the vDeflection
-fid = fopen(segmentheader,'r');
-tline = fgetl(fid);
-while ischar(tline)
-       
-       matches1 = strfind(tline, sprintf('lcd-info.%u.encoder.scaling.offset',channelnum_vDeflection));
-       matches2 = strfind(tline, sprintf('lcd-info.%u.encoder.scaling.multiplier',channelnum_vDeflection));
-   
-         if matches1 ==1
-             h1=textscan(tline,'%s %f' ,'Delimiter','=');
-             encoder(7)=h1{1,2}; % offset_encoder_vdef
-             
-         end
-         if matches2 ==1
-             h2=textscan(tline,'%s %f' ,'Delimiter','=');
-             encoder(8)=h2{1,2}; % multiplier_encoder_vdef
-             
-         end
-         tline = fgetl(fid);
-end
-        clearvars('h1','h2');
-fclose(fid);
+% % fid = fopen(segmentheader,'r');
+% % tline = fgetl(fid);
+% % while ischar(tline)
+% % 
+% %        matches1 = strfind(tline, sprintf('lcd-info.%u.encoder.scaling.offset',channelnum_vDeflection));
+% %        matches2 = strfind(tline, sprintf('lcd-info.%u.encoder.scaling.multiplier',channelnum_vDeflection));
+% % 
+% %          if matches1 ==1
+% %              h1=textscan(tline,'%s %f' ,'Delimiter','=');
+% %              encoder(7)=h1{1,2}; % offset_encoder_vdef
+% % 
+% %          end
+% %          if matches2 ==1
+% %              h2=textscan(tline,'%s %f' ,'Delimiter','=');
+% %              encoder(8)=h2{1,2}; % multiplier_encoder_vdef
+% % 
+% %          end
+% %          tline = fgetl(fid);
+% % end
+% % clearvars('h1','h2');
+% % fclose(fid);
+Identifier7 = sprintf('lcd-info.%u.encoder.scaling.offset',channelnum_vDeflection);
+Identifier8 = sprintf('lcd-info.%u.encoder.scaling.multiplier',channelnum_vDeflection);
+
+Encoder7ID = find(strcmp(HeaderProps.Identifiers,Identifier7),1,"first");
+Encoder8ID = find(strcmp(HeaderProps.Identifiers,Identifier8),1,"first");
+
+encoder(7) = str2double(HeaderProps.Values(Encoder7ID));
+encoder(8) = str2double(HeaderProps.Values(Encoder8ID));
+
+
 % waitbar(1,wbar,'Got all encoders')
 wbar.Value = 1;
 wbar.Message = "Got all encoders";
@@ -275,7 +366,9 @@ wbar.Indeterminate = "on";
 %Decode the height for the extend part
 for i=1:num_files
     x_data.(Forcecurve_count{i})=x_data_raw.(Forcecurve_count{i}).*encoder(6)+encoder(5); % decoding into Volts
-    x_data.(Forcecurve_count{i})=(x_data.(Forcecurve_count{i}).*encoder(4))+encoder(3); % absolute scaling
+    if ~isnan(encoder(3)) && ~isnan(encoder(4))
+        x_data.(Forcecurve_count{i})=(x_data.(Forcecurve_count{i}).*encoder(4))+encoder(3); % absolute scaling
+    end
     x_data.(Forcecurve_count{i})=x_data.(Forcecurve_count{i}).*encoder(2)+encoder(1); % nominal scaling
     %x_data.(Forcecurve_count{i}) = flip(x_data.(Forcecurve_count{i})); %JPK PreProcessing does present it like that, this is necessary to get all the calculations for the next functions
 end
@@ -284,7 +377,9 @@ end
 %Decode the height for the retract part
 for i=1:num_files
     x_data_retract.(Forcecurve_count{i})=(x_data_raw_retract.(Forcecurve_count{i})*encoder(6))+encoder(5); % decoding into Volts
-    x_data_retract.(Forcecurve_count{i})=(x_data_retract.(Forcecurve_count{i}).*encoder(4))+encoder(3); % absolute scaling
+    if ~isnan(encoder(3)) && ~isnan(encoder(4))
+        x_data_retract.(Forcecurve_count{i})=(x_data_retract.(Forcecurve_count{i}).*encoder(4))+encoder(3); % absolute scaling
+    end
     x_data_retract.(Forcecurve_count{i})=(x_data_retract.(Forcecurve_count{i})*encoder(2))+encoder(1); % nominal scaling
     x_data_retract.(Forcecurve_count{i}) = flip(x_data_retract.(Forcecurve_count{i})); %JPK PreProcessing does present it like that, this is necessary to get all the calculations for the next functions
 end
