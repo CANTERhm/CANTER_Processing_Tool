@@ -67,7 +67,18 @@ end
 opts = fitoptions( 'Method', 'LinearLeastSquares' );
 opts.Exclude = excludedPoints;
 
-[fitresult, gof] = fit( xData, yData, ft, opts );
+try
+    [fitresult, gof] = fit( xData, yData, ft, opts);
+catch ME % if you can
+    if strcmp(ME.identifier,"curvefit:fit:InsufficientData")
+        xLastPoints = xData([end-1,end]);
+        yLastPoints = yData([end-1,end]);
+        opts = fitoptions("Method","LinearLeastSquares");
+        [fitresult, gof] = fit( xLastPoints, yLastPoints, ft, opts);
+    else
+        throw(ME);
+    end
+end
 
 varargout{1} = gof;
 
