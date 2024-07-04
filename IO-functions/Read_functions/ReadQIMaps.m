@@ -140,8 +140,13 @@ function [x_data,y_data, x_data_retract, y_data_retract, Forcecurve_count, varar
         Deflectionpath = fullfile(channels_path,"vDeflection.dat");
         fileHeight = fopen(Heightpath);
         fileDeflection = fopen(Deflectionpath);
-        x_data_raw_retract.(Forcecurve_count{i}) = fread(fileHeight,inf,'long','s');
-        y_data_raw_retract.(Forcecurve_count{i}) = fread(fileDeflection,inf, 'long','s');
+        if (fileHeight ~= -1) || (fileDeflection ~= -1)
+            x_data_raw_retract.(Forcecurve_count{i}) = fread(fileHeight,inf,'long','s');
+            y_data_raw_retract.(Forcecurve_count{i}) = fread(fileDeflection,inf, 'long','s');
+        else
+             x_data_raw_retract.(Forcecurve_count{i}) = NaN;
+            y_data_raw_retract.(Forcecurve_count{i}) = NaN;
+        end
         fclose('all');
     end
     
