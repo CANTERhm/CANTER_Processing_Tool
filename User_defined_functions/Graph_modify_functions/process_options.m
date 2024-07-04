@@ -16,6 +16,16 @@ if strcmp(handles.options.tip_sample_correction,'yes')
     handles.proc_curves.(c_string).x_values = handles.curves.(c_string).x_values;
 end
 
+% terminate processing if y_values or x_values are empty or scalar
+if isscalar(handles.proc_curves.(c_string).y_values) || isscalar(handles.proc_curves.(c_string).x_values) ||...
+        isempty(handles.proc_curves.(c_string).y_values) || isempty(handles.proc_curves.(c_string).x_values)
+
+    handles.baselineedges(1,1) = NaN;
+    handles.baselineedges(1,2) = NaN;
+    handles.baselineedges(1,3) = NaN;
+    return
+end
+
 % Correct the baseline by means of the elected option
 switch handles.options.bihertz_baseline
     

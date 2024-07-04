@@ -59,9 +59,15 @@ y = handles.proc_curves.(c_string).y_values*1e9;
 %Smooth the data as it is done in the BaselineFinder
 y = smoothdata(y, 'gaussian', 100);
 
-A = [x(handles.baselineedges(1,1)) y(handles.baselineedges(1,1))];
-B = [x(handles.baselineedges(1,2)) y(handles.baselineedges(1,2))];
-C = [x(handles.baselineedges(1,3)) y(handles.baselineedges(1,3))];
+if ~any(isnan(handles.baselineedges))
+    A = [x(handles.baselineedges(1,1)) y(handles.baselineedges(1,1))];
+    B = [x(handles.baselineedges(1,2)) y(handles.baselineedges(1,2))];
+    C = [x(handles.baselineedges(1,3)) y(handles.baselineedges(1,3))];
+else
+    A = [NaN,NaN];
+    B = [NaN,NaN];
+    C = [NaN,NaN];
+end
 
 % slope = ((A(2)-B(2))/(A(1)-B(1)));
 % xlim = get(gca,'XLim');
