@@ -3,7 +3,7 @@ This is the *CANTER Processing Toolbox* created using MATLAB's AppDesigner
 
 The *CANTER Processing Toolbox* is a collection of different applications for the analysis, filtering and visualization of IT-AFM experimental data.
 
-The *CANTER Processing Toolbox* currently (version 5.6.1) includes the following applications:
+The *CANTER Processing Toolbox* currently (version 5.7.0) includes the following applications:
 * Force Curve Analysis
 * R² Filtering Tool
 * Result Filtering Tool
@@ -12,7 +12,15 @@ The *CANTER Processing Toolbox* currently (version 5.6.1) includes the following
 * Sader-Method Calibration
 
 ---
+## Required MATLAB Products
 
+The following MATLAB products are required to use the *CANTER Processing Toolbox* (version 5.7.0):
+* Curve Fitting Toolbox
+* Image Processing Toolbox
+* Signal Processing Toolbox
+* Statistics and Machine Learning Toolbox
+
+---
 ## Installation Guide
 
 1. First, download the latest release of the master branch. You can do this by either clicking on *Code* (green button in the top right corner)<br>
