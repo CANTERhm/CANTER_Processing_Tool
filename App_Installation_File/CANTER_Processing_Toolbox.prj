@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.apptool" plugin-version="1.0">
-  <configuration build-checksum="1476619403" file="C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\App_Installation_File\CANTER_Processing_Toolbox.prj" location="C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\App_Installation_File" name="CANTER_Processing_Toolbox" target="target.mlapps" target-name="Package App">
+  <configuration build-checksum="1301244187" file="C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\App_Installation_File\CANTER_Processing_Toolbox.prj" location="C:\Users\Bastian\FH München\Promotion\Canterhm_Repositories\CANTER_Processing_Tool\App_Installation_File" name="CANTER_Processing_Toolbox" target="target.mlapps" target-name="Package App">
     <param.appname>CANTER_Processing_Toolbox</param.appname>
     <param.authnamewatermark>Bastian Hartmann &amp; Lutz Fleischhauer</param.authnamewatermark>
     <param.email>bastian.hartmann@gmx.de</param.email>
@@ -13,7 +13,7 @@
     <param.summary />
     <param.description>The essential tools for analyzing IT-AFM data.</param.description>
     <param.screenshot>${PROJECT_ROOT}\Screenshot_CANTER_Processing_Tool.png</param.screenshot>
-    <param.version>5.6.1</param.version>
+    <param.version>5.7.0</param.version>
     <param.products.name>
       <item>MATLAB</item>
       <item>Curve Fitting Toolbox</item>
@@ -31,12 +31,12 @@
       <item>19</item>
     </param.products.id>
     <param.products.version>
-      <item>9.14</item>
-      <item>3.9</item>
-      <item>6.7.1</item>
-      <item>11.7</item>
-      <item>9.5</item>
-      <item>12.5</item>
+      <item>24.1</item>
+      <item>24.1</item>
+      <item>24.1</item>
+      <item>24.1</item>
+      <item>24.1</item>
+      <item>24.1</item>
     </param.products.version>
     <param.platforms />
     <param.output>${PROJECT_ROOT}</param.output>
@@ -132,7 +132,7 @@
     </build-deliverables>
     <workflow />
     <matlab>
-      <root>C:\Program Files\MATLAB\R2023a</root>
+      <root>C:\Program Files\MATLAB\R2024a</root>
       <toolboxes>
         <toolbox name="matlabcoder" />
         <toolbox name="embeddedcoder" />
