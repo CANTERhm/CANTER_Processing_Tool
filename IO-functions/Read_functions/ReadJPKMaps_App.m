@@ -45,9 +45,16 @@ end
 
 % wbar = waitbar(0,'Please wait till the jpk-force-map is unpacked');
 wbar = uiprogressdlg(app.figure1,"Indeterminate","on","Message","Unpacking JPK-Force Map ...","Title","Loading Procedure");
-zipname = split(filename,'.jpk-force-map');
-zipname = cell2mat(zipname);
-zipfile = strcat(zipname,'.zip');
+
+% Deprecated code that is not working anymore
+% -------------------------------------------------------------------------
+% zipname = split(filename,'.jpk-force-map');
+% zipname = cell2mat(zipname);
+% zipfile = strcat(zipname,'.zip');
+% -------------------------------------------------------------------------
+
+zipfile = strrep(filename,".jpk-force-map",".zip");
+zipname = strrep(zipfile,".zip","");
 mappath = fullfile(pathname, filename);
 zippath = fullfile(pathname, zipfile);
 copyfile (mappath, zippath);
