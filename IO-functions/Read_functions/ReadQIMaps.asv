@@ -56,7 +56,7 @@ function [x_data,y_data, x_data_retract, y_data_retract, Forcecurve_count, varar
         end
     end
     
-    % Deprecated code that is not working anymore
+    % Deprecated code that is not functional anymore
     % ---------------------------------------------------------------------
     % zipname = split(filename,'.jpk-qi-data');
     % zipname = cell2mat(zipname);
